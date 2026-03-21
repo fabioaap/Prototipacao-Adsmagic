@@ -1,0 +1,23 @@
+{
+  "name": "prototipacao-adsmagic",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:fo": "npm run dev --prefix Plataforma",
+    "predev:all": "powershell -Command \"Get-NetTCPConnection -LocalPort 5173,5174 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\"",
+    "dev:all": "concurrently --kill-others-on-fail -n ROOT,PLATAFORMA -c blue,green \"vite --port 5173\" \"npm run dev --prefix Plataforma\"",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.5.22",
+    "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.4",
+    "concurrently": "^9.2.1",
+    "vite": "^7.3.1"
+  }
+}
