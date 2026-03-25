@@ -16,51 +16,53 @@ const router = createRouter({
         },
         {
           path: 'dashboard',
-          name: 'dashboard',
-          component: () => import('@/views/dashboard/DashboardView.vue'),
-          meta: { title: 'Dashboard' }
+          redirect: { name: 'home' }
         },
         {
-          path: 'contacts',
-          name: 'contacts',
-          component: () => import('@/views/contacts/ContactsView.vue'),
-          meta: { title: 'Contatos' }
+          path: 'rotas',
+          name: 'rotas',
+          component: () => import('@/views/tracking/TrackingView.vue'),
+          meta: { title: 'Rotas' }
+        },
+        {
+          path: 'kanban',
+          name: 'kanban',
+          component: () => import('@/views/sales/SalesView.vue'),
+          meta: { title: 'Kanban' }
         },
         {
           path: 'sales',
-          name: 'sales',
-          component: () => import('@/views/sales/SalesView.vue'),
-          meta: { title: 'Vendas' }
+          redirect: { name: 'kanban' }
+        },
+        {
+          path: 'contacts',
+          redirect: { name: 'home' }
         },
         {
           path: 'campaigns',
-          name: 'campaigns',
-          component: () => import('@/views/campaigns/CampaignsView.vue'),
-          meta: { title: 'Campanhas' }
+          redirect: { name: 'home' }
         },
         {
           path: 'tracking',
-          name: 'tracking',
-          component: () => import('@/views/tracking/TrackingView.vue'),
-          meta: { title: 'Links Rastreáveis' }
+          redirect: { name: 'rotas' }
         },
         {
           path: 'integrations',
-          name: 'integrations',
-          component: () => import('@/views/integrations/IntegrationsView.vue'),
-          meta: { title: 'Integrações' }
+          redirect: { name: 'home' }
         },
         {
           path: 'messages',
-          name: 'messages',
-          component: () => import('@/views/messages/MessagesView.vue'),
-          meta: { title: 'Mensagens' }
+          redirect: { name: 'home' }
+        },
+        {
+          path: 'wiki',
+          name: 'wiki',
+          component: () => import('@/views/wiki/WikiView.vue'),
+          meta: { title: 'Wiki' }
         },
         {
           path: 'settings',
-          name: 'settings',
-          component: () => import('@/views/settings/SettingsView.vue'),
-          meta: { title: 'Configurações' }
+          redirect: { name: 'home' }
         },
       ]
     }

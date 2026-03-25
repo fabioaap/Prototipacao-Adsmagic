@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adsmagic Annotation Cards</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --surface: #ffffff;
+        --ink: #09162f;
+        --muted: #59708d;
+        --line: #d7e2f0;
+        --accent: #0f172a;
+        --accent-soft: #eff4fb;
+        --tag: #dbeafe;
+        --shadow: 0 24px 80px rgba(15, 23, 42, 0.16);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Aptos, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 28%),
+          linear-gradient(180deg, #f9fbfd 0%, var(--bg) 100%);
+        color: var(--ink);
+      }
+
+      main {
+        width: 1320px;
+        margin: 0 auto;
+        padding: 56px 0 80px;
+      }
+
+      .card {
+        width: 1240px;
+        margin: 0 auto 64px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,250,253,0.98));
+        border: 1px solid rgba(215, 226, 240, 0.85);
+        border-radius: 32px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .header {
+        padding: 28px 32px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: flex-start;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: #29405d;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 14px 0 10px;
+        font-size: 36px;
+        line-height: 1.04;
+      }
+
+      .subtitle {
+        max-width: 720px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.45;
+      }
+
+      .tag {
+        min-width: 250px;
+        padding: 18px 20px;
+        border-radius: 24px;
+        background: linear-gradient(180deg, #f8fbff, #eef5ff);
+        border: 1px solid #d9e7ff;
+        color: #23456b;
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      .content {
+        padding: 28px 32px 34px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+        align-items: start;
+      }
+
+      .shot-wrap {
+        position: relative;
+        align-self: start;
+        padding: 22px;
+        border-radius: 28px;
+        background: linear-gradient(180deg, #f8fbfe, #edf3fa);
+        border: 1px solid #dde8f5;
+      }
+
+      .shot {
+        display: block;
+        width: 100%;
+        border-radius: 18px;
+        border: 1px solid #d8e1ee;
+        box-shadow: 0 16px 50px rgba(15, 23, 42, 0.16);
+      }
+
+      .marker {
+        position: absolute;
+        width: 34px;
+        height: 34px;
+        margin-left: -17px;
+        margin-top: -17px;
+        border-radius: 999px;
+        border: 3px solid #fff;
+        background: var(--accent);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 16px;
+        font-weight: 800;
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.28);
+      }
+
+      .legend {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .legend-item {
+        padding: 18px 18px 16px;
+        border-radius: 22px;
+        background: #fff;
+        border: 1px solid #deebf8;
+      }
+
+      .legend-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      .legend-num {
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        display: grid;
+        place-items: center;
+      }
+
+      .legend p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="card" id="dashboard-filtros-card">
+        <div class="header">
+          <div>
+            <div class="eyebrow">Dashboard</div>
+            <h1>Barra de filtros do Dashboard</h1>
+            <p class="subtitle">Este bloco controla o recorte analítico do painel inteiro. Qualquer mudança aqui altera os cards, gráficos e comparativos logo abaixo.</p>
+          </div>
+          <div class="tag">Uso recomendado: mostrar esta imagem antes dos gráficos, porque ela explica por que os números da tela mudam de contexto.</div>
+        </div>
+        <div class="content">
+          <div class="shot-wrap">
+            <img class="shot" src="/img/screens/adsmagic/dashboard-filtros-v2.png" alt="Barra de filtros do dashboard" />
+            <div class="marker" style="left: 16%; top: 59%;">1</div>
+            <div class="marker" style="left: 51%; top: 59%;">2</div>
+            <div class="marker" style="left: 77%; top: 59%;">3</div>
+            <div class="marker" style="left: 92%; top: 59%;">4</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">1</span> Período</div><p>Define a janela temporal usada em todo o dashboard. É a primeira referência de leitura da página.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">2</span> Origens</div><p>Restringe a análise a um canal ou mantém a visão consolidada com “Todas Origens”.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">3</span> Comparar</div><p>Ativa o comparativo entre períodos, útil para identificar variação de desempenho.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">4</span> Exportar</div><p>Gera a saída dos dados já respeitando o filtro ativo.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="dashboard-northstar-card">
+        <div class="header">
+          <div>
+            <div class="eyebrow">Dashboard</div>
+            <h1>Bloco North Star</h1>
+            <p class="subtitle">Este é o resumo executivo do projeto. A leitura aqui responde rapidamente quanto foi investido, quanto retornou e qual foi a eficiência comercial do período.</p>
+          </div>
+          <div class="tag">Uso recomendado: imagem ideal para documentação executiva, porque concentra os indicadores mais importantes.</div>
+        </div>
+        <div class="content">
+          <div class="shot-wrap">
+            <img class="shot" src="/img/screens/adsmagic/dashboard-northstar-v2.png" alt="North Star do dashboard" />
+            <div class="marker" style="left: 17%; top: 45%;">1</div>
+            <div class="marker" style="left: 51%; top: 45%;">2</div>
+            <div class="marker" style="left: 17%; top: 78%;">3</div>
+            <div class="marker" style="left: 51%; top: 78%;">4</div>
+            <div class="marker" style="left: 89%; top: 17%;">5</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">1</span> Gastos em anúncios</div><p>Total investido em mídia no período filtrado.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">2</span> Receita</div><p>Receita atribuída às campanhas e origens monitoradas.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">3</span> Vendas</div><p>Quantidade de negócios concluídos no período.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">4</span> Taxa de vendas</div><p>Indicador de eficiência comercial, relacionando vendas e contatos.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">5</span> Drill-down</div><p>Botão para abrir a análise detalhada das métricas mostradas no resumo.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="contatos-lista-card">
+        <div class="header">
+          <div>
+            <div class="eyebrow">Contatos</div>
+            <h1>Lista principal do CRM</h1>
+            <p class="subtitle">A visão em lista é a mais útil para operação diária. Ela concentra busca, filtros, troca de visualização e a tabela paginada em um único fluxo.</p>
+          </div>
+          <div class="tag">Uso recomendado: explicar a operação do time comercial, especialmente filtros e leitura rápida de estágio.</div>
+        </div>
+        <div class="content">
+          <div class="shot-wrap">
+            <img class="shot" src="/img/screens/adsmagic/contatos-lista-v2.png" alt="Lista de contatos" />
+            <div class="marker" style="left: 11%; top: 11%;">1</div>
+            <div class="marker" style="left: 28%; top: 11%;">2</div>
+            <div class="marker" style="left: 62%; top: 11%;">3</div>
+            <div class="marker" style="left: 88%; top: 11%;">4</div>
+            <div class="marker" style="left: 86%; top: 33%;">5</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">1</span> Busca</div><p>Pesquisa rápida por nome, e-mail ou telefone.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">2</span> Modos de visualização</div><p>Alterna entre lista e kanban sem sair do módulo.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">3</span> Filtros operacionais</div><p>Agrupa filtros avançados e exportação do recorte atual.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">4</span> Criar contato</div><p>Atalho primário para cadastrar um novo lead.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">5</span> Etapa do funil</div><p>Badge visual que mostra o estágio atual de cada contato.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="contatos-kanban-card">
+        <div class="header">
+          <div>
+            <div class="eyebrow">Contatos</div>
+            <h1>Kanban por etapa do funil</h1>
+            <p class="subtitle">Esta visão evidencia a progressão do pipeline comercial. Cada coluna representa um estágio e cada card mostra contexto mínimo para tomada de ação.</p>
+          </div>
+          <div class="tag">Uso recomendado: ótima imagem para explicar organização do funil e trabalho por estágio.</div>
+        </div>
+        <div class="content">
+          <div class="shot-wrap">
+            <img class="shot" src="/img/screens/adsmagic/contatos-kanban-v2.png" alt="Kanban de contatos" />
+            <div class="marker" style="left: 12%; top: 21%;">1</div>
+            <div class="marker" style="left: 27%; top: 34%;">2</div>
+            <div class="marker" style="left: 56%; top: 21%;">3</div>
+            <div class="marker" style="left: 82%; top: 76%;">4</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">1</span> Coluna do estágio</div><p>Cada coluna representa uma etapa do funil com a quantidade total de contatos ali.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">2</span> Card de contato</div><p>Mostra nome, telefone, origem e data para ação rápida sem abrir detalhe.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">3</span> Segunda etapa</div><p>Facilita enxergar gargalos ou excesso de volume em um ponto específico do funil.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">4</span> Navegação horizontal</div><p>Permite percorrer todos os estágios quando o funil é mais longo.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="vendas-tabela-card">
+        <div class="header">
+          <div>
+            <div class="eyebrow">Vendas</div>
+            <h1>Tabela operacional de vendas</h1>
+            <p class="subtitle">Esta visão consolida os registros financeiros com identificação do contato, origem da venda e status operacional do negócio.</p>
+          </div>
+          <div class="tag">Uso recomendado: útil para documentar operação financeira e auditoria comercial.</div>
+        </div>
+        <div class="content">
+          <div class="shot-wrap">
+            <img class="shot" src="/img/screens/adsmagic/vendas-tabela-v2.png" alt="Tabela de vendas" />
+            <div class="marker" style="left: 13%; top: 14%;">1</div>
+            <div class="marker" style="left: 36%; top: 14%;">2</div>
+            <div class="marker" style="left: 63%; top: 14%;">3</div>
+            <div class="marker" style="left: 81%; top: 14%;">4</div>
+            <div class="marker" style="left: 91%; top: 22%;">5</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">1</span> Identificador</div><p>ID único da venda para consulta e rastreabilidade.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">2</span> Contato</div><p>Exibe o cliente vinculado e seu telefone.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">3</span> Valor e data</div><p>Mostra o valor da venda e quando ela foi registrada.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">4</span> Origem</div><p>Canal que originou a conversão, importante para atribuição.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">5</span> Status e edição</div><p>Indica se a venda foi realizada e oferece atalho de edição.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="integracoes-site-card">
+        <div class="header">
+          <div>
+            <div class="eyebrow">Integrações</div>
+            <h1>Aba Site e Tag de rastreamento</h1>
+            <p class="subtitle">Esta área documenta como o projeto passa a medir conversões e eventos no site do cliente. Ela mistura configuração técnica e status de instalação.</p>
+          </div>
+          <div class="tag">Uso recomendado: esta imagem reduz ambiguidade para onboarding técnico e instalação da tag.</div>
+        </div>
+        <div class="content">
+          <div class="shot-wrap">
+            <img class="shot" src="/img/screens/adsmagic/integracoes-site-v2.png" alt="Integrações Site" />
+            <div class="marker" style="left: 49%; top: 14%;">1</div>
+            <div class="marker" style="left: 85%; top: 25%;">2</div>
+            <div class="marker" style="left: 80%; top: 39%;">3</div>
+            <div class="marker" style="left: 19%; top: 56%;">4</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">1</span> Abas do módulo</div><p>Separação entre Site, Canais e Anúncios dentro do mesmo fluxo de integração.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">2</span> Status da tag</div><p>Mostra se o snippet está instalado ou ainda pendente.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">3</span> Ação de copiar</div><p>Facilita a transferência do código para instalação no site.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">4</span> Snippet técnico</div><p>Código a ser inserido no site para ativar rastreamento e identificação do projeto.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="settings-origens-card">
+        <div class="header">
+          <div>
+            <div class="eyebrow">Configurações</div>
+            <h1>Gestão de origens de contato</h1>
+            <p class="subtitle">Esta área controla os canais de aquisição usados em filtros, relatórios e regras de atribuição do produto.</p>
+          </div>
+          <div class="tag">Uso recomendado: imagem importante para explicar governança de dados e consistência das origens.</div>
+        </div>
+        <div class="content">
+          <div class="shot-wrap">
+            <img class="shot" src="/img/screens/adsmagic/settings-origens-lista-v2.png" alt="Configurações de origens" />
+            <div class="marker" style="left: 51%; top: 13%;">1</div>
+            <div class="marker" style="left: 84%; top: 13%;">2</div>
+            <div class="marker" style="left: 21%; top: 31%;">3</div>
+            <div class="marker" style="left: 19%; top: 56%;">4</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">1</span> Ações globais</div><p>Exportar, importar, seleção em lote e criação de nova origem.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">2</span> Nova origem</div><p>CTA principal para cadastrar um novo canal de aquisição.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">3</span> Regras e limites</div><p>Bloco explicativo com restrições do sistema e comportamento do módulo.</p></div>
+            <div class="legend-item"><div class="legend-head"><span class="legend-num">4</span> Lista de origens</div><p>Exibe origem, tipo, quantidade de contatos e se o item é editável.</p></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

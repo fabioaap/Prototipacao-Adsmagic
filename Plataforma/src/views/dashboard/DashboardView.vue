@@ -12,48 +12,61 @@ const maxRevenue = computed(() => Math.max(...store.revenueByMonth.map(m => m.va
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Metric cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total de Leads</p>
-        <p class="mt-2 text-3xl font-bold text-gray-900">{{ store.metrics.totalLeads }}</p>
-        <p class="mt-1 text-xs text-green-600 font-medium">+{{ store.metrics.leadsThisMonth }} este mês</p>
+  <div class="space-y-8">
+    <section class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Visão executiva</p>
+        <h2 class="mt-2 text-2xl font-semibold tracking-tight text-zinc-50">Dashboard de conversão</h2>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+          Acompanhe volume, receita e eficiência do funil em uma superfície mais analítica e alinhada à nova interface.
+        </p>
       </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Taxa de Conversão</p>
-        <p class="mt-2 text-3xl font-bold text-gray-900">{{ store.metrics.conversionRate }}%</p>
-        <p class="mt-1 text-xs text-gray-400">{{ store.metrics.activeDeals }} negócios ativos</p>
+      <div class="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-4 py-3 text-sm text-zinc-400">
+        Ticket médio <span class="font-semibold text-zinc-100">{{ formatCurrency(store.metrics.avgDealValue) }}</span>
       </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Receita Total</p>
-        <p class="mt-2 text-3xl font-bold text-gray-900">{{ formatCurrency(store.metrics.totalRevenue) }}</p>
-        <p class="mt-1 text-xs text-green-600 font-medium">{{ formatCurrency(store.metrics.revenueThisMonth) }} este mês</p>
+    </section>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-3xl border border-zinc-800 bg-zinc-900/72 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Total de Leads</p>
+        <p class="mt-3 text-3xl font-semibold tracking-tight text-zinc-50">{{ store.metrics.totalLeads }}</p>
+        <p class="mt-2 text-xs font-medium text-emerald-300">+{{ store.metrics.leadsThisMonth }} este mês</p>
       </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">ROI Médio</p>
-        <p class="mt-2 text-3xl font-bold text-primary-600">{{ store.metrics.roi }}%</p>
-        <p class="mt-1 text-xs text-gray-400">Ticket médio {{ formatCurrency(store.metrics.avgDealValue) }}</p>
+      <div class="rounded-3xl border border-zinc-800 bg-zinc-900/72 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Taxa de Conversão</p>
+        <p class="mt-3 text-3xl font-semibold tracking-tight text-zinc-50">{{ store.metrics.conversionRate }}%</p>
+        <p class="mt-2 text-xs text-zinc-500">{{ store.metrics.activeDeals }} negócios ativos</p>
+      </div>
+      <div class="rounded-3xl border border-zinc-800 bg-zinc-900/72 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Receita Total</p>
+        <p class="mt-3 text-3xl font-semibold tracking-tight text-zinc-50">{{ formatCurrency(store.metrics.totalRevenue) }}</p>
+        <p class="mt-2 text-xs font-medium text-emerald-300">{{ formatCurrency(store.metrics.revenueThisMonth) }} este mês</p>
+      </div>
+      <div class="rounded-3xl border border-primary-500/20 bg-primary-500/8 p-5 shadow-[0_12px_30px_rgba(76,29,149,0.12)]">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-200/70">ROI Médio</p>
+        <p class="mt-3 text-3xl font-semibold tracking-tight text-primary-200">{{ store.metrics.roi }}%</p>
+        <p class="mt-2 text-xs text-primary-200/70">Ticket médio {{ formatCurrency(store.metrics.avgDealValue) }}</p>
       </div>
     </div>
 
-    <!-- Charts row -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Leads by origin -->
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="text-sm font-semibold text-gray-700 mb-5">Leads por Origem</h3>
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div class="rounded-3xl border border-zinc-800 bg-zinc-900/72 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <div class="mb-5 flex items-center justify-between gap-4">
+          <h3 class="text-sm font-semibold text-zinc-200">Leads por Origem</h3>
+          <span class="text-xs uppercase tracking-[0.2em] text-zinc-500">Distribuição</span>
+        </div>
         <div class="space-y-4">
           <div v-for="item in store.leadsByOrigin" :key="item.origin">
             <div class="flex items-center justify-between mb-1">
-              <span class="text-sm text-gray-700 font-medium">{{ item.origin }}</span>
+              <span class="text-sm font-medium text-zinc-300">{{ item.origin }}</span>
               <div class="flex items-center gap-3">
-                <span class="text-sm font-bold text-gray-900">{{ item.count }}</span>
-                <span class="text-xs text-gray-400 w-10 text-right">{{ item.percentage }}%</span>
+                <span class="text-sm font-bold text-zinc-100">{{ item.count }}</span>
+                <span class="w-10 text-right text-xs text-zinc-500">{{ item.percentage }}%</span>
               </div>
             </div>
-            <div class="w-full bg-gray-100 rounded-full h-2">
+            <div class="h-2 w-full rounded-full bg-zinc-800">
               <div
-                class="bg-primary-500 h-2 rounded-full transition-all"
+                class="h-2 rounded-full bg-gradient-to-r from-primary-400 to-cyan-400 transition-all"
                 :style="{ width: item.percentage + '%' }"
               ></div>
             </div>
@@ -61,23 +74,25 @@ const maxRevenue = computed(() => Math.max(...store.revenueByMonth.map(m => m.va
         </div>
       </div>
 
-      <!-- Revenue bar chart -->
-      <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="text-sm font-semibold text-gray-700 mb-5">Receita por Mês (R$)</h3>
-        <div class="flex items-end gap-2 h-36">
+      <div class="rounded-3xl border border-zinc-800 bg-zinc-900/72 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <div class="mb-5 flex items-center justify-between gap-4">
+          <h3 class="text-sm font-semibold text-zinc-200">Receita por Mês</h3>
+          <span class="text-xs uppercase tracking-[0.2em] text-zinc-500">R$ acumulado</span>
+        </div>
+        <div class="flex h-40 items-end gap-3">
           <div
             v-for="item in store.revenueByMonth"
             :key="item.month"
-            class="flex-1 flex flex-col items-center gap-1 h-full justify-end"
+            class="flex h-full flex-1 flex-col items-center justify-end gap-2"
           >
-            <span class="text-xs text-gray-400 text-center leading-tight" style="font-size: 10px">
+            <span class="text-center text-[10px] leading-tight text-zinc-500">
               {{ (item.value / 1000).toFixed(1) }}k
             </span>
             <div
-              class="w-full bg-primary-500 rounded-t-md hover:bg-primary-600 transition-colors"
+              class="w-full rounded-t-2xl bg-gradient-to-t from-primary-700 via-primary-500 to-cyan-400 transition-all hover:brightness-110"
               :style="{ height: (item.value / maxRevenue * 100) + '%' }"
             ></div>
-            <span class="text-xs text-gray-500 font-medium">{{ item.month }}</span>
+            <span class="text-xs font-medium text-zinc-400">{{ item.month }}</span>
           </div>
         </div>
       </div>

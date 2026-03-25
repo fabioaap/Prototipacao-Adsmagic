@@ -7,17 +7,29 @@
     box-sizing: border-box;
   }
 
+  html {
+    @apply bg-zinc-950;
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 font-sans;
+    @apply bg-zinc-950 text-zinc-100 font-sans antialiased;
+  }
+
+  #app {
+    min-height: 100vh;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-gray-100;
+    @apply bg-zinc-950;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full;
+    @apply rounded-full bg-zinc-800;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-zinc-700;
   }
 }

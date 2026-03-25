@@ -13,58 +13,62 @@ function stageTotal(stageId: string) {
 </script>
 
 <template>
-  <div>
-    <div class="mb-4 flex items-center gap-4">
-      <p class="text-sm text-gray-500">
-        Pipeline ativo:
-        <span class="font-semibold text-gray-900">{{ formatCurrency(store.totalPipelineValue) }}</span>
-      </p>
-    </div>
+  <div class="space-y-6">
+    <section class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Quadro operacional</p>
+        <h2 class="mt-2 text-2xl font-semibold tracking-tight text-zinc-50">Kanban de oportunidades</h2>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+          Visualize o valor em aberto, a densidade por estágio e o contexto de cada oportunidade em um quadro kanban contínuo.
+        </p>
+      </div>
+      <div class="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-4 py-3 text-sm text-zinc-400">
+        Total em aberto:
+        <span class="font-semibold text-zinc-100">{{ formatCurrency(store.totalPipelineValue) }}</span>
+      </div>
+    </section>
 
-    <div class="flex gap-3 overflow-x-auto pb-4">
+    <div class="flex gap-4 overflow-x-auto pb-4">
       <div
         v-for="stage in store.stages"
         :key="stage.id"
-        class="flex-none w-56"
+        class="w-72 flex-none"
       >
-        <!-- Stage header -->
-        <div class="flex items-center justify-between mb-2 px-1">
+        <div class="mb-3 flex items-center justify-between px-1">
           <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: stage.color }"></div>
-            <span class="text-xs font-semibold text-gray-700">{{ stage.name }}</span>
+            <div class="h-2.5 w-2.5 shrink-0 rounded-full" :style="{ backgroundColor: stage.color }"></div>
+            <span class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">{{ stage.name }}</span>
           </div>
-          <span class="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
+          <span class="rounded-full border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-zinc-500">
             {{ store.getSalesByStage(stage.id).length }}
           </span>
         </div>
 
-        <!-- Cards column -->
-        <div class="space-y-2 min-h-48 bg-gray-100 rounded-xl p-2">
+        <div class="min-h-48 space-y-3 rounded-3xl border border-zinc-800 bg-zinc-900/72 p-3 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
           <div
             v-for="sale in store.getSalesByStage(stage.id)"
             :key="sale.id"
-            class="bg-white rounded-lg border border-gray-200 p-3 shadow-sm hover:shadow-md transition-shadow cursor-default"
+            class="cursor-default rounded-2xl border border-zinc-800 bg-zinc-950/90 p-4 transition-all hover:border-zinc-700 hover:bg-zinc-950"
           >
-            <p class="text-xs font-semibold text-gray-800 truncate">{{ sale.contactName }}</p>
-            <p class="text-xs text-gray-500 mt-0.5 truncate">{{ sale.title }}</p>
-            <div class="mt-2 flex items-center justify-between">
+            <p class="truncate text-sm font-semibold text-zinc-100">{{ sale.contactName }}</p>
+            <p class="mt-1 truncate text-xs text-zinc-500">{{ sale.title }}</p>
+            <div class="mt-3 flex items-center justify-between">
               <span class="text-xs font-bold text-primary-600">{{ formatCurrency(sale.value) }}</span>
-              <span class="text-xs text-gray-400">{{ sale.probability }}%</span>
+              <span class="text-xs text-zinc-500">{{ sale.probability }}%</span>
             </div>
-            <div class="mt-1.5">
-              <span class="text-xs text-gray-400 bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">
+            <div class="mt-2.5">
+              <span class="rounded-full border border-zinc-800 bg-zinc-900 px-2 py-1 text-xs text-zinc-400">
                 {{ sale.origin }}
               </span>
             </div>
           </div>
-          <div v-if="store.getSalesByStage(stage.id).length === 0" class="py-6 text-center text-xs text-gray-300">
+          <div v-if="store.getSalesByStage(stage.id).length === 0" class="py-8 text-center text-xs text-zinc-600">
             Sem oportunidades
           </div>
         </div>
 
-        <!-- Stage total -->
-        <div v-if="stageTotal(stage.id) > 0" class="mt-1.5 px-1 text-xs text-gray-500">
-          Total: <span class="font-medium">{{ formatCurrency(stageTotal(stage.id)) }}</span>
+        <div v-if="stageTotal(stage.id) > 0" class="mt-2 px-1 text-xs text-zinc-500">
+          Total: <span class="font-medium text-zinc-300">{{ formatCurrency(stageTotal(stage.id)) }}</span>
         </div>
       </div>
     </div>

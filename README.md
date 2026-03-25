@@ -32,6 +32,9 @@ npm install
 
 # No Plataforma
 npm install --prefix Plataforma
+
+# No portal de documentacao
+npm run docs:install
 ```
 
 ### Desenvolvimento
@@ -42,9 +45,17 @@ npm run dev
 
 # Plataforma standalone (porta 5174)
 npm run dev:fo
+
+# Portal de documentacao Docusaurus (porta 3000)
+npm run docs:dev
+
+# App e documentacao lado a lado
+npm run dev:with-docs
 ```
 
 Acesse: **http://localhost:5173**
+
+Documentacao: **http://localhost:3000**
 
 ---
 
@@ -52,6 +63,7 @@ Acesse: **http://localhost:5173**
 
 ```
 Prototipacao-Adsmagic/
+├── docs/                   # Portal Docusaurus da documentacao
 ├── Plataforma/             # App Vue 3
 │   ├── src/
 │   │   ├── components/
@@ -70,19 +82,30 @@ Prototipacao-Adsmagic/
 
 ---
 
+## Documentacao
+
+O projeto agora possui um portal Docusaurus isolado em `docs/` para organizar setup, arquitetura, jornadas e fluxo de prototipacao.
+
+```bash
+# build do portal
+npm run docs:build
+
+# servir build estatico do portal
+npm run docs:serve
+```
+
+Use o Docusaurus para registrar mudancas estruturais do Adsmagic. A tela `/wiki` do prototipo continua separada e nao foi substituida por este portal.
+
+---
+
 ## Módulos Disponíveis
 
 | Módulo | Rota | Descrição |
 |--------|------|-----------|
-| 🏠 Início | `/` | Hub de navegação entre módulos |
-| 📊 Dashboard | `/dashboard` | Métricas, ROI, leads por origem, receita por mês |
-| 👥 Contatos | `/contacts` | Base de leads com busca e filtro por status |
-| 💰 Vendas | `/sales` | Funil Kanban com oportunidades por etapa |
-| 📣 Campanhas | `/campaigns` | Tabela de campanhas Meta/Google com CPL |
-| 🔗 Links Rastreáveis | `/tracking` | UTMs e links curtos com métricas de cliques |
-| 🔌 Integrações | `/integrations` | Status de conexão Meta, Google, WhatsApp, TikTok |
-| 💬 Mensagens | `/messages` | Chat mockado com lista de conversas |
-| ⚙️ Configurações | `/settings` | Tabs: Geral, Origens, Etapas do funil |
+| 🏠 Início | `/` | Home orientada por jornadas ponta a ponta |
+| 🗺️ Rotas | `/rotas` | Mapa de rotas e sitemap com leitura estrutural do produto |
+| 🧩 Kanban | `/kanban` | Quadro operacional de oportunidades por etapa |
+| 📚 Wiki | `/wiki` | Base enxuta de alinhamento e referências do protótipo |
 
 ---
 
