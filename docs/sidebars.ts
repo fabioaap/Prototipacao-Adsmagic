@@ -42,6 +42,18 @@ const sidebars: SidebarsConfig = {
           label: 'Operacao',
           items: ['jornadas', 'workflow/prototipacao'],
         },
+        {
+          type: 'category',
+          label: 'Stories',
+          items: [
+            'stories/story-contacts',
+            'stories/story-campaigns',
+            'stories/story-integrations',
+            'stories/story-messages',
+            'stories/story-settings',
+            'stories/antitese',
+          ],
+        },
       ],
     },
   ],
