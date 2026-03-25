@@ -36,11 +36,15 @@ const router = createRouter({
         },
         {
           path: 'contacts',
-          redirect: { name: 'home' }
+          name: 'contacts',
+          component: () => import('@/views/contacts/ContactsView.vue'),
+          meta: { title: 'Contatos' }
         },
         {
           path: 'campaigns',
-          redirect: { name: 'home' }
+          name: 'campaigns',
+          component: () => import('@/views/campaigns/CampaignsView.vue'),
+          meta: { title: 'Campanhas' }
         },
         {
           path: 'tracking',
@@ -48,7 +52,9 @@ const router = createRouter({
         },
         {
           path: 'integrations',
-          redirect: { name: 'home' }
+          name: 'integrations',
+          component: () => import('@/views/integrations/IntegrationsView.vue'),
+          meta: { title: 'Integrações' }
         },
         {
           path: 'messages',

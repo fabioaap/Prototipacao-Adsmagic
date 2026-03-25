@@ -11,7 +11,7 @@ type RouteNodeData = {
 const props = defineProps<NodeProps<RouteNodeData>>()
 
 function openRoute() {
-  window.open(`http://localhost:5200${props.data.path}`, '_blank', 'noopener,noreferrer')
+  window.open(`${window.location.origin}${props.data.path}`, '_blank', 'noopener,noreferrer')
 }
 </script>
 

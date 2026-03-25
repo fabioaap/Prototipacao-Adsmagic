@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { RouterLink, useRoute } from 'vue-router'
-import {
-  BookOpen,
-  LayoutGrid,
-  Link2,
-  PanelsTopLeft,
-  Sparkles,
-} from 'lucide-vue-next'
+import { BookOpen, LayoutGrid, Link2, PanelsTopLeft, Sparkles, Users, Target, Plug } from 'lucide-vue-next'
 
 const route = useRoute()
 
@@ -18,6 +12,9 @@ const navGroups = [
       { to: '/rotas', label: 'Rotas', icon: Link2 },
       { to: '/kanban', label: 'Kanban', icon: PanelsTopLeft },
       { to: '/wiki', label: 'Wiki', icon: BookOpen },
+      { to: '/contacts', label: 'Contatos', icon: Users },
+      { to: '/campaigns', label: 'Campanhas', icon: Target },
+      { to: '/integrations', label: 'Integrações', icon: Plug },
     ]
   }
 ]
@@ -77,7 +74,7 @@ function isActive(item: { to: string; exact?: boolean }) {
     <div class="border-t border-zinc-900 px-6 py-5">
       <div class="rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3">
         <p class="text-xs font-medium text-zinc-300">Escopo atual</p>
-        <p class="mt-1 text-xs text-zinc-500">Visão geral, rotas, kanban e wiki reunidos no menu principal.</p>
+        <p class="mt-1 text-xs text-zinc-500">Navegação completa: início, rotas, kanban, wiki, contatos, campanhas e integrações.</p>
       </div>
     </div>
   </aside>
