@@ -2,8 +2,26 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '@/components/layout/AppLayout.vue'
 
 const router = createRouter({
-  history: createWebHistory('/'),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/cadastro',
+      name: 'cadastro',
+      component: () => import('@/views/auth/CadastroView.vue'),
+      meta: { title: 'Criar conta — Adsmagic' }
+    },
+    {
+      path: '/lp/agencias',
+      name: 'lp-agencias',
+      component: () => import('@/views/landing/AgenciasLandingView.vue'),
+      meta: { title: 'Adsmagic para Agências' }
+    },
+    {
+      path: '/deck/agencias',
+      name: 'deck-agencias',
+      component: () => import('@/views/deck/DeckAgenciasView.vue'),
+      meta: { title: 'Adsmagic — One-Pager Comercial' }
+    },
     {
       path: '/',
       component: AppLayout,
@@ -57,19 +75,43 @@ const router = createRouter({
           meta: { title: 'Integrações' }
         },
         {
+          path: 'journeys/:journeyId',
+          name: 'journey-experience',
+          component: () => import('@/views/journeys/JourneyExperienceView.vue'),
+          meta: { title: 'Jornada' }
+        },
+        {
           path: 'messages',
           redirect: { name: 'home' }
         },
         {
           path: 'wiki',
           name: 'wiki',
-          component: () => import('@/views/wiki/WikiView.vue'),
+          component: () => import('@/views/wiki/WikiRedirectView.vue'),
           meta: { title: 'Wiki' }
         },
         {
           path: 'settings',
           redirect: { name: 'home' }
         },
+        ...(import.meta.env.DEV ? [{
+          path: 'styleguide',
+          component: () => import('@/views/styleguide/DesignSystemLayout.vue'),
+          meta: { title: 'Design System' },
+          children: [
+            {
+              path: '',
+              name: 'ds-hub',
+              component: { render: () => null },
+            },
+            {
+              path: ':slug+',
+              name: 'ds-page',
+              component: () => import('@/views/styleguide/DsPageResolver.vue'),
+              meta: { title: 'Design System' },
+            },
+          ],
+        }] : []),
       ]
     }
   ]
@@ -77,7 +119,7 @@ const router = createRouter({
 
 router.afterEach((to) => {
   const title = to.meta?.title as string
-  document.title = title ? `${title} — Adsmagic Proto` : 'Adsmagic Proto'
+  document.title = title ? `${title} — Adsmagic Workspace` : 'Adsmagic Workspace'
 })
 
 export default router
