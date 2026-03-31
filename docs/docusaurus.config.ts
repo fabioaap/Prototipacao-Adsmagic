@@ -18,7 +18,7 @@ const config: Config = {
     v4: true,
   },
   url: process.env.WORKSPACE_URL || 'https://fabioaap.github.io',
-  baseUrl: process.env.CI ? '/Prototipacao-Adsmagic/' : '/',
+  baseUrl: process.env.CI ? '/Prototipacao-Adsmagic/wiki/' : '/',
   onBrokenLinks: 'throw',
   markdown: {
     mermaid: true,

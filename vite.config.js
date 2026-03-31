@@ -4,6 +4,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { findAvailablePort } from './vite.port-range.js'
 
 const pkg = JSON.parse(readFileSync(new URL('./Plataforma/package.json', import.meta.url), 'utf8'))
 
@@ -24,9 +25,17 @@ function gitInfo() {
 
 const { branch, sha } = gitInfo()
 
-export default defineConfig(({ command }) => ({
+export default defineConfig(async ({ command }) => {
+  const server = command === 'serve'
+    ? {
+        port: await findAvailablePort(),
+        open: true,
+      }
+    : undefined
+
+  return {
   root: './Plataforma',
-  base: command === 'build' ? '/' : '/',
+  base: (command === 'build' && process.env.CI) ? '/Prototipacao-Adsmagic/' : '/',
   plugins: [vue()],
   css: {
     postcss: {
@@ -46,8 +55,6 @@ export default defineConfig(({ command }) => ({
     __GIT_SHA__: JSON.stringify(sha),
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
-  server: {
-    port: 5173,
-    open: true
-  },
-}))
+  server,
+}
+})
