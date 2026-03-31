@@ -11,66 +11,91 @@ const statusLabels: Record<string, string> = { active: 'Ativa', paused: 'Pausada
 const statusColors: Record<string, string> = {
   active: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/20',
   paused: 'bg-amber-500/15 text-amber-300 border border-amber-500/20',
-  ended: 'bg-zinc-700/50 text-zinc-400',
+  ended: 'bg-slate-700/50 text-slate-400',
 }
 
 const totalSpend = campaigns.reduce((sum, c) => sum + c.spend, 0)
 const totalLeads = campaigns.reduce((sum, c) => sum + c.leads, 0)
 const avgCpl = totalSpend / totalLeads
+const activeCount = campaigns.filter(campaign => campaign.status === 'active').length
+const platformCount = new Set(campaigns.map(campaign => campaign.platform)).size
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- Header -->
     <section class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">Mídia paga</p>
-        <h2 class="mt-2 text-2xl font-semibold tracking-tight text-zinc-50">Campanhas</h2>
-        <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-          Acompanhe o investimento, geração de leads e CPL de cada campanha ativa nos canais de mídia.
+        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Superficie hospedada</p>
+        <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-50">Campanhas do Adsmagic</h2>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+          Este painel consolida um recorte navegavel de investimento, geracao de leads e CPL para orientar a leitura do AS-IS e apoiar os prototipos de gestao multi-plataforma.
         </p>
       </div>
-      <div class="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-4 py-3 text-sm text-zinc-400">
-        <span class="font-semibold text-zinc-100">{{ campaigns.length }}</span> campanhas
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-400">
+        <span class="font-semibold text-slate-100">{{ campaigns.length }}</span> campanhas mapeadas
       </div>
     </section>
 
-    <!-- KPI Cards -->
+    <section class="rounded-[1.75rem] border border-slate-800 bg-slate-900/60 px-5 py-4">
+      <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Leitura do workspace</p>
+      <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+        Este modulo nao tenta reproduzir a operacao final do Adsmagic. Ele hospeda o recorte que produto usa para comparar canais, registrar lacunas e testar a direcao de uma visao unificada de campanhas.
+      </p>
+    </section>
+
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <div class="rounded-3xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Total Investido</p>
-        <p class="mt-2 text-2xl font-bold text-zinc-50">{{ formatCurrency(totalSpend) }}</p>
+      <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Investimento mapeado</p>
+        <p class="mt-2 text-2xl font-bold text-slate-50">{{ formatCurrency(totalSpend) }}</p>
+        <p class="mt-2 text-sm leading-6 text-slate-400">Volume usado como referencia para leitura do recorte atual.</p>
       </div>
-      <div class="rounded-3xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Total de Leads</p>
-        <p class="mt-2 text-2xl font-bold text-zinc-50">{{ totalLeads }}</p>
+      <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Campanhas em curso</p>
+        <p class="mt-2 text-2xl font-bold text-slate-50">{{ activeCount }}</p>
+        <p class="mt-2 text-sm leading-6 text-slate-400">Frentes ainda relevantes para leitura e comparacao do time.</p>
       </div>
-      <div class="rounded-3xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">CPL Médio</p>
-        <p class="mt-2 text-2xl font-bold text-primary-300">{{ formatCurrency(avgCpl) }}</p>
+      <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Plataformas observadas</p>
+        <p class="mt-2 text-2xl font-bold text-primary-300">{{ platformCount }}</p>
+        <p class="mt-2 text-sm leading-6 text-slate-400">Canais ja comparados dentro da leitura hospedada.</p>
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="rounded-3xl border border-zinc-800 bg-zinc-900/70 overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-      <div class="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-zinc-100">Todas as campanhas</h3>
-        <span class="text-xs text-zinc-500">{{ campaigns.length }} registros</span>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">Total de Leads</p>
+        <p class="mt-2 text-2xl font-bold text-slate-50">{{ totalLeads }}</p>
+        <p class="mt-2 text-sm leading-6 text-slate-400">Sinal consolidado para discutir volume e distribuicao por canal.</p>
+      </div>
+      <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">CPL Medio</p>
+        <p class="mt-2 text-2xl font-bold text-primary-300">{{ formatCurrency(avgCpl) }}</p>
+        <p class="mt-2 text-sm leading-6 text-slate-400">Indicador de referencia para sustentar hipoteses de otimização.</p>
+      </div>
+    </div>
+
+    <div class="rounded-3xl border border-slate-800 bg-slate-900/70 overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-semibold text-slate-100">Recorte de campanhas</h3>
+          <p class="mt-1 text-xs leading-5 text-slate-500">Base usada para comparar performance atual e orientar a direcao do modulo unificado.</p>
+        </div>
+        <span class="text-xs text-slate-500">{{ campaigns.length }} registros</span>
       </div>
       <table class="w-full text-sm">
-        <thead class="border-b border-zinc-800">
+        <thead class="border-b border-slate-800">
           <tr>
-            <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">Nome</th>
-            <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">Plataforma</th>
-            <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">Status</th>
-            <th class="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">Gastos</th>
-            <th class="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">Leads</th>
-            <th class="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500">CPL</th>
+            <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">Nome</th>
+            <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">Plataforma</th>
+            <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">Status</th>
+            <th class="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">Gastos</th>
+            <th class="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">Leads</th>
+            <th class="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">CPL</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-zinc-800">
-          <tr v-for="c in campaigns" :key="c.id" class="hover:bg-zinc-900/90 transition-colors">
-            <td class="px-4 py-3 font-medium text-zinc-100">{{ c.name }}</td>
+        <tbody class="divide-y divide-slate-800">
+          <tr v-for="c in campaigns" :key="c.id" class="hover:bg-slate-900/90 transition-colors">
+            <td class="px-4 py-3 font-medium text-slate-100">{{ c.name }}</td>
             <td class="px-4 py-3">
               <span
                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
@@ -86,9 +111,9 @@ const avgCpl = totalSpend / totalLeads
                 {{ statusLabels[c.status] }}
               </span>
             </td>
-            <td class="px-4 py-3 text-right text-zinc-300">{{ formatCurrency(c.spend) }}</td>
-            <td class="px-4 py-3 text-right font-medium text-zinc-300">{{ c.leads }}</td>
-            <td class="px-4 py-3 text-right font-semibold text-zinc-100">{{ formatCurrency(c.cpl) }}</td>
+            <td class="px-4 py-3 text-right text-slate-300">{{ formatCurrency(c.spend) }}</td>
+            <td class="px-4 py-3 text-right font-medium text-slate-300">{{ c.leads }}</td>
+            <td class="px-4 py-3 text-right font-semibold text-slate-100">{{ formatCurrency(c.cpl) }}</td>
           </tr>
         </tbody>
       </table>

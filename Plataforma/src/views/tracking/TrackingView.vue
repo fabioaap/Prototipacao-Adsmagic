@@ -88,32 +88,32 @@ const authRequired = mockRoutes.filter(r => r.requiresAuth).length
 
 <template>
   <div class="flex h-full min-h-0 flex-col gap-6 pb-4">
-    <section class="border-b border-zinc-900 pb-6">
-      <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-zinc-500">Mapa de navegação</p>
-      <h2 class="mt-3 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">Rotas</h2>
-      <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-400 sm:text-base">
+    <section class="border-b border-slate-900 pb-6">
+      <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">Mapa de navegação</p>
+      <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">Rotas</h2>
+      <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-400 sm:text-base">
         Mapa estrutural das rotas da plataforma Adsmagic. Clique em qualquer nó para abrir a rota em nova aba.
       </p>
       <div class="mt-4 flex flex-wrap gap-3">
-        <div class="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-4 py-2 text-sm text-zinc-400">
-          <span class="font-semibold text-zinc-100">{{ totalRoutes }}</span> rotas
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-2 text-sm text-slate-400">
+          <span class="font-semibold text-slate-100">{{ totalRoutes }}</span> rotas
         </div>
-        <div class="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-4 py-2 text-sm text-zinc-400">
-          <span class="font-semibold text-zinc-100">{{ totalGroups }}</span> grupos
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-2 text-sm text-slate-400">
+          <span class="font-semibold text-slate-100">{{ totalGroups }}</span> grupos
         </div>
-        <div class="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-4 py-2 text-sm text-zinc-400">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-2 text-sm text-slate-400">
           <span class="font-semibold text-primary-400">{{ authRequired }}</span> requerem auth
         </div>
-        <div class="flex items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/70 px-4 py-2 text-xs text-zinc-500">
-          <span class="inline-block h-3 w-4 rounded border border-zinc-700 bg-zinc-950"></span>
+        <div class="flex items-center gap-2 rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-2 text-xs text-slate-500">
+          <span class="inline-block h-3 w-4 rounded border border-slate-700 bg-slate-950"></span>
           Auth
-          <span class="ml-2 inline-block h-3 w-4 rounded border border-zinc-200/10 bg-zinc-50"></span>
+          <span class="ml-2 inline-block h-3 w-4 rounded border border-slate-200/10 bg-slate-50"></span>
           Público
         </div>
       </div>
     </section>
 
-    <div class="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950">
+    <div class="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-slate-800 bg-slate-950">
       <VueFlow
         :nodes="nodes"
         :edges="edges"
@@ -129,7 +129,7 @@ const authRequired = mockRoutes.filter(r => r.requiresAuth).length
         <Background pattern-color="#27272a" :gap="28" :size="1" />
         <MiniMap
           :node-color="(n) => n.data?.requiresAuth ? '#18181b' : '#fafafa'"
-          class="!bottom-4 !right-4 !rounded-2xl !border !border-zinc-800 !bg-zinc-900/90"
+          class="!bottom-4 !right-4 !rounded-2xl !border !border-slate-800 !bg-slate-900/90"
         />
         <Controls class="!bottom-4 !left-4" />
       </VueFlow>

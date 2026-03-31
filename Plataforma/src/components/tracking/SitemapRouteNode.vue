@@ -20,8 +20,8 @@ function openRoute() {
     type="button"
     class="relative w-[124px] rounded-2xl border p-3 text-left shadow-[0_10px_20px_rgba(0,0,0,0.16)] transition-transform duration-150 hover:-translate-y-0.5"
     :class="data.requiresAuth
-      ? 'border-zinc-700 bg-zinc-950 text-zinc-100'
-      : 'border-zinc-200/10 bg-zinc-50 text-zinc-900'"
+      ? 'border-slate-700 bg-slate-950 text-slate-100'
+      : 'border-slate-200/10 bg-slate-50 text-slate-900'"
     @click.stop="openRoute"
   >
     <Handle id="top" type="target" :position="Position.Top" class="!h-2 !w-2 !border-0 !bg-transparent opacity-0" />

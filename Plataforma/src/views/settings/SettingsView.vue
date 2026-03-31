@@ -30,7 +30,7 @@ const stages = ref([
   { id: 'lead', name: 'Lead', color: '#94A3B8' },
   { id: 'qualification', name: 'Qualificação', color: '#3B82F6' },
   { id: 'proposal', name: 'Proposta', color: '#F59E0B' },
-  { id: 'negotiation', name: 'Negociação', color: '#8B5CF6' },
+  { id: 'negotiation', name: 'Negociação', color: '#6366f1' },
   { id: 'closed_won', name: 'Fechado (Ganho)', color: '#10B981' },
   { id: 'closed_lost', name: 'Fechado (Perdido)', color: '#EF4444' },
 ])

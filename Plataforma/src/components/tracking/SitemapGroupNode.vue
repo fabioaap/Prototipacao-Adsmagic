@@ -16,7 +16,7 @@ const toneClasses = {
   violet: 'border-violet-500/25 bg-violet-500/10 text-violet-200',
   emerald: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200',
   amber: 'border-amber-500/25 bg-amber-500/10 text-amber-200',
-  slate: 'border-zinc-700 bg-zinc-800/90 text-zinc-200',
+  slate: 'border-slate-700 bg-slate-800/90 text-slate-200',
   rose: 'border-rose-500/25 bg-rose-500/10 text-rose-200',
 } as const
 </script>

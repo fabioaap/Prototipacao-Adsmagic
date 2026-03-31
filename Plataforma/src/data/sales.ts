@@ -21,7 +21,7 @@ export const mockStages: SaleStage[] = [
   { id: 'lead', name: 'Lead', color: '#94A3B8', order: 1 },
   { id: 'qualification', name: 'Qualificação', color: '#3B82F6', order: 2 },
   { id: 'proposal', name: 'Proposta', color: '#F59E0B', order: 3 },
-  { id: 'negotiation', name: 'Negociação', color: '#8B5CF6', order: 4 },
+  { id: 'negotiation', name: 'Negociação', color: '#6366f1', order: 4 },
   { id: 'closed_won', name: 'Fechado (Ganho)', color: '#10B981', order: 5 },
   { id: 'closed_lost', name: 'Fechado (Perdido)', color: '#EF4444', order: 6 },
 ]
