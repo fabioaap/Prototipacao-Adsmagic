@@ -2,16 +2,23 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import { createRequire } from 'module';
+import remarkAsciiProgress from './src/remark/ascii-progress.js';
+
+const require = createRequire(import.meta.url);
+const pkg = require('./package.json') as { version: string };
+
+const workspaceUrl = process.env.WORKSPACE_URL || 'http://localhost:3000';
 
 const config: Config = {
   title: 'Adsmagic Docs',
-  tagline: 'Documentacao viva do prototipo e da estrutura atual do produto.',
+  tagline: 'Documentacao viva do Adsmagic Workspace e da estrutura atual do produto.',
   favicon: 'img/favicon.ico',
   future: {
     v4: true,
   },
-  url: 'http://localhost:3000',
-  baseUrl: '/',
+  url: process.env.WORKSPACE_URL || 'https://fabioaap.github.io',
+  baseUrl: process.env.CI ? '/Prototipacao-Adsmagic/' : '/',
   onBrokenLinks: 'throw',
   markdown: {
     mermaid: true,
@@ -31,9 +38,12 @@ const config: Config = {
         docs: {
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
+          showLastUpdateTime: true,
+          showLastUpdateAuthor: true,
+          remarkPlugins: [remarkAsciiProgress],
         },
         blog: false,
-        pages: false,
+        pages: {},
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -61,8 +71,8 @@ const config: Config = {
           label: 'Documentacao',
         },
         {
-          href: 'http://localhost:5173',
-          label: 'Prototipo',
+          href: workspaceUrl,
+          label: 'Workspace',
           position: 'right',
         },
       ],
@@ -75,7 +85,7 @@ const config: Config = {
           items: [
             {
               label: 'Introducao',
-              to: '/',
+              to: '/intro',
             },
             {
               label: 'Wiki',
@@ -113,21 +123,21 @@ const config: Config = {
           title: 'Workspace',
           items: [
             {
-              label: 'App Vue',
-              href: 'http://localhost:5173',
+              label: 'Adsmagic Workspace',
+              href: workspaceUrl,
             },
             {
               label: 'Rotas em producao',
               href: 'http://localhost:5200/pt/rotas',
             },
             {
-              label: 'Wiki no prototipo',
-              href: 'http://localhost:5173/wiki',
+              label: 'Wiki de produto',
+              to: '/wiki',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Adsmagic. Documentacao gerada com Docusaurus.`,
+      copyright: `Wiki de Produto Adsmagic — v${pkg.version} — © ${new Date().getFullYear()} Adsmagic`,
     },
     prism: {
       theme: prismThemes.github,
