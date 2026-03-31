@@ -119,7 +119,13 @@ A referência de experiência é o **Gemini no Google Docs**, onde o assistente 
 | 2 | Fonte de contexto no protótipo (v1 mock) | Parseamento client-side do DOM / Dados estáticos hardcoded | Em aberto |
 | 3 | Modelo de permissão no mock | Enum no store (leitor/editor) / Campo no perfil mockado | Em aberto |
 | 4 | Persistência das sugestões | localStorage / Pinia store efêmero | Em aberto |
-| 5 | Integração futura com LLM | OpenAI API / Gemini / Anthropic / Ollama local | Pendente arquitetura |
+| 5 | Integração futura com LLM | OpenAI API / Gemini / Anthropic / Ollama local | **Ver PROTO-008** |
+
+---
+
+## Dependências
+
+- **PROTO-008** — Configuração de LLM no Workspace (Settings > Assistente IA). O Wiki Assistant consumirá o provedor e modelo configurados pelo usuário via `PROTO-008`.
 
 ---
 
