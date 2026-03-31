@@ -42,6 +42,7 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
       {label: 'Tela de Configurações', docId: 'stories/PROTO-005', to: '/stories/PROTO-005'},
       {label: 'Backlog: Kanban de Experimentos', docId: 'stories/PROTO-006', to: '/stories/PROTO-006'},
       {label: 'Backlog: Agente de Segurança (DevSecOps)', docId: 'stories/PROTO-SEC-001', to: '/stories/PROTO-SEC-001'},
+      {label: 'Backlog: Wiki Assistant com IA', docId: 'stories/PROTO-007', to: '/stories/PROTO-007'},
     ],
   },
   {
