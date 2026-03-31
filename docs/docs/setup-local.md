@@ -26,9 +26,14 @@ npm run docs:install
 npm run dev
 ```
 
-Servidor recomendado:
+Esse comando sobe:
 
-- `http://localhost:5173`
+- o Adsmagic Workspace na primeira porta livre entre `3000` e `3006`
+- a documentação Docusaurus na porta `3001`
+
+Servidor recomendado do workspace:
+
+- `http://localhost:3000` ou a próxima porta livre até `http://localhost:3006`
 
 Opção standalone da aplicação:
 
@@ -36,7 +41,7 @@ Opção standalone da aplicação:
 npm run dev:fo
 ```
 
-- `http://localhost:5174`
+- `http://localhost:3000` ou a próxima porta livre até `http://localhost:3006`
 
 ## Rodando a documentação
 
@@ -46,7 +51,17 @@ npm run docs:dev
 
 Portal Docusaurus:
 
-- `http://localhost:3000`
+- `http://localhost:3001`
+
+## Rodando apenas o workspace raiz
+
+```bash
+npm run dev:workspace
+```
+
+Servidor do workspace:
+
+- `http://localhost:3000` ou a próxima porta livre até `http://localhost:3006`
 
 ## Rodando tudo lado a lado
 
@@ -54,10 +69,7 @@ Portal Docusaurus:
 npm run dev:with-docs
 ```
 
-Esse comando sobe:
-
-- o protótipo Vue na porta `5173`
-- a documentação Docusaurus na porta `3000`
+Esse comando é um alias de `npm run dev`.
 
 ## Builds úteis
 

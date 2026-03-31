@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1052 768" fill="none">
+  <defs>
+    <radialGradient id="topGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(990 154) rotate(152) scale(416 286)">
+      <stop offset="0" stop-color="#1D4BB5" stop-opacity="0.24" />
+      <stop offset="1" stop-color="#1D4BB5" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="leftOrb" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(186 736) rotate(-36) scale(488 412)">
+      <stop offset="0" stop-color="#031C78" stop-opacity="0.92" />
+      <stop offset="1" stop-color="#031C78" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="rightOrb" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(888 748) rotate(-142) scale(372 316)">
+      <stop offset="0" stop-color="#1643A9" stop-opacity="0.58" />
+      <stop offset="1" stop-color="#1643A9" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="leftDiagonal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1D52C5" stop-opacity="0.20" />
+      <stop offset="1" stop-color="#1D52C5" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="leftTopShade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#020A53" stop-opacity="0.34" />
+      <stop offset="1" stop-color="#020A53" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1052" height="768" fill="#01084F" />
+  <path d="M0 0H530L278 366L0 560V0Z" fill="url(#leftTopShade)" />
+  <rect width="1052" height="768" fill="url(#topGlow)" />
+
+  <circle cx="1022" cy="152" r="186" fill="#133D9B" fill-opacity="0.16" />
+
+  <g opacity="0.34" transform="translate(354 420) scale(3.98)">
+    <path
+      d="M77.9645 120.387C77.9645 108.106 83.0981 96.3291 92.2363 87.6457C101.374 78.9623 113.769 74.084 126.692 74.084C129.277 74.084 131.756 73.1084 133.583 71.3717C135.411 69.635 136.438 67.2796 136.438 64.8235C136.438 62.3675 135.411 60.0121 133.583 58.2754C131.756 56.5387 129.277 55.563 126.692 55.563C113.769 55.563 101.374 50.6848 92.2363 42.0014C83.0981 33.318 77.9645 21.5408 77.9645 9.26057C77.9645 6.80453 76.9377 4.44898 75.1101 2.7123C73.2825 0.975617 70.8037 0 68.219 0C65.6344 0 63.1556 0.975617 61.328 2.7123C59.5004 4.44898 58.4736 6.80453 58.4736 9.26057C58.4736 21.5408 53.3395 33.318 44.2013 42.0014C35.0631 50.6848 22.6693 55.563 9.74597 55.563C7.1613 55.563 4.68203 56.5387 2.85439 58.2754C1.02675 60.0121 0 62.3675 0 64.8235C0 67.2796 1.02675 69.635 2.85439 71.3717C4.68203 73.1084 7.1613 74.084 9.74597 74.084C22.6693 74.084 35.0631 78.9623 44.2013 87.6457C53.3395 96.3291 58.4736 108.106 58.4736 120.387C58.4736 122.843 59.5004 125.198 61.328 126.935C63.1556 128.671 65.6344 129.647 68.219 129.647C70.8037 129.647 73.2825 128.671 75.1101 126.935C76.9377 125.198 77.9645 122.843 77.9645 120.387Z"
+      fill="#0F3487"
+    />
+  </g>
+
+  <rect x="306" y="548" width="684" height="84" rx="42" fill="#0D2F84" fill-opacity="0.24" />
+  <rect x="328" y="670" width="620" height="72" rx="36" fill="#08246E" fill-opacity="0.22" />
+
+  <circle cx="182" cy="742" r="442" fill="url(#leftOrb)" />
+  <circle cx="888" cy="748" r="312" fill="url(#rightOrb)" />
+
+  <rect x="118" y="806" width="348" height="72" rx="36" transform="rotate(-48 118 806)" fill="url(#leftDiagonal)" />
+
+  <rect width="1052" height="768" fill="url(#topGlow)" />
+</svg>

@@ -1,40 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap');
+
 :root {
-  --ifm-font-family-base: 'Segoe UI', 'Inter', sans-serif;
-  --ifm-heading-font-family: 'Segoe UI', 'Inter', sans-serif;
-  --ifm-color-primary: #8b5cf6;
-  --ifm-color-primary-dark: #7c3aed;
-  --ifm-color-primary-darker: #6d28d9;
-  --ifm-color-primary-darkest: #5b21b6;
-  --ifm-color-primary-light: #a78bfa;
-  --ifm-color-primary-lighter: #c4b5fd;
-  --ifm-color-primary-lightest: #ddd6fe;
-  --ifm-background-color: #09090b;
-  --ifm-background-surface-color: #18181b;
-  --ifm-navbar-background-color: rgba(9, 9, 11, 0.92);
-  --ifm-footer-background-color: #09090b;
-  --ifm-font-color-base: #e4e4e7;
-  --ifm-heading-color: #fafafa;
-  --ifm-menu-color: #d4d4d8;
-  --ifm-menu-color-active: #fafafa;
-  --ifm-link-color: #c4b5fd;
+  --ifm-font-family-base: 'Instrument Sans', 'Segoe UI Variable', 'Segoe UI', sans-serif;
+  --ifm-heading-font-family: 'Sora', 'Instrument Sans', sans-serif;
+  --ifm-color-primary: #6cb6ff;
+  --ifm-color-primary-dark: #4e9ff3;
+  --ifm-color-primary-darker: #3b8fe3;
+  --ifm-color-primary-darkest: #246eb5;
+  --ifm-color-primary-light: #8ac6ff;
+  --ifm-color-primary-lighter: #abd8ff;
+  --ifm-color-primary-lightest: #d8eeff;
+  --ifm-background-color: #081120;
+  --ifm-background-surface-color: #121b2c;
+  --ifm-navbar-background-color: rgba(8, 17, 32, 0.84);
+  --ifm-footer-background-color: #081120;
+  --ifm-font-color-base: #d2d9e5;
+  --ifm-heading-color: #f8fbff;
+  --ifm-menu-color: #aab7cc;
+  --ifm-menu-color-active: #f8fbff;
+  --ifm-link-color: #8ac6ff;
   --ifm-code-font-size: 95%;
-  --ifm-code-background: rgba(139, 92, 246, 0.12);
-  --docusaurus-highlighted-code-line-bg: rgba(139, 92, 246, 0.18);
+  --ifm-code-background: rgba(108, 182, 255, 0.12);
+  --docusaurus-highlighted-code-line-bg: rgba(108, 182, 255, 0.16);
 }
 
 [data-theme='dark'] {
-  --ifm-color-primary: #a78bfa;
-  --ifm-color-primary-dark: #8b5cf6;
-  --ifm-color-primary-darker: #7c3aed;
-  --ifm-color-primary-darkest: #6d28d9;
-  --ifm-color-primary-light: #c4b5fd;
-  --ifm-color-primary-lighter: #ddd6fe;
-  --ifm-color-primary-lightest: #ede9fe;
-  --ifm-background-color: #09090b;
-  --ifm-background-surface-color: #18181b;
-  --ifm-navbar-background-color: rgba(9, 9, 11, 0.92);
-  --ifm-footer-background-color: #09090b;
-  --docusaurus-highlighted-code-line-bg: rgba(139, 92, 246, 0.24);
+  --ifm-color-primary: #8ac6ff;
+  --ifm-color-primary-dark: #6cb6ff;
+  --ifm-color-primary-darker: #4e9ff3;
+  --ifm-color-primary-darkest: #246eb5;
+  --ifm-color-primary-light: #abd8ff;
+  --ifm-color-primary-lighter: #c3e3ff;
+  --ifm-color-primary-lightest: #e3f3ff;
+  --ifm-background-color: #081120;
+  --ifm-background-surface-color: #121b2c;
+  --ifm-navbar-background-color: rgba(8, 17, 32, 0.84);
+  --ifm-footer-background-color: #081120;
+  --docusaurus-highlighted-code-line-bg: rgba(108, 182, 255, 0.22);
 }
 
 html {
@@ -43,9 +45,10 @@ html {
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 24%),
-    radial-gradient(circle at top right, rgba(139, 92, 246, 0.16), transparent 28%),
-    #09090b;
+    radial-gradient(circle at top left, rgba(76, 140, 255, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(46, 160, 67, 0.12), transparent 24%),
+    linear-gradient(180deg, rgba(8, 17, 32, 0.98), rgba(8, 17, 32, 1)),
+    #081120;
 }
 
 .navbar {
@@ -63,7 +66,7 @@ body {
 }
 
 .theme-doc-markdown {
-  max-width: 880px;
+  max-width: 960px;
 }
 
 .theme-doc-markdown h1,
@@ -77,8 +80,8 @@ body {
 }
 
 .theme-doc-markdown blockquote {
-  border-left: 3px solid #8b5cf6;
-  background: rgba(24, 24, 27, 0.85);
+  border-left: 3px solid #6cb6ff;
+  background: rgba(18, 27, 44, 0.92);
   border-radius: 0.75rem;
   padding: 1rem 1.25rem;
 }
@@ -88,5 +91,640 @@ body {
 }
 
 .menu__link--active {
-  background: rgba(139, 92, 246, 0.12);
+  background: rgba(108, 182, 255, 0.12);
+}
+
+.wiki-portal-home__page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+.wiki-portal-home {
+  display: grid;
+  gap: 2rem;
+  padding-bottom: 2rem;
+}
+
+.wiki-portal-home__cover,
+.wiki-portal-home__directory,
+.wiki-portal-home__guides,
+.wiki-portal-home__support {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(138, 198, 255, 0.12);
+  border-radius: 1.5rem;
+  background: #0f1725;
+}
+
+.wiki-portal-home__cover {
+  min-height: 18rem;
+  padding: 2rem;
+  background:
+    linear-gradient(180deg, rgba(9, 17, 30, 0.18), rgba(9, 17, 30, 0.76)),
+    linear-gradient(90deg, rgba(8, 17, 32, 0.94), rgba(8, 17, 32, 0.72)),
+    #101827;
+}
+
+.wiki-portal-home__cover-art {
+  position: absolute;
+  inset: 0;
+  background-image: url('/img/brand/hero-grafismo-bg.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.86;
+  pointer-events: none;
+}
+
+.wiki-portal-home__cover-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  min-height: 14rem;
+}
+
+.wiki-portal-home__cover-logo {
+  width: min(19rem, 62vw);
+  height: auto;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.35));
+}
+
+.wiki-portal-home__cover h1 {
+  margin: 0;
+  font-size: clamp(2.3rem, 5vw, 3.65rem);
+  letter-spacing: -0.05em;
+}
+
+.wiki-portal-home__cover p {
+  margin: 0.75rem auto 0;
+  max-width: 42rem;
+  color: #c4d1e6;
+  font-size: 1.1rem;
+}
+
+.wiki-portal-home__directory {
+  padding: 1.3rem 1.5rem 1.55rem;
+}
+
+.wiki-portal-home__directory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.4rem 2rem;
+}
+
+.wiki-portal-home__directory-group h2,
+.wiki-portal-home__guides-column h2,
+.wiki-portal-home__support h2 {
+  margin: 0 0 1rem;
+  font-size: 1.12rem;
+  letter-spacing: -0.02em;
+}
+
+.wiki-portal-home__directory-group {
+  min-width: 0;
+}
+
+.wiki-portal-home__directory-group a {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: #8ac6ff;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  text-decoration: none;
+}
+
+.wiki-portal-home__directory-group a:hover {
+  color: #bfe1ff;
+  text-decoration: underline;
+}
+
+.wiki-portal-home__guides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.6rem;
+  padding: 1.45rem 1.5rem;
+}
+
+.wiki-portal-home__guide-link {
+  display: block;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(138, 198, 255, 0.12);
+  color: inherit;
+  text-decoration: none;
+}
+
+.wiki-portal-home__guide-link:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.wiki-portal-home__guide-link strong {
+  display: block;
+  color: #8ac6ff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.wiki-portal-home__guide-link span {
+  display: block;
+  margin-top: 0.35rem;
+  color: #9eb0cb;
+  line-height: 1.55;
+}
+
+.wiki-portal-home__guide-link:hover strong {
+  color: #bfe1ff;
+  text-decoration: underline;
+}
+
+.wiki-portal-home__support {
+  padding: 1.45rem 1.5rem;
+}
+
+.wiki-portal-home__support-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.wiki-portal-home__support h3 {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+}
+
+.wiki-portal-home__support p {
+  margin: 0;
+  color: #a7b6ca;
+  line-height: 1.65;
+}
+
+.wiki-portal-home__support-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.wiki-portal-home__support-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.7rem;
+  padding: 0.7rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(138, 198, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+  color: #f8fbff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.wiki-portal-home__support-actions a:hover {
+  border-color: rgba(138, 198, 255, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.wiki-home {
+  display: grid;
+  gap: 2rem;
+  padding-bottom: 2rem;
+}
+
+.wiki-home__hero,
+.wiki-home__section {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(138, 198, 255, 0.14);
+  border-radius: 1.75rem;
+  background:
+    linear-gradient(180deg, rgba(18, 27, 44, 0.92), rgba(10, 16, 28, 0.94)),
+    rgba(18, 27, 44, 0.88);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+}
+
+.wiki-home__hero::before,
+.wiki-home__section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(138, 198, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(138, 198, 255, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 92%);
+  pointer-events: none;
+}
+
+.wiki-home__hero {
+  padding: 2rem;
+}
+
+.wiki-home__eyebrow,
+.wiki-home__section-kicker,
+.wiki-home__kicker {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8ac6ff;
+}
+
+.wiki-home__hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) 352px;
+  align-items: stretch;
+}
+
+.wiki-home__hero-copy h1 {
+  margin: 0.75rem 0 1rem;
+  max-width: 8.5ch;
+  font-size: clamp(2.4rem, 4.9vw, 4.15rem);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+}
+
+.wiki-home__lede,
+.wiki-home__section-head p,
+.wiki-home__path-card p,
+.wiki-home__card p,
+.wiki-home__rail-copy p {
+  color: #b2bfd3;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.wiki-home__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.wiki-home__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.95rem;
+  padding: 0.85rem 1.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(138, 198, 255, 0.18);
+  font-weight: 700;
+  text-decoration: none !important;
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.wiki-home__button:hover {
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.wiki-home__button--primary {
+  background: linear-gradient(135deg, #8ac6ff, #6cb6ff 60%, #5b8cff);
+  color: #06101f !important;
+  box-shadow: 0 16px 36px rgba(76, 140, 255, 0.32);
+}
+
+.wiki-home__button--ghost {
+  background: rgba(255, 255, 255, 0.03);
+  color: #f8fbff !important;
+}
+
+.wiki-home__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.wiki-home__tags span {
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(138, 198, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: #d9e7fb;
+  font-size: 0.92rem;
+}
+
+.wiki-home__hero-panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 1.35rem;
+  border: 1px solid rgba(138, 198, 255, 0.14);
+  background: linear-gradient(180deg, rgba(8, 17, 32, 0.8), rgba(18, 27, 44, 0.92));
+}
+
+.wiki-home__panel-header,
+.wiki-home__panel-list a,
+.wiki-home__panel-metrics,
+.wiki-home__card {
+  position: relative;
+  z-index: 1;
+}
+
+.wiki-home__panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.wiki-home__panel-badge,
+.wiki-home__panel-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.42rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.wiki-home__panel-badge {
+  background: rgba(138, 198, 255, 0.12);
+  color: #8ac6ff;
+}
+
+.wiki-home__panel-status {
+  background: rgba(46, 160, 67, 0.14);
+  color: #8ddf9e;
+}
+
+.wiki-home__panel-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.wiki-home__panel-metrics div {
+  padding: 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(138, 198, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.wiki-home__panel-metrics strong {
+  display: block;
+  font-family: var(--ifm-heading-font-family);
+  font-size: 1.35rem;
+  line-height: 1;
+  white-space: nowrap;
+  color: #f8fbff;
+}
+
+.wiki-home__panel-metrics span {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.88rem;
+  color: #9eb0cb;
+  line-height: 1.35;
+}
+
+.wiki-home__panel-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.wiki-home__panel-list a {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(138, 198, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  color: inherit;
+  text-decoration: none;
+}
+
+.wiki-home__panel-list a:hover {
+  border-color: rgba(138, 198, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.wiki-home__panel-list span {
+  color: #8ac6ff;
+  font-size: 0.84rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.wiki-home__panel-list strong {
+  color: #f8fbff;
+  font-weight: 600;
+  text-align: right;
+  max-width: 10rem;
+}
+
+.wiki-home__section {
+  padding: 1.6rem;
+}
+
+.wiki-home__section-head {
+  position: relative;
+  z-index: 1;
+  max-width: 44rem;
+  margin-bottom: 1.4rem;
+}
+
+.wiki-home__section-head h2 {
+  margin: 0.45rem 0 0.75rem;
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  line-height: 1.08;
+}
+
+.wiki-home__card-grid,
+.wiki-home__path-grid,
+.wiki-home__quick-links {
+  position: relative;
+  z-index: 1;
+}
+
+.wiki-home__card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wiki-home__card {
+  display: block;
+  padding: 1.25rem;
+  border-radius: 1.35rem;
+  border: 1px solid rgba(138, 198, 255, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  color: inherit;
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.wiki-home__card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(138, 198, 255, 0.24);
+  text-decoration: none;
+}
+
+.wiki-home__card-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.1rem;
+  min-height: 2.1rem;
+  border-radius: 999px;
+  background: rgba(138, 198, 255, 0.12);
+  color: #8ac6ff;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.wiki-home__card h3 {
+  margin: 0.9rem 0 0.65rem;
+  font-size: 1.32rem;
+}
+
+.wiki-home__card-link {
+  display: inline-flex;
+  margin-top: 0.9rem;
+  color: #8ddf9e;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.wiki-home__path-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wiki-home__path-card {
+  padding: 1.2rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(138, 198, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.wiki-home__path-card span {
+  color: #8ac6ff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.wiki-home__path-card h3 {
+  margin: 0.8rem 0 0.55rem;
+  font-size: 1.2rem;
+}
+
+.wiki-home__section--rail {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: start;
+}
+
+.wiki-home__quick-links {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wiki-home__quick-links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(138, 198, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: #f8fbff;
+  text-decoration: none;
+}
+
+.wiki-home__quick-links a:hover {
+  border-color: rgba(138, 198, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+  text-decoration: none;
+}
+
+.wiki-home__quick-links a::after {
+  content: '->';
+  color: #8ac6ff;
+  font-weight: 700;
+}
+
+@media (max-width: 996px) {
+  .wiki-portal-home__directory-grid,
+  .wiki-portal-home__guides,
+  .wiki-portal-home__support-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wiki-home__hero-grid,
+  .wiki-home__section--rail,
+  .wiki-home__path-grid,
+  .wiki-home__card-grid,
+  .wiki-home__quick-links {
+    grid-template-columns: 1fr;
+  }
+
+  .wiki-home__hero {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .wiki-portal-home__cover,
+  .wiki-portal-home__directory,
+  .wiki-portal-home__guides,
+  .wiki-portal-home__support {
+    border-radius: 1.2rem;
+  }
+
+  .wiki-portal-home__cover {
+    padding: 1.4rem 1rem;
+    min-height: 14rem;
+  }
+
+  .wiki-portal-home__directory,
+  .wiki-portal-home__guides,
+  .wiki-portal-home__support {
+    padding: 1.15rem 1rem;
+  }
+
+  .wiki-portal-home__directory-grid,
+  .wiki-portal-home__guides,
+  .wiki-portal-home__support-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-doc-markdown h1 {
+    font-size: 2.5rem;
+  }
+
+  .wiki-home__section,
+  .wiki-home__hero {
+    padding: 1.2rem;
+    border-radius: 1.25rem;
+  }
+
+  .wiki-home__actions {
+    flex-direction: column;
+  }
+
+  .wiki-home__button {
+    width: 100%;
+  }
+
+  .wiki-home__panel-metrics {
+    grid-template-columns: 1fr;
+  }
 }

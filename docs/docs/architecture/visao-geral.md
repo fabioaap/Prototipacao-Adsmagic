@@ -6,7 +6,7 @@ title: Visão geral
 
 ## Estrutura do workspace
 
-O repositório foi organizado para manter a aplicação do protótipo separada da documentação:
+O repositorio foi organizado para manter a aplicacao do workspace separada da documentacao:
 
 - `Plataforma/` contém a aplicação Vue 3
 - `docs/` contém o portal Docusaurus
@@ -14,7 +14,7 @@ O repositório foi organizado para manter a aplicação do protótipo separada d
 
 ## Aplicação principal
 
-A aplicação do protótipo usa:
+A aplicacao do workspace usa:
 
 - Vue 3 com TypeScript
 - Vite
@@ -30,13 +30,13 @@ O ponto central de renderização é a combinação entre layout e rotas aninhad
 
 ## Documentação
 
-O Docusaurus foi adicionado como app independente para evitar acoplamento com o shell do protótipo. Isso permite:
+O Docusaurus foi adicionado como app independente para evitar acoplamento com o shell do workspace. Isso permite:
 
 - documentar arquitetura e fluxo sem criar novas telas na app Vue
 - versionar documentação junto do código
 - manter build e dev separados
 
-## Superfícies ativas do protótipo
+## Superficies ativas do workspace
 
 O escopo funcional principal atual gira em torno de:
 

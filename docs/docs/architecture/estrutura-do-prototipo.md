@@ -1,12 +1,12 @@
 ---
-title: Estrutura do protótipo
+title: Estrutura do workspace
 ---
 
-# Estrutura do protótipo
+# Estrutura do workspace
 
 ## Layout e navegação
 
-O protótipo atual usa um shell unificado com sidebar e header persistentes. As views entram como conteúdo roteado dentro do layout.
+O Adsmagic Workspace usa um shell unificado com sidebar e header persistentes. As views entram como conteudo roteado dentro do layout.
 
 Arquivos centrais:
 
@@ -21,9 +21,9 @@ As rotas registradas em `Plataforma/src/router/index.ts` priorizam quatro destin
 - `/`
 - `/rotas`
 - `/kanban`
-- `/wiki`
+- `/wiki` (redirecionamento para o portal Docusaurus)
 
-Esse desenho reduz o menu a um escopo coerente com o ciclo atual do protótipo.
+Esse desenho reduz o menu a um escopo coerente com o papel do workspace: documentar o AS-IS, explorar o TO-BE e hospedar recortes navegaveis.
 
 ## Dados mockados
 
@@ -43,4 +43,4 @@ O projeto continua mock-first. Isso significa que:
 
 ## Wiki da aplicação
 
-A rota `/wiki` não foi substituída por este portal. Ela continua sendo uma base leve de alinhamento dentro da própria interface do protótipo.
+A rota `/wiki` do workspace deixou de manter uma view própria. Ela agora redireciona para a wiki do Docusaurus, consolidando a documentação em uma única superfície.

@@ -4,7 +4,7 @@ title: Produto To-Be
 
 # Produto To-Be
 
-Esta seção documenta como o Adsmagic deve ser — a visão de produto sendo explorada e validada por meio de protótipos neste repositório.
+Esta secao documenta como o Adsmagic deve ser — a visao de produto sendo explorada e validada por meio de prototipos hospedados neste repositorio.
 
 > O To-Be não descreve o que hoje está em produção. Para isso, veja [Produto As-Is](./as-is.md).
 
@@ -14,15 +14,15 @@ O To-Be é o espaço de registro das decisões de evolução do Adsmagic. Aqui f
 
 - direções de produto ainda em exploração
 - estruturas de experiência que diferem do estado atual
-- módulos que ainda não existem mas estão sendo prototipados
+- modulos que ainda nao existem mas estao sendo prototipados
 - mudanças em fluxos existentes que afetarão a experiência real
 
 ## Ciclo de evolução
 
-Cada protótipo neste repositório representa uma hipótese do To-Be. O ciclo é:
+Cada prototipo hospedado neste repositorio representa uma hipotese do To-Be. O ciclo e:
 
 1. identificar lacuna ou oportunidade no As-Is
-2. prototipar a solução neste repositório
+2. prototipar a solucao neste repositorio
 3. validar com o time
 4. **aprovado → vai para produção**
 5. **As-Is é atualizado para refletir o novo estado de produção**
@@ -59,7 +59,7 @@ flowchart LR
 
 ## Áreas em evolução
 
-As principais áreas atualmente sendo exploradas nos protótipos são:
+As principais areas atualmente sendo exploradas nos prototipos hospedados sao:
 
 ### Dashboard
 
@@ -75,7 +75,7 @@ O CRM atual (contatos + pipeline de vendas) está sendo repensado com foco em at
 
 ### Mensagens
 
-A central de mensagens está sendo prototipar com uma abordagem mais integrada ao funil de conversão.
+A central de mensagens esta sendo reprojetada com uma abordagem mais integrada ao funil de conversao.
 
 ### Onboarding
 

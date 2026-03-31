@@ -6,7 +6,7 @@ title: Produto As-Is
 
 Esta seção documenta o Adsmagic como ele existe hoje — a plataforma real, em produção.
 
-> **O As-Is sempre espelha o que está em produção.** Quando um protótipo é aprovado e vai ao ar, esta página deve ser atualizada para refletir o novo estado. O repositório de prototipação é apenas o ambiente de exploração — não a fonte de verdade do produto.
+> **O As-Is sempre espelha o que está em produção.** Quando um prototipo hospedado neste workspace e aprovado e vai ao ar, esta pagina deve ser atualizada para refletir o novo estado. O workspace de produto deste repositorio e um ambiente de exploracao — nao a fonte de verdade do produto.
 
 ## O que é o Adsmagic
 
