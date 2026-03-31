@@ -189,6 +189,7 @@ function handleDrawerModelValue(isOpen: boolean) {
               <span class="material-symbols-outlined" aria-hidden="true">{{ journeyIcons[j.iconKey] || 'circle' }}</span>
             </div>
             <span class="pcard-name">{{ j.name }}</span>
+            <span v-if="j.version" class="pcard-version">{{ j.version }}</span>
             <span
               class="pcard-badge"
               :class="j.status === 'active' ? 'pcard-badge--active' : 'pcard-badge--planned'"
@@ -411,6 +412,19 @@ function handleDrawerModelValue(isOpen: boolean) {
 .pcard-badge--planned {
   background: rgba(255,255,255,0.06);
   color: var(--text-dim);
+}
+
+.pcard-version {
+  font-size: 10px;
+  font-weight: 500;
+  font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
+  color: rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
 }
 
 .pcard-bottom {

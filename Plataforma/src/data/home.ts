@@ -42,6 +42,7 @@ export interface HomeJourneyExperience {
 export interface HomeJourney {
   id: string
   name: string
+  version?: string
   status: HomeJourneyStatus
   statusLabel: string
   summary: string
@@ -88,6 +89,7 @@ export const mockHomeJourneys: HomeJourney[] = [
   {
     id: 'descoberta-mapeamento',
     name: 'Descoberta e mapeamento',
+    version: 'v1.4',
     status: 'active',
     statusLabel: 'Ativo',
     summary: 'Organiza a arquitetura atual do produto, identifica entradas criticas e consolida onde cada fluxo realmente acontece.',
@@ -144,6 +146,7 @@ export const mockHomeJourneys: HomeJourney[] = [
   {
     id: 'entrada-qualificacao',
     name: 'Entrada e qualificacao',
+    version: 'v1.2',
     status: 'active',
     statusLabel: 'Ativo',
     summary: 'Conecta a leitura das entradas do produto com a triagem inicial do que pode virar oportunidade operacional.',
@@ -200,6 +203,7 @@ export const mockHomeJourneys: HomeJourney[] = [
   {
     id: 'conducao-oportunidades',
     name: 'Conducao de oportunidades',
+    version: 'v2.1',
     status: 'active',
     statusLabel: 'Ativo',
     summary: 'Transforma sinais e oportunidades em acompanhamento continuo, com leitura por etapa e valor em aberto.',
@@ -256,6 +260,7 @@ export const mockHomeJourneys: HomeJourney[] = [
   {
     id: 'governanca-alinhamento',
     name: 'Governanca e alinhamento',
+    version: 'v1.0',
     status: 'active',
     statusLabel: 'Ativo',
     summary: 'Documenta acordos, hipoteses e pontos abertos para que o prototipo evolua sem perder contexto entre iteracoes.',
