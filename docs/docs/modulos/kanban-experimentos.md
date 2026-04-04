@@ -105,6 +105,16 @@ flowchart LR
 
 ---
 
+## Uso com agentes
+
+Se o Kanban for usado como origem de prompts, handoffs ou despacho de tarefas para agentes, o dev precisa ter feito o setup inicial da IDE antes.
+
+Sem sync e validação do ambiente, os responsáveis do card continuam sendo apenas metadados e não uma ativação garantida de agentes.
+
+Veja o guia: [Agentes na IDE](../workflow/agentes-na-ide)
+
+---
+
 ## Referências
 
 - Pipeline completo de canary: [Workflow de prototipação](../workflow/prototipacao)

@@ -60,6 +60,14 @@ const selectedJourney = computed(() =>
   props.selectedJourneyId ? journeys.find(j => j.id === props.selectedJourneyId) : null
 )
 
+function quickAccessRoute(to: string) {
+  if (to.startsWith('/#')) {
+    return { path: '/', hash: to.slice(1) }
+  }
+
+  return to
+}
+
 function completionPct(c: number, t: number) {
   return t ? Math.round((c / t) * 100) : 0
 }
@@ -209,13 +217,12 @@ function handleDrawerModelValue(isOpen: boolean) {
     <section class="home-section">
       <span class="home-section-label">Acesso rápido</span>
       <div class="quick-grid">
-        <button
+        <RouterLink
           v-for="qa in quickAccess"
           :key="qa.title"
-          type="button"
           class="qcard"
+          :to="quickAccessRoute(qa.to)"
           :style="{ '--qc': toneColor[qa.tone] }"
-          @click="router.push(qa.to)"
         >
           <span class="material-symbols-outlined qcard-icon" :style="{ color: toneColor[qa.tone] }" aria-hidden="true">{{ journeyIcons[qa.iconKey] || 'circle' }}</span>
           <div class="qcard-text">
@@ -223,7 +230,7 @@ function handleDrawerModelValue(isOpen: boolean) {
             <span class="qcard-area">{{ qa.area }}</span>
           </div>
           <span class="material-symbols-outlined qcard-arrow" aria-hidden="true">arrow_forward</span>
-        </button>
+        </RouterLink>
       </div>
     </section>
   </div>

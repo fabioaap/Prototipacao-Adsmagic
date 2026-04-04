@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { mockHomeJourneys, type HomeTone } from '@/data/home'
 
 const route = useRoute()
+const router = useRouter()
 
 const isHome = () => route.path === '/'
+const isJourneyContext = () => route.path === '/'
+const isRouteActive = (path: string) => route.path === path
 
 const journeys = mockHomeJourneys
 
@@ -34,6 +37,20 @@ const emit = defineEmits<{
 const props = defineProps<{
   selectedJourneyId?: string | null
 }>()
+
+function clearJourneySelection() {
+  emit('select-journey', '')
+}
+
+function handleHomeNavigation() {
+  clearJourneySelection()
+  if (!isHome()) router.push('/')
+}
+
+function handleJourneySelection(id: string) {
+  emit('select-journey', id)
+  if (!isHome()) router.push('/')
+}
 </script>
 
 <template>
@@ -50,14 +67,14 @@ const props = defineProps<{
     <nav class="sidebar-nav">
       <!-- NAVEGAÇÃO -->
       <span class="nav-label">Navegação</span>
-      <a
+      <button
         class="nav-link"
         :class="{ active: isHome() && !props.selectedJourneyId }"
-        href="#"
-        @click.prevent="emit('select-journey', '')"
+        type="button"
+        @click="handleHomeNavigation"
       >
         <span class="material-symbols-outlined">home</span> Início
-      </a>
+      </button>
 
       <!-- JORNADAS -->
       <span class="nav-label nav-label--jornadas">Jornadas</span>
@@ -66,11 +83,11 @@ const props = defineProps<{
         :key="j.id"
         type="button"
         class="nav-persona"
-        :class="{ 'nav-persona--active': props.selectedJourneyId === j.id }"
+        :class="{ 'nav-persona--active': isJourneyContext() && props.selectedJourneyId === j.id }"
         :style="{ '--p-color': toneColor[j.tone] }"
         :aria-label="'Ver jornada ' + j.name"
-        :aria-current="props.selectedJourneyId === j.id ? 'page' : undefined"
-        @click="emit('select-journey', j.id)"
+        :aria-current="isJourneyContext() && props.selectedJourneyId === j.id ? 'page' : undefined"
+        @click="handleJourneySelection(j.id)"
       >
         <span class="material-symbols-outlined nav-persona-icon" aria-hidden="true">{{ journeyIcons[j.iconKey] || 'circle' }}</span>
         <span class="nav-persona-name">{{ j.name }}</span>
@@ -79,16 +96,16 @@ const props = defineProps<{
 
       <!-- RECURSOS -->
       <span class="nav-label">Recursos</span>
-      <RouterLink class="nav-link" to="/rotas">
+      <RouterLink class="nav-link" :class="{ active: isRouteActive('/rotas') }" to="/rotas" @click="clearJourneySelection">
         <span class="material-symbols-outlined">route</span> Rotas
       </RouterLink>
-      <RouterLink class="nav-link" to="/kanban">
+      <RouterLink class="nav-link" :class="{ active: isRouteActive('/kanban') }" to="/kanban" @click="clearJourneySelection">
         <span class="material-symbols-outlined">view_kanban</span> Kanban
       </RouterLink>
-      <RouterLink class="nav-link" to="/lp/agencias">
-        <span class="material-symbols-outlined">ads_click</span> LP Agencias
+      <RouterLink class="nav-link" :class="{ active: isRouteActive('/lps') }" to="/lps" @click="clearJourneySelection">
+        <span class="material-symbols-outlined">web</span> LPs
       </RouterLink>
-      <RouterLink class="nav-link" to="/wiki">
+      <RouterLink class="nav-link" :class="{ active: isRouteActive('/wiki') }" to="/wiki" @click="clearJourneySelection">
         <span class="material-symbols-outlined">menu_book</span> Wiki
       </RouterLink>
       <span v-if="$route.path.startsWith('/styleguide')" class="nav-link">

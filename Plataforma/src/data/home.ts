@@ -336,13 +336,13 @@ export const mockHomeQuickAccess: HomeQuickAccess[] = [
     cta: 'Abrir Kanban',
   },
   {
-    to: '/lp/agencias',
-    title: 'LP Agencias',
-    description: 'Abra a landing page comercial publicada para validar narrativa, CTA e entrada de aquisicao.',
-    area: 'Aquisicao',
+    to: '/lps',
+    title: 'Catalogo de LPs',
+    description: 'Revise as superficies de aquisicao, as versoes catalogadas e os destinos ligados a cada landing.',
+    area: 'Marketing e aquisicao',
     iconKey: 'network',
     tone: 'primary',
-    cta: 'Abrir LP',
+    cta: 'Ver LPs',
   },
   {
     to: '/wiki',

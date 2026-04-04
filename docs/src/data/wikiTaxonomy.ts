@@ -16,6 +16,7 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
       {label: 'Adsmagic Docs', docId: 'intro', to: '/intro'},
       {label: 'Constituição do repositório', docId: 'constituicao', to: '/constituicao'},
       {label: 'Setup local', docId: 'setup-local', to: '/setup-local'},
+      {label: 'Agentes na IDE', docId: 'workflow/agentes-na-ide', to: '/workflow/agentes-na-ide'},
       {label: 'Wiki', docId: 'wiki/index', to: '/wiki'},
       {label: 'Visão geral', docId: 'architecture/visao-geral', to: '/architecture/visao-geral'},
     ],

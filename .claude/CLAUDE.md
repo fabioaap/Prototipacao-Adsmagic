@@ -44,8 +44,9 @@ Use `@agent-name` ou `/AIOX:agents:agent-name`:
 | `@po` | Pax | Product Owner, stories/epics |
 | `@sm` | River | Scrum Master |
 | `@analyst` | Alex | Pesquisa e análise |
-| `@data-engineer` | Dara | Database design |
-| `@ux-design-expert` | Uma | UX/UI design |
+| `@data-engineer` (`@data`) | Dara | Database design |
+| `@ux-design-expert` (`@ux`) | Uma | UX/UI design |
+| `@copywriter` (`@copy`) | Nova | Copy de conversão, LP, hooks, persuasão |
 | `@devops` | Gage | CI/CD, git push (EXCLUSIVO) |
 
 ### Comandos de Agentes
@@ -60,8 +61,8 @@ Use prefixo `*` para comandos:
 ## Agent System
 
 ### Agent Activation
-- Agents are activated with @agent-name syntax: @dev, @qa, @architect, @pm, @po, @sm, @analyst
-- The master agent is activated with @aiox-master
+- Agents are activated with @agent-name syntax: @dev, @qa, @architect, @pm, @po, @sm, @analyst, @data-engineer (@data), @ux-design-expert (@ux), @copywriter (@copy)
+- The master agent is activated with @aiox-master (@master)
 - Agent commands use the * prefix: *help, *create-story, *task, *exit
 
 ### Agent Context

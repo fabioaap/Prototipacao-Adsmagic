@@ -85,3 +85,9 @@ Portal de documentação:
 npm run docs:build
 npm run docs:serve
 ```
+
+## Primeiro acesso para usar agentes na IDE
+
+Se o dev for usar os agentes do workspace ou cards do Kanban como origem de prompts e handoffs, o setup local precisa incluir sync e validação da IDE.
+
+Guia completo: [Agentes na IDE](./workflow/agentes-na-ide)

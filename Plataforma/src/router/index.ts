@@ -45,8 +45,14 @@ const router = createRouter({
         {
           path: 'kanban',
           name: 'kanban',
-          component: () => import('@/views/sales/SalesView.vue'),
-          meta: { title: 'Kanban' }
+          component: () => import('@/views/experiments/ExperimentsKanbanView.vue'),
+          meta: { title: 'Kanban de Experimentos' }
+        },
+        {
+          path: 'lps',
+          name: 'landing-pages',
+          component: () => import('@/views/lps/LandingPagesCatalogView.vue'),
+          meta: { title: 'Catalogo de LPs' }
         },
         {
           path: 'sales',

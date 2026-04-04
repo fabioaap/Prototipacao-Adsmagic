@@ -58,8 +58,9 @@ Interprete os atalhos abaixo carregando o arquivo correspondente em `.aiox-core/
 - `@sm`, `/sm`, `/sm.md` -> `.aiox-core/development/agents/sm.md`
 - `@analyst`, `/analyst`, `/analyst.md` -> `.aiox-core/development/agents/analyst.md`
 - `@devops`, `/devops`, `/devops.md` -> `.aiox-core/development/agents/devops.md`
-- `@data-engineer`, `/data-engineer`, `/data-engineer.md` -> `.aiox-core/development/agents/data-engineer.md`
-- `@ux-design-expert`, `/ux-design-expert`, `/ux-design-expert.md` -> `.aiox-core/development/agents/ux-design-expert.md`
+- `@data-engineer`, `@data`, `/data-engineer`, `/data-engineer.md` -> `.aiox-core/development/agents/data-engineer.md`
+- `@ux-design-expert`, `@ux`, `/ux-design-expert`, `/ux-design-expert.md` -> `.aiox-core/development/agents/ux-design-expert.md`
+- `@copywriter`, `@copy`, `/copywriter`, `/copywriter.md` -> `.aiox-core/development/agents/copywriter.md`
 - `@squad-creator`, `/squad-creator`, `/squad-creator.md` -> `.aiox-core/development/agents/squad-creator.md`
-- `@aiox-master`, `/aiox-master`, `/aiox-master.md` -> `.aiox-core/development/agents/aiox-master.md`
+- `@aiox-master`, `@master`, `/aiox-master`, `/aiox-master.md` -> `.aiox-core/development/agents/aiox-master.md`
 <!-- AIOX-MANAGED-END: shortcuts -->
