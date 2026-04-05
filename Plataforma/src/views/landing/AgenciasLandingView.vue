@@ -442,7 +442,7 @@ onMounted(() => {
         }
       })
     },
-    { threshold: 0.08, rootMargin: '0px 0px -60px 0px' },
+    { threshold: 0.04, rootMargin: '0px 0px 40px 0px' },
   )
   targets.forEach((t) => io.observe(t))
 
@@ -509,7 +509,7 @@ const features = [
   {
     title: 'Rastreia cada clique',
     description:
-      'Conecta Meta e Google ao WhatsApp em tempo real — do clique no anúncio à primeira mensagem, sem perder nenhuma origem.',
+      'Conecta Meta e Google ao WhatsApp em tempo real. Do clique no anúncio à primeira mensagem, sem perder nenhuma origem.',
     image: '/img/features/dashboard.png',
     gradient: 'linear-gradient(145deg, #0a1628 0%, #0d2847 40%, #0f3058 100%)',
   },
@@ -523,7 +523,7 @@ const features = [
   {
     title: 'Acompanha a jornada completa',
     description:
-      'Timeline única do anúncio ao pós-venda. Você vê o que aconteceu em cada etapa — e prova para o cliente.',
+      'Timeline única do anúncio ao pós-venda. Você vê o que aconteceu em cada etapa e consegue provar para o cliente.',
     image: '/img/features/jornada.png',
     gradient: 'linear-gradient(145deg, #0e0d2c 0%, #1a1850 40%, #211e63 100%)',
   },
@@ -633,7 +633,7 @@ const faqs = [
   {
     question: 'Como o Adsmagic ajuda a reduzir o Custo por Aquisição (CPA)?',
     answer:
-      'Ao devolver dados reais de venda para o Meta Ads e Google Ads via CAPI e Enhanced Conversions, os algoritmos passam a otimizar por receita — não por lead. Isso reduz o CPA progressivamente conforme mais dados de venda são alimentados.',
+      'Ao devolver dados reais de venda para o Meta Ads e Google Ads via CAPI e Enhanced Conversions, os algoritmos passam a otimizar por receita, não por lead. O CPA cai progressivamente conforme mais dados de venda entram no sistema.',
   },
 ]
 
@@ -692,7 +692,7 @@ const starVB = '0 0 137 130'
               <span class="hero-accent">Sua campanha precisa saber disso.</span>
             </h1>
             <p class="hero-subtitle hero-subtitle--light">
-              O Adsmagic conecta o clique no anúncio à venda no WhatsApp —
+              O Adsmagic conecta o clique no anúncio à venda no WhatsApp
               e devolve esses dados para Meta e Google otimizarem por receita, não por lead.
             </p>
           </div>
@@ -710,7 +710,7 @@ const starVB = '0 0 137 130'
 
           <p class="hero-trust-line reveal-child">
             <span class="hero-trust-dot" aria-hidden="true"></span>
-            Usado por gestores de tráfego e agências que renovam contratos com dados de receita — não de lead
+            Usado por gestores de tráfego e agências que renovam contratos com dados de receita, não de lead
           </p>
         </div>
 
@@ -833,7 +833,7 @@ const starVB = '0 0 137 130'
             De gestora de leads para gestora de receita
           </h2>
           <p class="flow-subheading reveal-child">
-            Assine cada venda gerada pelas suas campanhas — com dados que o cliente não consegue contestar.<br class="hidden sm:inline" />
+            Assine cada venda gerada pelas suas campanhas, com dados que o cliente não consegue contestar.<br class="hidden sm:inline" />
             Quatro passos para transformar cada fechamento no WhatsApp em argumento de renovação.
           </p>
         </div>
@@ -1144,7 +1144,7 @@ const starVB = '0 0 137 130'
         <p class="cta-band-relief">Você fecha isso em 30 minutos.</p>
         <p class="cta-band-sub">
           Cada venda vira dado. Cada dado vira argumento. Cada argumento vira renovação.<br class="hidden sm:inline" />
-          Conecte Meta, Google e WhatsApp — sem dev, sem código.
+          Conecte Meta, Google e WhatsApp. Sem dev, sem código.
         </p>
         <a href="#cadastro" class="cta-band-btn group">
           <span>Provar receita nos próximos 30 minutos</span>
@@ -1239,10 +1239,10 @@ const starVB = '0 0 137 130'
               </div>
 
               <a href="/cadastro" class="pricing-cta group">
-                <span>Começar — ver receita hoje</span>
+                <span>Começar: ver receita hoje</span>
                 <ArrowRight class="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </a>
-              <p class="pricing-scarcity-note">Preço de lançamento — pode aumentar a qualquer momento.</p>
+              <p class="pricing-scarcity-note">Preço de lançamento. Pode subir a qualquer momento.</p>
             </div>
 
             <div class="pricing-card-details">
@@ -1263,6 +1263,24 @@ const starVB = '0 0 137 130'
 
     <!-- Testimonial -->
     <section class="lp-section lp-section--alt">
+      <!-- Brand grafismo — testimonial decorations -->
+      <div class="grafismo-testimonial" aria-hidden="true">
+        <svg class="grafismo-star grafismo-star--testimonial-1" :viewBox="starVB" fill="none">
+          <path :d="starPath" fill="#010543" fill-opacity="0.07" />
+        </svg>
+        <svg class="grafismo-star grafismo-star--testimonial-2" :viewBox="starVB" fill="none">
+          <path :d="starPath" fill="#3BB56D" fill-opacity="0.13" />
+        </svg>
+        <svg class="grafismo-dots grafismo-dots--testimonial" viewBox="0 0 130 130" fill="none">
+          <g fill="#010543" fill-opacity="0.12">
+            <circle cx="5" cy="5" r="3"/><circle cx="35" cy="5" r="3"/><circle cx="65" cy="5" r="3"/><circle cx="95" cy="5" r="3"/><circle cx="125" cy="5" r="3"/>
+            <circle cx="5" cy="35" r="3"/><circle cx="35" cy="35" r="3"/><circle cx="65" cy="35" r="3"/><circle cx="95" cy="35" r="3"/><circle cx="125" cy="35" r="3"/>
+            <circle cx="5" cy="65" r="3"/><circle cx="35" cy="65" r="3"/><circle cx="65" cy="65" r="3"/><circle cx="95" cy="65" r="3"/><circle cx="125" cy="65" r="3"/>
+            <circle cx="5" cy="95" r="3"/><circle cx="35" cy="95" r="3"/><circle cx="65" cy="95" r="3"/><circle cx="95" cy="95" r="3"/><circle cx="125" cy="95" r="3"/>
+            <circle cx="5" cy="125" r="3"/><circle cx="35" cy="125" r="3"/><circle cx="65" cy="125" r="3"/><circle cx="95" cy="125" r="3"/><circle cx="125" cy="125" r="3"/>
+          </g>
+        </svg>
+      </div>
       <div class="lp-container flex justify-center">
         <div class="testimonial-card">
           <svg class="testimonial-quote-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -1288,6 +1306,23 @@ const starVB = '0 0 137 130'
 
     <!-- FAQ -->
     <section class="lp-section">
+      <!-- Brand grafismo — FAQ decorations -->
+      <div class="grafismo-faq" aria-hidden="true">
+        <svg class="grafismo-bars grafismo-bars--faq-left" viewBox="0 0 160 280" fill="none">
+          <rect x="30" y="0" width="22" height="150" rx="11" transform="rotate(35 30 0)" fill="url(#faqBar1)" fill-opacity="0.1" />
+          <rect x="70" y="30" width="16" height="120" rx="8" transform="rotate(35 70 30)" fill="url(#faqBar2)" fill-opacity="0.07" />
+          <defs>
+            <linearGradient id="faqBar1" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#010543" /><stop offset="1" stop-color="#3BB56D" /></linearGradient>
+            <linearGradient id="faqBar2" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#3BB56D" /><stop offset="1" stop-color="#010543" /></linearGradient>
+          </defs>
+        </svg>
+        <svg class="grafismo-star grafismo-star--faq-1" :viewBox="starVB" fill="none">
+          <path :d="starPath" fill="#010543" fill-opacity="0.07" />
+        </svg>
+        <svg class="grafismo-star grafismo-star--faq-2" :viewBox="starVB" fill="none">
+          <path :d="starPath" fill="#3BB56D" fill-opacity="0.14" />
+        </svg>
+      </div>
       <div class="lp-container">
         <div class="text-center mb-10">
           <p class="section-eyebrow">FAQ</p>
@@ -1369,10 +1404,10 @@ const starVB = '0 0 137 130'
 .lp-cta-band,
 .flow-section {
   opacity: 0;
-  transform: translateY(36px);
+  transform: translateY(18px);
   transition:
-    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .lp-hero.in-view,
@@ -1386,10 +1421,10 @@ const starVB = '0 0 137 130'
 /* ── Staggered children ── */
 .reveal-child {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(12px);
   transition:
-    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal-child.child-visible {
@@ -1847,7 +1882,7 @@ const starVB = '0 0 137 130'
   position: relative;
   max-width: none;
   margin: 0 auto;
-  border-radius: 32px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow:
     0 718px 201px 0 rgba(0, 0, 0, 0),
@@ -2058,7 +2093,7 @@ const starVB = '0 0 137 130'
   }
 
   .hero-dashboard-frame {
-    border-radius: 1.5rem;
+    border-radius: 8px;
   }
 
   .hero-social-proof {
@@ -4190,7 +4225,8 @@ const starVB = '0 0 137 130'
   max-width: 320px;
   height: 52px;
   margin-top: 1.5rem;
-  padding: 0 79.6px;
+  padding: 0 24px;
+  white-space: nowrap;
   font-size: 16px;
   font-weight: 600;
   color: #ffffff;
@@ -4591,6 +4627,88 @@ const starVB = '0 0 137 130'
 .cta-final-section {
   position: relative;
   overflow: hidden;
+}
+
+/* ─── Testimonial grafismos ─── */
+.grafismo-testimonial {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.grafismo-star--testimonial-1 {
+  width: 150px;
+  height: 143px;
+  top: -30px;
+  right: 5%;
+  animation: grafismoFloat1 15s ease-in-out infinite;
+}
+
+.grafismo-star--testimonial-2 {
+  width: 64px;
+  height: 61px;
+  bottom: 12%;
+  right: 8%;
+  animation: grafismoFloat2 11s ease-in-out 4s infinite;
+}
+
+.grafismo-dots {
+  position: absolute;
+}
+
+.grafismo-dots--testimonial {
+  bottom: 10%;
+  left: 3%;
+  width: 130px;
+  height: 130px;
+  animation: grafismoFloat3 18s ease-in-out 2s infinite;
+}
+
+@media (max-width: 768px) {
+  .grafismo-star--testimonial-1 { width: 100px; height: 95px; right: 1%; }
+  .grafismo-star--testimonial-2 { display: none; }
+  .grafismo-dots--testimonial { display: none; }
+}
+
+/* ─── FAQ grafismos ─── */
+.grafismo-faq {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.grafismo-bars--faq-left {
+  width: 200px;
+  height: 340px;
+  top: -20px;
+  left: -20px;
+  animation: grafismoFloat3 17s ease-in-out infinite;
+}
+
+.grafismo-star--faq-1 {
+  width: 130px;
+  height: 124px;
+  bottom: 5%;
+  right: 4%;
+  animation: grafismoFloat1 14s ease-in-out 1s infinite;
+}
+
+.grafismo-star--faq-2 {
+  width: 56px;
+  height: 53px;
+  top: 8%;
+  right: 12%;
+  animation: grafismoFloat2 11s ease-in-out 3s infinite;
+}
+
+@media (max-width: 768px) {
+  .grafismo-bars--faq-left { width: 130px; height: 220px; left: -30px; }
+  .grafismo-star--faq-1 { width: 85px; height: 81px; right: 1%; }
+  .grafismo-star--faq-2 { display: none; }
 }
 </style>
 
