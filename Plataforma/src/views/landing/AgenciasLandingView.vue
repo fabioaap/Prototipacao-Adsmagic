@@ -14,6 +14,8 @@ import { useMagneticStarfield } from '@/composables/useMagneticStarfield'
 import { Badge } from '@/components/ui/badge'
 import { LiquidGlassEffect, GlassFilter } from '@/components/ui/liquid-glass'
 
+const base = import.meta.env.BASE_URL
+
 const navScrolled = ref(false)
 const openFaq = ref<number | null>(null)
 const billingCycle = ref<'monthly' | 'annual'>('annual')
@@ -510,42 +512,42 @@ const features = [
     title: 'Rastreia cada clique',
     description:
       'Conecta Meta e Google ao WhatsApp em tempo real. Do clique no anúncio à primeira mensagem, sem perder nenhuma origem.',
-    image: '/img/features/dashboard.png',
+    image: base + 'img/features/dashboard.png',
     gradient: 'linear-gradient(145deg, #0a1628 0%, #0d2847 40%, #0f3058 100%)',
   },
   {
     title: 'Salva contatos instantaneamente',
     description:
       'Cada conversa vira lead completo no CRM com histórico e UTMs. Sem copiar, sem colar, sem perder contexto.',
-    image: '/img/features/contatos.png',
+    image: base + 'img/features/contatos.png',
     gradient: 'linear-gradient(145deg, #061a12 0%, #0b2e1f 40%, #0d3826 100%)',
   },
   {
     title: 'Acompanha a jornada completa',
     description:
       'Timeline única do anúncio ao pós-venda. Você vê o que aconteceu em cada etapa e consegue provar para o cliente.',
-    image: '/img/features/jornada.png',
+    image: base + 'img/features/jornada.png',
     gradient: 'linear-gradient(145deg, #0e0d2c 0%, #1a1850 40%, #211e63 100%)',
   },
   {
     title: 'Otimiza anúncios em tempo real',
     description:
       'Envia compras via Meta CAPI e Google Enhanced Conversions. O algoritmo aprende 3× mais rápido com dados reais de receita.',
-    image: '/img/features/api.png',
+    image: base + 'img/features/api.png',
     gradient: 'linear-gradient(145deg, #0a1628 0%, #0d2847 40%, #0f3058 100%)',
   },
   {
     title: 'Atualiza o funil sozinho',
     description:
       'Frases-gatilho movem o lead de etapa automaticamente. Zero atualização manual, zero dado perdido.',
-    image: '/img/features/funil.png',
+    image: base + 'img/features/funil.png',
     gradient: 'linear-gradient(145deg, #061a12 0%, #0b2e1f 40%, #0d3826 100%)',
   },
   {
     title: 'Envia relatório diário no WhatsApp',
     description:
       'Gastos, vendas e KPIs chegam no seu celular toda manhã. Você já sabe os números antes do cliente perguntar.',
-    image: '/img/features/relatorios.png',
+    image: base + 'img/features/relatorios.png',
     gradient: 'linear-gradient(145deg, #0e0d2c 0%, #1a1850 40%, #211e63 100%)',
   },
 ]
@@ -637,7 +639,7 @@ const faqs = [
   },
 ]
 
-const dashboardSrc = '/img/landing/hero/hero-dashboard.png'
+const dashboardSrc = base + 'img/landing/hero/hero-dashboard.png'
 const showDashboardFallback = ref(false)
 
 function onDashboardError(event: Event) {
@@ -682,7 +684,7 @@ const starVB = '0 0 137 130'
     </div>
 
     <!-- HERO -->
-    <section class="lp-hero lp-hero--dark">
+    <section class="lp-hero lp-hero--dark" :style="{ backgroundImage: `url('${base}img/landing/hero/hero-bg.png')` }">
       <div class="lp-container hero-shell">
         <div class="hero-content hero-content--centered">
           <div class="hero-copy reveal-child">
@@ -734,15 +736,15 @@ const starVB = '0 0 137 130'
           <p class="hero-social-label">Apoiado por</p>
           <div class="hero-social-logos hero-social-logos--figma">
             <div class="hero-social-logo-wrap hero-social-logo-wrap--wide">
-              <img src="/img/landing/hero/logo-abstartups.png" alt="Abstartups" class="hero-social-logo hero-social-logo--image" />
+              <img :src="base + 'img/landing/hero/logo-abstartups.png'" alt="Abstartups" class="hero-social-logo hero-social-logo--image" />
             </div>
             <span class="hero-social-divider hero-social-divider--tall" aria-hidden="true"></span>
             <div class="hero-social-logo-wrap hero-social-logo-wrap--wide">
-              <img src="/img/landing/hero/logo-sebrae.png" alt="Sebrae for Startups" class="hero-social-logo hero-social-logo--image" />
+              <img :src="base + 'img/landing/hero/logo-sebrae.png'" alt="Sebrae for Startups" class="hero-social-logo hero-social-logo--image" />
             </div>
             <span class="hero-social-divider hero-social-divider--tall" aria-hidden="true"></span>
             <div class="hero-social-logo-wrap hero-social-logo-wrap--google">
-              <img src="/img/landing/hero/logo-google.png" alt="Google for Startups" class="hero-social-logo hero-social-logo--image hero-social-logo--google" />
+              <img :src="base + 'img/landing/hero/logo-google.png'" alt="Google for Startups" class="hero-social-logo hero-social-logo--image hero-social-logo--google" />
             </div>
           </div>
         </div>
@@ -1601,7 +1603,7 @@ const starVB = '0 0 137 130'
   position: relative;
   z-index: 2;
   background-color: #010543;
-  background-image: url('/img/landing/hero/hero-bg.png');
+  /* background-image set via inline :style binding to respect BASE_URL */
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
