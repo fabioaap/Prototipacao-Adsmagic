@@ -1418,7 +1418,8 @@ const starVB = '0 0 137 130'
   background-color: #ffffff;
   color: #010543;
   font-family: 'Neue Montreal', 'DM Sans', system-ui, -apple-system, sans-serif;
-  overflow-x: hidden;
+  /* clip: não cria scroll container, não quebra position:sticky no iOS Safari */
+  overflow-x: clip;
 }
 
 .lp-container {
@@ -1482,10 +1483,13 @@ const starVB = '0 0 137 130'
 .lp-nav-wrap {
   position: sticky;
   top: 0;
-  z-index: 40;
+  /* Acima do overlay do menu mobile (999) para o botão X ficar acessível */
+  z-index: 1100;
   display: flex;
   justify-content: center;
   padding: 0.75rem 1rem 0;
+  /* safe-area-inset-top: cobre notch/Dynamic Island do iPhone */
+  padding-top: max(0.75rem, env(safe-area-inset-top));
   pointer-events: none;
 }
 
@@ -1621,12 +1625,10 @@ const starVB = '0 0 137 130'
 }
 
 @media (max-width: 479px) {
-  .lp-nav-wrap { padding: 0.5rem 0.5rem 0; }
+  .lp-nav-wrap { padding: 0.5rem 0.5rem 0; padding-top: max(0.5rem, env(safe-area-inset-top)); }
   .lp-nav-inner { padding: 0.5rem 0.75rem; }
   .lp-nav-inner img { height: 1.5rem; }
-  .nav-links-inline { display: none; }
-  .nav-pill:not(.nav-pill--cta) { display: none; }
-  .nav-pill--cta { padding: 0.3125rem 0.75rem; font-size: 0.75rem; }
+  /* .nav-links-inline e .nav-pill já estão ocultos via .nav-right-group { display:none } em 767px */
 }
 
 /* ── Hamburger button ── */
@@ -1635,14 +1637,15 @@ const starVB = '0 0 137 130'
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 36px;
-  height: 36px;
-  padding: 6px;
+  width: 44px; /* mínimo WCAG touch target 44×44px */
+  height: 44px;
+  padding: 10px;
   background: none;
   border: none;
   cursor: pointer;
-  z-index: 1001;
+  /* z-index irrelevante aqui pois o pai tem z-index: 1100 > overlay 999 */
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* elimina 300ms tap delay */
 }
 .nav-hamburger-bar {
   display: block;
@@ -1679,6 +1682,9 @@ const starVB = '0 0 137 130'
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* safe-area-insets: notch/Dynamic Island/home indicator do iPhone */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .mobile-menu-panel {
   display: flex;
@@ -1702,6 +1708,10 @@ const starVB = '0 0 137 130'
   color: rgba(255, 255, 255, 0.88);
   text-decoration: none;
   transition: color 0.2s ease;
+  touch-action: manipulation;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 .mobile-menu-link:hover {
   color: #ffffff;
@@ -1718,6 +1728,7 @@ const starVB = '0 0 137 130'
   align-items: center;
   justify-content: center;
   width: 100%;
+  min-height: 48px;
   padding: 0.75rem 1.5rem;
   font-family: 'DM Sans', sans-serif;
   font-size: 1rem;
@@ -1728,6 +1739,7 @@ const starVB = '0 0 137 130'
   border-radius: 0.75rem;
   text-decoration: none;
   transition: all 0.2s ease;
+  touch-action: manipulation;
 }
 .mobile-menu-btn:hover {
   background: rgba(255, 255, 255, 0.15);
