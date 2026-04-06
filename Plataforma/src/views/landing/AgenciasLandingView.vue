@@ -4925,8 +4925,9 @@ const starVB = '0 0 137 130'
     gap: 0;
   }
   .feature-stack-card__visual {
-    border-radius: 0;       /* parent overflow:hidden clips to card's 24px corners */
+    border-radius: 0;        /* parent overflow:hidden clips to card's 24px corners */
     min-height: 200px;
+    background: transparent !important; /* remove gradient block — inner bg unifies both sections */
   }
   .feature-stack-card__img {
     border-radius: 0;       /* no inner curvature at bottom of visual section */
