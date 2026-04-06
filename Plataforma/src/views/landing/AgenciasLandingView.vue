@@ -2306,13 +2306,19 @@ const starVB = '0 0 137 130'
     width: 100%;
   }
 
+  /* Logos de apoiadores em coluna no mobile */
+  .hero-social-logos--figma {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
   .hero-social-logo-wrap--wide,
   .hero-social-logo-wrap--google {
-    width: min(18rem, 72vw);
+    width: min(22rem, 80vw);
   }
 
   .hero-social-divider {
-    width: min(12rem, 30vw);
+    width: min(10rem, 40vw);
     height: 1px;
   }
 
@@ -2358,25 +2364,20 @@ const starVB = '0 0 137 130'
   }
 
   .hero-social-logos--figma {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 1.25rem;
   }
   .hero-social-logo-wrap--wide,
   .hero-social-logo-wrap--google {
-    width: auto;
+    width: min(20rem, 78vw);
+    /* reset padding do wrap google para mobile */
+    padding: 0.25rem;
+    min-height: unset;
   }
-  .hero-social-logo--image {
-    max-height: 1.75rem;
-    width: auto;
-  }
-  .hero-social-logo--google {
-    max-height: 2rem;
-  }
+  /* deixa width: 100% do base funcionar — sem max-height */
   .hero-social-divider {
-    width: 1px;
-    height: 1.5rem;
+    width: min(8rem, 35vw);
+    height: 1px;
     flex-shrink: 0;
   }
 
@@ -4913,6 +4914,26 @@ const starVB = '0 0 137 130'
 @media (max-width: 1023px) {
   .nav-separator { display: none; }
   .nav-right-group { gap: 0.75rem; }
+}
+
+/* ── Feature cards: full-bleed visual on single-column layout (<768px) ── */
+/* Removes the inner-box framing that makes the visual's bottom border-radius  */
+/* appear as a floating line in the middle of the card on mobile.             */
+@media (max-width: 767px) {
+  .feature-stack-card__inner {
+    padding: 0;
+    gap: 0;
+  }
+  .feature-stack-card__visual {
+    border-radius: 0;       /* parent overflow:hidden clips to card's 24px corners */
+    min-height: 200px;
+  }
+  .feature-stack-card__img {
+    border-radius: 0;       /* no inner curvature at bottom of visual section */
+  }
+  .feature-stack-card__content {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
 }
 
 /* ── 2. Reduce heavy section padding on small screens ── */
