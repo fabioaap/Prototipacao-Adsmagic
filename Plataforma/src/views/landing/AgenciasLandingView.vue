@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import {
   ArrowRight,
   BarChart3,
@@ -17,6 +17,7 @@ import { LiquidGlassEffect, GlassFilter } from '@/components/ui/liquid-glass'
 const base = import.meta.env.BASE_URL
 
 const navScrolled = ref(false)
+const mobileMenuOpen = ref(false)
 const openFaq = ref<number | null>(null)
 const billingCycle = ref<'monthly' | 'annual'>('annual')
 const PRICE_MONTHLY = 147
@@ -399,6 +400,12 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', onHeroDashScroll)
   window.removeEventListener('scroll', onNavScroll)
   window.removeEventListener('scroll', onStackScroll)
+  document.body.style.overflow = ''
+})
+
+// Body scroll lock when mobile menu is open
+watch(mobileMenuOpen, (open) => {
+  document.body.style.overflow = open ? 'hidden' : ''
 })
 
 function animateCounter(index: number, target: number, decimals: number, delay: number) {
@@ -679,9 +686,39 @@ const starVB = '0 0 137 130'
               <a href="/cadastro" class="nav-pill nav-pill--cta">Testar agora</a>
             </div>
           </div>
+          <!-- Hamburger — visible ≤767px -->
+          <button
+            class="nav-hamburger"
+            :class="{ 'nav-hamburger--open': mobileMenuOpen }"
+            :aria-expanded="mobileMenuOpen"
+            aria-label="Abrir menu"
+            @click="mobileMenuOpen = !mobileMenuOpen"
+          >
+            <span class="nav-hamburger-bar"></span>
+            <span class="nav-hamburger-bar"></span>
+            <span class="nav-hamburger-bar"></span>
+          </button>
         </nav>
       </LiquidGlassEffect>
     </div>
+
+    <!-- Mobile menu overlay — slides from top -->
+    <Teleport to="body">
+      <Transition name="mobile-menu">
+        <div v-if="mobileMenuOpen" class="mobile-menu-overlay" @click.self="mobileMenuOpen = false">
+          <div class="mobile-menu-panel">
+            <div class="mobile-menu-links">
+              <a href="#como-funciona" class="mobile-menu-link" @click="mobileMenuOpen = false">Como funciona</a>
+              <a href="#cadastro" class="mobile-menu-link" @click="mobileMenuOpen = false">Cadastro</a>
+            </div>
+            <div class="mobile-menu-actions">
+              <a href="/" class="mobile-menu-btn" @click="mobileMenuOpen = false">Acessar App</a>
+              <a href="/cadastro" class="mobile-menu-btn mobile-menu-btn--cta" @click="mobileMenuOpen = false">Testar agora</a>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- HERO -->
     <section class="lp-hero lp-hero--dark" :style="{ backgroundImage: `url('${base}img/landing/hero/hero-bg.png')` }">
@@ -1381,6 +1418,7 @@ const starVB = '0 0 137 130'
   background-color: #ffffff;
   color: #010543;
   font-family: 'Neue Montreal', 'DM Sans', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
 }
 
 .lp-container {
@@ -1589,6 +1627,150 @@ const starVB = '0 0 137 130'
   .nav-links-inline { display: none; }
   .nav-pill:not(.nav-pill--cta) { display: none; }
   .nav-pill--cta { padding: 0.3125rem 0.75rem; font-size: 0.75rem; }
+}
+
+/* ── Hamburger button ── */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1001;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-hamburger-bar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.nav-hamburger--open .nav-hamburger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.nav-hamburger--open .nav-hamburger-bar:nth-child(2) {
+  opacity: 0;
+}
+.nav-hamburger--open .nav-hamburger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 767px) {
+  .nav-hamburger { display: flex; }
+  .nav-right-group { display: none; }
+}
+
+/* ── Mobile menu overlay & panel ── */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(1, 5, 67, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-menu-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 320px;
+}
+.mobile-menu-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+.mobile-menu-link {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.mobile-menu-link:hover {
+  color: #ffffff;
+}
+.mobile-menu-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+.mobile-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.75rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.mobile-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+.mobile-menu-btn--cta {
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(59, 181, 109, 0.50), rgba(59, 181, 109, 0.30));
+  border-color: rgba(59, 181, 109, 0.3);
+}
+.mobile-menu-btn--cta:hover {
+  background: linear-gradient(135deg, rgba(59, 181, 109, 0.65), rgba(59, 181, 109, 0.45));
+  border-color: rgba(59, 181, 109, 0.45);
+}
+
+/* Transition for mobile menu */
+.mobile-menu-enter-active {
+  transition: opacity 0.3s ease;
+}
+.mobile-menu-enter-active .mobile-menu-panel {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.mobile-menu-leave-active {
+  transition: opacity 0.25s ease;
+}
+.mobile-menu-leave-active .mobile-menu-panel {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.mobile-menu-enter-from {
+  opacity: 0;
+}
+.mobile-menu-enter-from .mobile-menu-panel {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+.mobile-menu-leave-to {
+  opacity: 0;
+}
+.mobile-menu-leave-to .mobile-menu-panel {
+  transform: translateY(-20px);
+  opacity: 0;
 }
 
 /* ═══════════════════ HERO ═══════════════════ */
@@ -4711,6 +4893,82 @@ const starVB = '0 0 137 130'
   .grafismo-bars--faq-left { width: 130px; height: 220px; left: -30px; }
   .grafismo-star--faq-1 { width: 85px; height: 81px; right: 1%; }
   .grafismo-star--faq-2 { display: none; }
+}
+
+/* ═══════════════════ MOBILE — COMPREHENSIVE OVERRIDES ═══════════════════ */
+
+/* ── 1. Hide nav separator when nav links are already hidden ── */
+@media (max-width: 1023px) {
+  .nav-separator { display: none; }
+  .nav-right-group { gap: 0.75rem; }
+}
+
+/* ── 2. Reduce heavy section padding on small screens ── */
+@media (max-width: 639px) {
+  /* Sections */
+  .lp-section      { padding: 3rem 0; }
+  .lp-cta-band     { padding: 3rem 0; }
+  .flow-section    { padding: 4.5rem 0 3rem; }
+  .section-bridge  { height: 60px; }
+
+  /* Flow heading */
+  .flow-heading    { font-size: 2rem; }
+  .flow-subheading { font-size: 1rem; }
+
+  /* Flow bento grid */
+  .flow-bento      { gap: 1rem; margin-top: 2.5rem; }
+
+  /* Flow stats panel */
+  .flow-stats      { padding: 1.25rem 1rem; gap: 1rem; margin-top: 2rem; }
+  .flow-stat-val   { font-size: 1.75rem; }
+
+  /* Feature stack */
+  .features-stack                { margin-top: 2rem; }
+  .feature-stack-card__visual    { min-height: 180px; }
+  .feature-stack-card            { margin-bottom: 1.25rem; }
+
+  /* CTA band copy */
+  .cta-band-heading  { font-size: 1.5rem; }
+  .cta-band-relief   { font-size: 1.25rem; margin-top: 0.75rem; }
+  .cta-band-sub      { font-size: 0.9375rem; }
+
+  /* Footer padding */
+  .lp-footer { padding: 1.5rem 0; }
+}
+
+/* ── 3. Extra-small screens: fine-tune pricing and features ── */
+@media (max-width: 479px) {
+  /* Pricing features: one item per row */
+  .pricing-features {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Feature stack card image area */
+  .feature-stack-card__visual { min-height: 155px; }
+
+  /* Bento cards inner padding */
+  .bento-card-inner { padding: 1.25rem 1.25rem 1rem; }
+
+  /* Disable scroll-based card stacking gap on tiny screens */
+  .features-stack { --stack-gap: 20px; --stack-top: 4rem; }
+
+  /* Feature stack: reduce sticky offset so content stays reachable */
+  .feature-stack-card { margin-bottom: 1rem; }
+
+  /* Stats row: 2x2 grid on tiny screens */
+  .flow-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .flow-stat-divider { display: none; }
+  .flow-stat { align-items: center; }
+  .flow-stat-val { font-size: 1.5rem; }
+
+  /* FAQ: larger touch targets */
+  .faq-trigger { min-height: 48px; padding: 0.875rem 0; }
 }
 </style>
 
