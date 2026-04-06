@@ -4938,7 +4938,11 @@ const starVB = '0 0 137 130'
     padding: 1.25rem 1.5rem 1.5rem;
   }
 
-  /* ── Bento cards: remove inner borders on mobile (keep card glass outline) ── */
+  /* ── Bento cards: CSS bg replaces SVG shell so border-radius matches card ── */
+  .bento-card                { background: rgba(255, 255, 255, 0.05); }
+  .bento-card-shell          { display: none; }
+
+  /* ── Bento cards: remove inner borders on mobile ── */
   .origin-orb                { border-color: transparent; }
   .wa-mockup-v2              { border-color: transparent; }
   .dash-mockup-v2            { border-color: transparent; }
