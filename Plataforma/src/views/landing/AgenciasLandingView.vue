@@ -4938,10 +4938,7 @@ const starVB = '0 0 137 130'
     padding: 1.25rem 1.5rem 1.5rem;
   }
 
-  /* ── Bento cards: remove borders & glass outline on mobile ── */
-  .bento-card-shell          { display: none; }
-  .bento-card::before        { display: none; }
-  .bento-card-backdrop       { display: none; }
+  /* ── Bento cards: remove inner borders on mobile (keep card glass outline) ── */
   .origin-orb                { border-color: transparent; }
   .wa-mockup-v2              { border-color: transparent; }
   .dash-mockup-v2            { border-color: transparent; }
