@@ -3,7 +3,7 @@
 ## Build And Validate
 - Install dependencies in both package roots before running or building: `npm install` and `npm install --prefix Plataforma`.
 - Prefer root scripts from the repository root: `npm run dev`, `npm run build`, and `npm run preview`.
-- Use `npm run dev:fo` only when you need the standalone Plataforma dev server on port 5174 instead of the root Vite setup on port 5173.
+- Use `npm run dev:fo` only when you need the standalone Plataforma dev server. The workspace uses the first free port in the local range `3000-3006`, skipping `3001` because it is reserved for the docs portal.
 - There is no automated test, lint, or format pipeline in this repo. After changes, run `npm run build` and manually verify the affected flows in the browser.
 
 ## Architecture

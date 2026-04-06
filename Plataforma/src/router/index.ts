@@ -17,6 +17,12 @@ const router = createRouter({
       meta: { title: 'Adsmagic para Agências' }
     },
     {
+      path: '/lp/home',
+      name: 'lp-home',
+      component: () => import('@/views/landing/home/HomeLandingView.vue'),
+      meta: { title: 'Adsmagic | Rastrear Leads e Vendas no WhatsApp' }
+    },
+    {
       path: '/deck/agencias',
       name: 'deck-agencias',
       component: () => import('@/views/deck/DeckAgenciasView.vue'),
