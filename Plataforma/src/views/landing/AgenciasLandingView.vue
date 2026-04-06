@@ -4931,6 +4931,8 @@ const starVB = '0 0 137 130'
   }
   .feature-stack-card__img {
     border-radius: 0;       /* no inner curvature at bottom of visual section */
+    padding: 0;             /* remove frame/border around screenshot */
+    background: none;       /* remove bg that creates visible edge */
   }
   .feature-stack-card__content {
     padding: 1.25rem 1.5rem 1.5rem;
