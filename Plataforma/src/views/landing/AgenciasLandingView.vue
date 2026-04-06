@@ -3007,7 +3007,7 @@ const starVB = '0 0 137 130'
   height: 44px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid transparent;
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
@@ -3027,7 +3027,7 @@ const starVB = '0 0 137 130'
   justify-content: flex-end;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   overflow: hidden;
 }
 
@@ -3037,7 +3037,7 @@ const starVB = '0 0 137 130'
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background: rgba(37, 211, 102, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid transparent;
   font-size: 0.6875rem;
   font-weight: 600;
   color: #25D366;
@@ -3097,7 +3097,7 @@ const starVB = '0 0 137 130'
   flex-direction: column;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid transparent;
   overflow: hidden;
 }
 
@@ -3107,7 +3107,7 @@ const starVB = '0 0 137 130'
   gap: 0.5rem;
   padding: 0.625rem 0.875rem;
   background: rgba(99, 102, 241, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid transparent;
   font-size: 0.75rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.7);
@@ -3129,7 +3129,7 @@ const starVB = '0 0 137 130'
   padding: 0.5rem 0.25rem;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid transparent;
 }
 
 .dash-mock-val {
@@ -3158,7 +3158,7 @@ const starVB = '0 0 137 130'
   padding: 0.375rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
 }
 
 .dash-mock-bar {
@@ -4939,16 +4939,7 @@ const starVB = '0 0 137 130'
     padding: 1.25rem 1.5rem 1.5rem;
   }
 
-  /* ── Bento cards: bg + shell now set globally (see .bento-card base rules) ── */
-
-  /* ── Bento cards: remove inner borders on mobile ── */
-  .origin-orb                { border-color: transparent; }
-  .wa-mockup-v2              { border-color: transparent; }
-  .dash-mockup-v2            { border-color: transparent; }
-  .dash-mock-metric          { border-color: transparent; }
-  .dash-mock-chart           { border-color: transparent; }
-  .wa-mock-header            { border-bottom-color: transparent; }
-  .dash-mock-header          { border-bottom-color: transparent; }
+  /* ── Bento cards: bg + shell + inner borders now set globally (see .bento-card base rules) ── */
 }
 
 /* ── 2. Reduce heavy section padding on small screens ── */
