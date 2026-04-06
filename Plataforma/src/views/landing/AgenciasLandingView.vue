@@ -2806,7 +2806,7 @@ const starVB = '0 0 137 130'
   --glass-shadow: rgba(99, 102, 241, 0.16);
   position: relative;
   border-radius: 20px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   border: none;
   isolation: isolate;
   overflow: hidden;
@@ -2835,6 +2835,7 @@ const starVB = '0 0 137 130'
   width: 100%;
   height: 100%;
   pointer-events: none;
+  display: none; /* SVG viewBox distorts corners — CSS bg replaces it */
 }
 
 .bento-card::before {
@@ -4938,9 +4939,7 @@ const starVB = '0 0 137 130'
     padding: 1.25rem 1.5rem 1.5rem;
   }
 
-  /* ── Bento cards: CSS bg replaces SVG shell so border-radius matches card ── */
-  .bento-card                { background: rgba(255, 255, 255, 0.05); }
-  .bento-card-shell          { display: none; }
+  /* ── Bento cards: bg + shell now set globally (see .bento-card base rules) ── */
 
   /* ── Bento cards: remove inner borders on mobile ── */
   .origin-orb                { border-color: transparent; }
