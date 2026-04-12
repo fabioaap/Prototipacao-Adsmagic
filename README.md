@@ -23,6 +23,8 @@ Leia a 📋 **[Constituição do repositório](./CONSTITUTION.md)** para entende
 ### 📣 Time de Marketing / GTM
 1. [Squad de GTM](http://localhost:3001/marketing/squad-de-gtm) — modelo operacional do squad
 2. [Wiki de marketing](http://localhost:3001/wiki) — posicionamento, ICP, conteúdo
+3. [Landing Pages — assets e campanhas](http://localhost:3001/marketing/assets-e-campanhas) — status de SEO, canônicos, copies
+4. [Handoff Cloudflare Pages](http://localhost:3001/workflow/cloudflare-pages-lps) — deploy, checklist pós-deploy, domínios
 
 > **Wiki de produto completa:** `npm run docs:dev` → http://localhost:3001
 
@@ -115,9 +117,15 @@ npm run lps:package
 
 Os pacotes ficam em `deliverables/lps/<slug>/`.
 
-Handoff operacional para deploy das LPs no Cloudflare Pages:
+### Documentação das Landing Pages
 
-- [Handoff Cloudflare Pages para LPs](./docs/docs/workflow/cloudflare-pages-lps.md)
+| Doc | Descrição |
+|-----|-----------|
+| [Assets e Campanhas](./docs/docs/marketing/assets-e-campanhas.md) | Índice de LPs, status de SEO, canônicos, copies vinculadas |
+| [Handoff Cloudflare Pages](./docs/docs/workflow/cloudflare-pages-lps.md) | Deploy, domínios, checklist pós-deploy com verificação SEO |
+| [Copies Google Ads](./docs/docs/marketing/copies-google-ads.md) | Copies de anúncios Google vinculadas às LPs |
+| [Copies Meta Ads](./docs/docs/marketing/copies-meta-ads.md) | Copies de anúncios Meta vinculadas às LPs |
+| [Oferta para Agências](./docs/docs/marketing/oferta-para-agencias.md) | Proposta de valor e oferta da LP para agências |
 
 ---
 
