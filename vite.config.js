@@ -7,6 +7,7 @@ import { createRequire } from 'node:module'
 import { findAvailablePort } from './vite.port-range.js'
 
 const pkg = JSON.parse(readFileSync(new URL('./Plataforma/package.json', import.meta.url), 'utf8'))
+const landingPagesManifest = JSON.parse(readFileSync(new URL('./marketing/lps.manifest.json', import.meta.url), 'utf8'))
 
 // Resolve tailwindcss and autoprefixer from Plataforma/node_modules
 const requireFO = createRequire(new URL('./Plataforma/src/main.ts', import.meta.url))
@@ -54,6 +55,7 @@ export default defineConfig(async ({ command }) => {
     __GIT_BRANCH__: JSON.stringify(branch),
     __GIT_SHA__: JSON.stringify(sha),
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __LANDING_PAGES_MANIFEST__: JSON.stringify(landingPagesManifest),
   },
   server,
 }

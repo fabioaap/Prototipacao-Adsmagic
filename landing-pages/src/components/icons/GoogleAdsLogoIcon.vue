@@ -1,0 +1,30 @@
+<script setup lang="ts">
+interface Props {
+  size?: number | string
+}
+
+withDefaults(defineProps<Props>(), {
+  size: 20,
+})
+</script>
+
+<template>
+  <svg
+    :width="size"
+    :height="size"
+    viewBox="0 -13 256 256"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M5.888 166.405L90.88 20.9c10.796 6.356 65.236 36.484 74.028 42.214L79.916 208.627C70.621 220.907-5.888 185.04 5.888 166.396v.009Z"
+      fill="#FBBC04"
+    />
+    <path
+      d="M250.084 166.402 165.092 20.906C153.21 1.132 127.619-6.054 106.601 5.625 85.582 17.304 79.182 42.462 91.064 63.119l84.992 145.514c11.882 19.765 37.473 26.951 58.492 15.272 20.1-11.679 27.418-37.729 15.536-57.485v-.018Z"
+      fill="#4285F4"
+    />
+    <ellipse cx="42.664" cy="187.924" rx="42.664" ry="41.604" fill="#34A853" />
+  </svg>
+</template>

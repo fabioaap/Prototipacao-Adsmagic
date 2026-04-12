@@ -51,6 +51,7 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
     title: 'CI/CD e DevOps',
     items: [
       {label: 'Infra: Workspace · Canary · Produção', docId: 'architecture/infra-canary-producao', to: '/architecture/infra-canary-producao'},
+      {label: 'Handoff Cloudflare Pages para LPs', docId: 'workflow/cloudflare-pages-lps', to: '/workflow/cloudflare-pages-lps'},
       {label: 'Estrutura do protótipo', docId: 'architecture/estrutura-do-prototipo', to: '/architecture/estrutura-do-prototipo'},
       {label: 'Integrações', docId: 'modulos/integracoes', to: '/modulos/integracoes'},
       {label: 'Rastreamento', docId: 'modulos/rastreamento', to: '/modulos/rastreamento'},
