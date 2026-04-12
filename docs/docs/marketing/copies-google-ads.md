@@ -19,7 +19,7 @@ Kit operacional de copies para a campanha **Captura de intenção — LP Agencia
 
 **CTA principal:** Demo diagnóstica.
 
-**LP de destino:** `/lp/agencias`
+**LP de destino:** `https://adsmagic.com.br/para-agencias`
 
 **Tipo de campanha:** Search (captura de intenção — quem pesquisa já tem consciência do problema).
 
@@ -328,10 +328,10 @@ Cada grupo contém 15 headlines (max 30 caracteres) e 4 descriptions (max 90 car
 
 | Sitelink | URL | Descrição (max 35 chars) |
 |----------|-----|--------------------------|
-| Demo Diagnóstica | /lp/agencias#demo | Agende sua demo gratuita |
-| Como Funciona | /lp/agencias#como-funciona | Veja o mecanismo em 3 camadas |
-| Para Agências | /lp/agencias | Oferta exclusiva para agências |
-| Atribuição de Receita | /lp/agencias#atribuicao | Prove qual campanha gera venda |
+| Demo Diagnóstica | https://adsmagic.com.br/para-agencias#demo | Agende sua demo gratuita |
+| Como Funciona | https://adsmagic.com.br/para-agencias#como-funciona | Veja o mecanismo em 3 camadas |
+| Para Agências | https://adsmagic.com.br/para-agencias | Oferta exclusiva para agências |
+| Atribuição de Receita | https://adsmagic.com.br/para-agencias#atribuicao | Prove qual campanha gera venda |
 
 ### Callouts
 
@@ -378,7 +378,7 @@ Cada grupo contém 15 headlines (max 30 caracteres) e 4 descriptions (max 90 car
 
 - Fase de aprendizado (primeiras 2-4 semanas): usar Maximize Clicks com orçamento controlado para acumular dados de conversão.
 - Após 30-50 conversões acumuladas: migrar para Maximize Conversions com Target CPA.
-- Conversão principal a configurar: envio do formulário de demo diagnóstica na LP `/lp/agencias`.
+- Conversão principal a configurar: envio do formulário de demo diagnóstica na LP canônica `https://adsmagic.com.br/para-agencias#demo`.
 
 ### Budget diário sugerido
 
@@ -392,7 +392,7 @@ Cada grupo contém 15 headlines (max 30 caracteres) e 4 descriptions (max 90 car
 
 ### Landing page
 
-- **URL de destino:** `/lp/agencias`
+- **URL de destino:** `https://adsmagic.com.br/para-agencias`
 - **Parâmetros UTM sugeridos:** `utm_source=google&utm_medium=cpc&utm_campaign={campaign_name}&utm_content={ad_group}&utm_term={keyword}`
 - **Tracking:** configurar Google Ads conversion tag + evento de formulário como conversão primária.
 - **Coerência:** garantir que a LP repita os termos principais das headlines para manter quality score alto.

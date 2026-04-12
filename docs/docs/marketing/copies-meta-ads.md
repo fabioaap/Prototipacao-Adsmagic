@@ -15,7 +15,7 @@ Este kit fornece variacoes prontas para teste em campanhas de Meta Ads. Cada var
 
 **Publico-alvo dos anuncios:** donos de agencia e gestores de trafego que ja investem em midia paga e vendem via WhatsApp.
 
-**Destino de todos os anuncios:** /lp/agencias
+**Destino de todos os anuncios:** `https://adsmagic.com.br/para-agencias`
 
 **CTA padrao:** Demo diagnostica
 
@@ -298,7 +298,7 @@ Receita, nao volume.
 
 ### Lookalikes
 
-- Lookalike 1% a partir de visitantes da LP /lp/agencias
+- Lookalike 1% a partir de visitantes da LP canônica `https://adsmagic.com.br/para-agencias`
 - Lookalike 1% a partir de leads que agendaram demo diagnostica
 - Lookalike 1-3% a partir de engajamento com conteudo no Instagram (quando disponivel)
 
