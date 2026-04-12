@@ -31,6 +31,8 @@ Para publicar **uma LP por projeto**, use sempre os diretórios empacotados em `
 - `img/`
 - logos
 - `manifest.json`
+- `robots.txt`
+- `sitemap.xml`
 - `README-handoff.md`
 
 ## Geração local dos artefatos
@@ -103,14 +105,35 @@ Se a publicação for feita por upload direto em vez de integração com Git:
 - projeto da LP de vendas: subir o conteúdo de `deliverables/lps/vendas-whatsapp`
 - projeto da LP de agências: subir o conteúdo de `deliverables/lps/para-agencias`
 
-## Domínios recomendados
+## Domínios e URLs canônicas
 
-Como são dois projetos distintos, a recomendação é usar dois domínios ou subdomínios dedicados, por exemplo:
+As URLs canônicas registradas no manifest são baseadas em path no domínio raiz:
+
+- `https://adsmagic.com.br/vendas-whatsapp`
+- `https://adsmagic.com.br/para-agencias`
+
+Esse modelo concentra toda a autoridade de domínio em `adsmagic.com.br`.
+
+### Deploy path-based (recomendado)
+
+Para servir ambas as LPs sob o mesmo domínio com paths, use **um único projeto** no Cloudflare Pages. A estrutura de output já fornece as pastas com os slugs corretos — basta compor a raiz de publicação com os dois diretórios:
+
+```text
+publish-root/
+  vendas-whatsapp/
+    index.html, assets/, img/, robots.txt, sitemap.xml …
+  para-agencias/
+    index.html, assets/, img/, robots.txt, sitemap.xml …
+```
+
+### Alternativa: dois projetos com subdomínios
+
+Se, por questão operacional, forem usados dois projetos separados no Cloudflare Pages, os domínios seriam:
 
 - `vendas.adsmagic.com.br`
 - `agencias.adsmagic.com.br`
 
-Se a intenção for servir as duas LPs no mesmo domínio com paths como `/vendas-whatsapp` e `/para-agencias`, o modelo correto deixa de ser dois projetos e passa a ser **um único projeto** do Cloudflare Pages.
+Nesse caso, as `canonicalUrl` no manifest e as tags `<link rel="canonical">`, `og:url` e sitemap.xml nos HTMLs **devem ser atualizadas** para refletir os subdomínios, caso contrário haverá conflito de canonical.
 
 ## Checklist pós-deploy
 
@@ -123,6 +146,11 @@ Validar em cada projeto:
 5. links legais: privacidade, cookies e termos
 6. hashes de navegação interna, quando existirem
 7. domínio customizado e SSL emitido
+8. `robots.txt` acessível em `/<slug>/robots.txt`
+9. `sitemap.xml` acessível e com `<loc>` apontando para a canonical correta
+10. tags `<title>`, `<meta name="description">` e `<link rel="canonical">` com conteúdo SEO
+11. Open Graph: `og:title`, `og:description`, `og:url`, `og:image` sem 404
+12. JSON-LD: validar com [Rich Results Test](https://search.google.com/test/rich-results)
 
 ## Limite deste handoff
 
