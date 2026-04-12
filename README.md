@@ -23,7 +23,7 @@ Leia a 📋 **[Constituição do repositório](./CONSTITUTION.md)** para entende
 ### 📣 Time de Marketing / GTM
 1. [Squad de GTM](http://localhost:3001/marketing/squad-de-gtm) — modelo operacional do squad
 2. [Wiki de marketing](http://localhost:3001/wiki) — posicionamento, ICP, conteúdo
-3. [Landing Pages — assets e campanhas](http://localhost:3001/marketing/assets-e-campanhas) — status de SEO, canônicos, copies
+3. [Landing Pages — assets e campanhas](http://localhost:3001/wiki/marketing/assets-e-campanhas) — status de SEO, canônicos, copies
 4. [Handoff Cloudflare Pages](http://localhost:3001/workflow/cloudflare-pages-lps) — deploy, checklist pós-deploy, domínios
 
 > **Wiki de produto completa:** `npm run docs:dev` → http://localhost:3001
