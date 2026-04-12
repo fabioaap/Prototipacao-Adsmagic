@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   mockLandingPages,
   mockLandingCatalogQuickAccess,
-  mockLandingCatalogStats,
   type LandingPageTone,
   type LandingPageLink,
   type LandingPageVersionStatus,
@@ -14,8 +13,19 @@ const router = useRouter()
 const route = useRoute()
 const landingPages = mockLandingPages
 const quickAccess = mockLandingCatalogQuickAccess
-const stats = mockLandingCatalogStats
 const docsPortalBaseUrl = (import.meta.env.VITE_DOCS_PORTAL_URL || `${import.meta.env.BASE_URL}wiki`).replace(/\/$/, '')
+
+const stats = computed(() => {
+  const uniqueChannels = new Set(landingPages.flatMap((landing) => landing.channels))
+  const linkedDestinations = landingPages.reduce((count, landing) => count + landing.destinations.length, 0)
+
+  return [
+    { value: String(landingPages.length), label: 'LPs Catalogadas', helper: 'Superficies ligadas ao manifesto central' },
+    { value: String(landingPages.filter((landing) => landing.status === 'active').length), label: 'Superficies Ativas', helper: 'Entradas prontas para preview e handoff' },
+    { value: String(linkedDestinations), label: 'Destinos Ligados', helper: 'Previews, URLs externas e docs validos' },
+    { value: String(uniqueChannels.size), label: 'Canais Mapeados', helper: 'Aquisicao e operacao por superficie' },
+  ]
+})
 
 const selectedLandingId = computed(() =>
   typeof route.query.lp === 'string' ? route.query.lp : null
@@ -78,7 +88,7 @@ function resolveLinkUrl(link: LandingPageLink) {
 function openLink(link: LandingPageLink) {
   const target = resolveLinkUrl(link)
 
-  if (link.kind === 'docs') {
+  if (link.kind === 'docs' || link.kind === 'external') {
     window.open(target, '_blank', 'noopener,noreferrer')
     return
   }

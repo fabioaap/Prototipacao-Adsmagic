@@ -45,6 +45,7 @@ Páginas desta camada:
 - [Squad de GTM](/wiki/marketing/squad-de-gtm)
 - [Gaps e Decisões Abertas do GTM](/wiki/marketing/gaps-e-decisoes-abertas-do-gtm)
 - [Benchmark Competitivo: Tintim](/wiki/marketing/benchmark-competitivo-tintim)
+- [Dossie de Canal: Bispo Bruno Leonardo](/wiki/marketing/dossie-canal-youtube-bispo-bruno-leonardo)
 - [Plano de 90 dias](/wiki/marketing/plano-90-dias)
 
 ### Messaging
@@ -86,6 +87,8 @@ Se a dúvida for sobre como o time de marketing deve operar, avance para Squad d
 Se a duvida for sobre o que ainda esta em aberto para o GTM funcionar de forma consistente, use Gaps e Decisoes Abertas do GTM.
 
 Se a duvida for sobre concorrencia direta, expectativa de mercado e como nos contraposicionar para agencias, use Benchmark Competitivo: Tintim.
+
+Se a duvida for sobre mecanicas de alcance de massa, ritualizacao de audiencia e embalagem editorial em video, use Dossie de Canal: Bispo Bruno Leonardo.
 
 Se a duvida for sobre preco, unit economics e qual numero deve prevalecer, use Pricing e Unit Economics.
 

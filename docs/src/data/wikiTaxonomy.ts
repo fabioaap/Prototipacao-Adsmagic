@@ -120,6 +120,7 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
       {label: 'Marketing', docId: 'marketing/index', to: '/wiki/marketing'},
       {label: 'Módulos', docId: 'modulos/index', to: '/modulos'},
       {label: 'Benchmark competitivo', docId: 'marketing/benchmark-competitivo-tintim', to: '/wiki/marketing/benchmark-competitivo-tintim'},
+      {label: 'Dossiê de canal no YouTube', docId: 'marketing/dossie-canal-youtube-bispo-bruno-leonardo', to: '/wiki/marketing/dossie-canal-youtube-bispo-bruno-leonardo'},
       {label: 'Copies Meta Ads', docId: 'marketing/copies-meta-ads', to: '/wiki/marketing/copies-meta-ads'},
       {label: 'Copies Google Ads', docId: 'marketing/copies-google-ads', to: '/wiki/marketing/copies-google-ads'},
     ],

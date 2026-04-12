@@ -21,6 +21,7 @@ node_modules/
 # Build & Logs (AIOX)
 dist/
 build/
+deliverables/
 *.log
 logs/
 

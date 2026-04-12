@@ -12,6 +12,13 @@ export type HomeLandingFaq = {
   answer: string
 }
 
+export type HomeLandingTestimonial = {
+  quote: string
+  name: string
+  role: string
+  avatar: string
+}
+
 export const homeLandingLinks = {
   signup: 'https://app.adsmagic.com.br/singup/?access_uuid=556feeb5-8f7d-445d-84a7-59876d25d2fc&utm_source=direct&utm_medium=none',
   signupNav: 'https://app.adsmagic.com.br/singup/?access_uuid=fd18531d-89d0-4b89-a174-81722b562e8d&utm_source=direct&utm_medium=none',
@@ -22,11 +29,18 @@ export const homeLandingLinks = {
   terms: 'https://adsmagic.com.br/legal/terms-of-service',
 }
 
-export const homeLandingSupportPills = [
-  'Google Ads',
-  'Meta Ads',
-  'WhatsApp',
+export const homeLandingSupportPartners = [
+  { name: 'ABStartups', logo: 'logo-abstartups.png' },
+  { name: 'Sebrae for Startups', logo: 'logo-sebrae.png' },
 ]
+
+export const homeLandingTestimonial: HomeLandingTestimonial = {
+  quote:
+    'Antes do Adsmagic eu perdia cerca de 2h por semana cruzando planilhas e ainda ficava no escuro sobre a origem das vendas. Hoje deixo o dashboard aberto o dia inteiro: em segundos sei qual canal trouxe cada pedido e realoco o orçamento na hora certa. Ganhei confiança nos números, parei de desperdiçar verba e consigo crescer novos canais com segurança.',
+  name: 'Gabriel Queiroz',
+  role: 'Fundador da Melhor Limpeza',
+  avatar: 'testimonial-gabriel.png',
+}
 
 export const homeLandingFeatures: HomeLandingFeature[] = [
   {
@@ -37,11 +51,11 @@ export const homeLandingFeatures: HomeLandingFeature[] = [
     imageAlt: 'Dashboard do Adsmagic mostrando origem de leads e vendas por canal',
   },
   {
-    id: 'feature-contacts',
-    title: 'Salva contatos instantaneamente',
-    description: 'Cada conversa vira lead completo no CRM, com histórico e UTMs, sem copiar nem colar.',
-    image: 'feature-contacts.png',
-    imageAlt: 'Tela de contatos do Adsmagic com origem rastreada e dados do lead',
+    id: 'feature-conversations',
+    title: 'Acompanha as conversas',
+    description: 'Centraliza mensagens, origem e histórico de cada atendimento para o time agir sem perder contexto.',
+    image: 'feature-conversations.png',
+    imageAlt: 'Tela de mensagens do Adsmagic com origem dos contatos e resultados por conversa',
   },
   {
     id: 'feature-journey',
@@ -65,21 +79,85 @@ export const homeLandingFeatures: HomeLandingFeature[] = [
     imageAlt: 'Funil automatizado do Adsmagic com evolução das etapas',
   },
   {
-    id: 'feature-report',
-    title: 'Envia relatório diário no WhatsApp',
-    description: 'Receba no celular gastos, vendas e KPIs-chave para agir rápido sem abrir planilhas.',
-    image: 'feature-report.png',
-    imageAlt: 'Relatório diário enviado pelo Adsmagic no WhatsApp',
+    id: 'feature-campaigns',
+    title: 'Painel de campanhas Google Ads e Meta Ads',
+    description: 'Acompanhe campanhas, grupos e anúncios com dados de mídia e atribuição de contatos e vendas.',
+    image: 'feature-campaigns.png',
+    imageAlt: 'Painel de campanhas do Adsmagic com métricas de mídia, contatos e vendas',
   },
 ]
 
-export const homeLandingPricingBenefits = [
-  'Cadastro em 5 minutos',
-  'Relatório ROI diário',
-  'Preço congelado',
-  '10k eventos por mês',
-  'Suporte via WhatsApp',
-  'Exportação CSV',
+export type PricingPlan = {
+  id: string
+  name: string
+  icon: string
+  description: string
+  monthlyPrice: number
+  annualPrice: number
+  features: string[]
+  cta: string
+  ctaStyle: 'outline' | 'filled'
+  recommended?: boolean
+}
+
+export const homeLandingPricingPlans: PricingPlan[] = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    icon: '⚡',
+    description: 'Para quem está começando a rastrear resultados',
+    monthlyPrice: 97,
+    annualPrice: 77,
+    features: [
+      'Até 3 projetos',
+      '500 contatos/mês',
+      'Dashboard básico',
+      '1 integração WhatsApp',
+      'Suporte por email',
+    ],
+    cta: 'Assinar',
+    ctaStyle: 'outline',
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    icon: '👑',
+    description: 'Para equipes que precisam de mais controle e automação',
+    monthlyPrice: 197,
+    annualPrice: 157,
+    features: [
+      'Até 10 projetos',
+      '5.000 contatos/mês',
+      'Dashboard completo + Funil',
+      '3 integrações WhatsApp',
+      'Todas as origens (Meta, Google, TikTok)',
+      'Exportação CSV/Excel',
+      'Suporte prioritário',
+    ],
+    cta: 'Assinar',
+    ctaStyle: 'filled',
+    recommended: true,
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    icon: '🚀',
+    description: 'Para agências e operações de grande escala',
+    monthlyPrice: 497,
+    annualPrice: 397,
+    features: [
+      'Projetos ilimitados',
+      'Contatos ilimitados',
+      'Dashboard completo + Pipeline + Insights IA',
+      'Integrações ilimitadas',
+      'Todas as origens + API Customizada',
+      'Exportação avançada + Webhooks',
+      'White-label disponível',
+      'Suporte dedicado + Onboarding',
+    ],
+    cta: 'Falar com Vendas',
+    ctaStyle: 'outline',
+  },
 ]
 
 export const homeLandingFaqs: HomeLandingFaq[] = [

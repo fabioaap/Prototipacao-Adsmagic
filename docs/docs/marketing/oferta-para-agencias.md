@@ -7,7 +7,8 @@ slug: /wiki/marketing/oferta-para-agencias
 
 :::tip LP Funcional
 A landing page baseada neste blueprint já está implementada como protótipo funcional:  
-**[/lp/agencias](http://localhost:5173/lp/agencias)** (dev server) — Vue 3 + Tailwind, dark editorial, standalone.
+**[Preview standalone local](http://localhost:4173/para-agencias/)** — app dedicado de LPs em desenvolvimento.  
+**URL canônica registrada:** `https://adsmagic.com.br/para-agencias`
 :::
 
 Esta pagina funciona como blueprint de landing page e one-pager comercial para a motion inicial do Adsmagic com agencias de marketing e gestores de trafego.

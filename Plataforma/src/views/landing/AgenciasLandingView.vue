@@ -11,18 +11,94 @@ import MetaAdsLogoIcon from '@/components/icons/MetaAdsLogoIcon.vue'
 import { useFlowCanvas } from '@/composables/useFlowCanvas'
 import { useArrowCanvas } from '@/composables/useArrowCanvas'
 import { useMagneticStarfield } from '@/composables/useMagneticStarfield'
-import { Badge } from '@/components/ui/badge'
 import { LiquidGlassEffect, GlassFilter } from '@/components/ui/liquid-glass'
 
 const base = import.meta.env.BASE_URL
 
+type BillingCycle = 'monthly' | 'annual'
+
+type PricingPlan = {
+  id: string
+  name: string
+  audience: string
+  monthly: number
+  annualMonthly: number
+  annualYearly: number
+  ctaLabel: string
+  ctaHref: string
+  featured: boolean
+  footnote: string
+  features: string[]
+}
+
 const navScrolled = ref(false)
 const mobileMenuOpen = ref(false)
 const openFaq = ref<number | null>(null)
-const billingCycle = ref<'monthly' | 'annual'>('annual')
-const PRICE_MONTHLY = 147
-const PRICE_ANNUAL_MO = 118   // R$147 × 0.80 ≈ R$118/mês
-const PRICE_ANNUAL_YR = 1_411 // R$118 × 12 = R$1.411/ano
+const billingCycle = ref<BillingCycle>('annual')
+const pricingPlans: PricingPlan[] = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    audience: 'Para quem está começando a rastrear resultados',
+    monthly: 97,
+    annualMonthly: 77,
+    annualYearly: 924,
+    ctaLabel: 'Assinar',
+    ctaHref: '/cadastro',
+    featured: false,
+    footnote: 'Ideal para sair da planilha e começar a provar resultado sem complicar a operação.',
+    features: [
+      'Até 3 projetos',
+      '500 contatos/mês',
+      'Dashboard básico',
+      '1 integração WhatsApp',
+      'Suporte por email',
+    ],
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    audience: 'Para equipes que precisam de mais controle e automação',
+    monthly: 197,
+    annualMonthly: 157,
+    annualYearly: 1_884,
+    ctaLabel: 'Assinar',
+    ctaHref: '/cadastro',
+    featured: true,
+    footnote: 'Para quem já roda mais volume e precisa ganhar contexto, rotina e automação no dia a dia.',
+    features: [
+      'Até 10 projetos',
+      '5.000 contatos/mês',
+      'Dashboard completo + Funil',
+      '3 integrações WhatsApp',
+      'Todas as origens (Meta, Google, TikTok)',
+      'Exportação CSV/Excel',
+      'Suporte prioritário',
+    ],
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    audience: 'Para agências e operações de grande escala',
+    monthly: 497,
+    annualMonthly: 397,
+    annualYearly: 4_764,
+    ctaLabel: 'Falar com Vendas',
+    ctaHref: '/cadastro',
+    featured: false,
+    footnote: 'Feito para operações com mais contas, mais volume e mais exigência de integração e governança.',
+    features: [
+      'Projetos ilimitados',
+      'Contatos ilimitados',
+      'Dashboard completo + Pipeline + Insights IA',
+      'Integrações ilimitadas',
+      'Todas as origens + API customizada',
+      'Exportação avançada + Webhooks',
+      'White-label disponível',
+      'Suporte dedicado + Onboarding',
+    ],
+  },
+]
 const flowStatsItems = [
   { value: '3x', label: 'mais conversões' },
   { value: '-40%', label: 'custo por lead' },
@@ -321,7 +397,7 @@ const bentoGlass = createLiquidGlassController(
 )
 const pricingGlass = createLiquidGlassController(
   'liquid-glass-pricing-filter',
-  () => pricingGlassRef.value,
+  () => pricingGlassRef.value?.querySelector<HTMLElement>('.pricing-plan-card') ?? null,
   PRICING_LIQUID_GLASS_OPTS,
 )
 const statsGlass = createLiquidGlassController(
@@ -523,10 +599,10 @@ const features = [
     gradient: 'linear-gradient(145deg, #0a1628 0%, #0d2847 40%, #0f3058 100%)',
   },
   {
-    title: 'Salva contatos instantaneamente',
+    title: 'Acompanha as conversas',
     description:
-      'Cada conversa vira lead completo no CRM com histórico e UTMs. Sem copiar, sem colar, sem perder contexto.',
-    image: base + 'img/features/contatos.png',
+      'Centraliza mensagens, origem e histórico de cada atendimento. Sua equipe age rápido sem perder contexto.',
+    image: base + 'img/features/conversas.png',
     gradient: 'linear-gradient(145deg, #061a12 0%, #0b2e1f 40%, #0d3826 100%)',
   },
   {
@@ -551,47 +627,30 @@ const features = [
     gradient: 'linear-gradient(145deg, #061a12 0%, #0b2e1f 40%, #0d3826 100%)',
   },
   {
-    title: 'Envia relatório diário no WhatsApp',
+    title: 'Painel de campanhas Google Ads e Meta Ads',
     description:
-      'Gastos, vendas e KPIs chegam no seu celular toda manhã. Você já sabe os números antes do cliente perguntar.',
-    image: base + 'img/features/relatorios.png',
+      'Acompanhe campanhas, grupos e anúncios com dados de mídia, contatos e vendas em um só painel.',
+    image: base + 'img/features/campanhas.png',
     gradient: 'linear-gradient(145deg, #0e0d2c 0%, #1a1850 40%, #211e63 100%)',
   },
 ]
 
-// Figma SVG icons — extracted from design file (viewBox 0 0 14 14, stroke currentColor)
-const SVG_ICON_GRID = '<svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.25 1.75H2.333C2.011 1.75 1.75 2.011 1.75 2.333V6.417C1.75 6.739 2.011 7 2.333 7H5.25C5.572 7 5.833 6.739 5.833 6.417V2.333C5.833 2.011 5.572 1.75 5.25 1.75Z" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.667 1.75H8.75C8.428 1.75 8.167 2.011 8.167 2.333V4.083C8.167 4.406 8.428 4.667 8.75 4.667H11.667C11.989 4.667 12.25 4.406 12.25 4.083V2.333C12.25 2.011 11.989 1.75 11.667 1.75Z" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.667 7H8.75C8.428 7 8.167 7.261 8.167 7.583V11.667C8.167 11.989 8.428 12.25 8.75 12.25H11.667C11.989 12.25 12.25 11.989 12.25 11.667V7.583C12.25 7.261 11.989 7 11.667 7Z" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.25 9.333H2.333C2.011 9.333 1.75 9.595 1.75 9.917V11.667C1.75 11.989 2.011 12.25 2.333 12.25H5.25C5.572 12.25 5.833 11.989 5.833 11.667V9.917C5.833 9.595 5.572 9.333 5.25 9.333Z" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+function formatPrice(value: number) {
+  return value.toLocaleString('pt-BR')
+}
 
-const SVG_ICON_PLUG = '<svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 12.833V9.917" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.25 4.667V1.167" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.75 4.667V1.167" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 4.667V7.583C10.5 8.202 10.254 8.796 9.817 9.233C9.379 9.671 8.786 9.917 8.167 9.917H5.833C5.214 9.917 4.621 9.671 4.183 9.233C3.746 8.796 3.5 8.202 3.5 7.583V4.667H10.5Z" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+function getPlanPrice(plan: PricingPlan) {
+  return billingCycle.value === 'monthly' ? plan.monthly : plan.annualMonthly
+}
 
-const SVG_ICON_COMPASS = '<svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.473 4.527L8.421 7.683C8.364 7.855 8.267 8.011 8.139 8.139C8.011 8.267 7.855 8.364 7.683 8.421L4.527 9.473L5.579 6.317C5.636 6.145 5.733 5.989 5.861 5.861C5.989 5.733 6.145 5.636 6.317 5.579L9.473 4.527Z" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 12.833C10.222 12.833 12.833 10.222 12.833 7C12.833 3.778 10.222 1.167 7 1.167C3.778 1.167 1.167 3.778 1.167 7C1.167 10.222 3.778 12.833 7 12.833Z" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+function getPlanBillingInfo(plan: PricingPlan) {
+  if (billingCycle.value === 'monthly') {
+    return 'Sem fidelidade anual'
+  }
 
-const SVG_ICON_CHART = '<svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.75 1.75V11.083C1.75 11.393 1.873 11.69 2.092 11.908C2.311 12.127 2.607 12.25 2.917 12.25H12.25" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 9.917V5.25" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.583 9.917V2.917" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.667 9.917V8.167" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-
-const SVG_ICON_CHECK_CIRCLE = '<svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 12.833C10.222 12.833 12.833 10.222 12.833 7C12.833 3.778 10.222 1.167 7 1.167C3.778 1.167 1.167 3.778 1.167 7C1.167 10.222 3.778 12.833 7 12.833Z" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.667 7L6.125 8.458L9.333 5.25" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-
-const SVG_ICON_BOLT = '<svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.333 8.167C2.223 8.167 2.115 8.136 2.021 8.077C1.928 8.019 1.853 7.935 1.805 7.835C1.758 7.736 1.739 7.625 1.752 7.515C1.765 7.405 1.809 7.302 1.878 7.216L7.653 1.266C7.697 1.216 7.756 1.182 7.821 1.17C7.886 1.158 7.953 1.168 8.011 1.2C8.07 1.231 8.116 1.281 8.142 1.342C8.168 1.403 8.173 1.47 8.155 1.534L7.035 5.046C7.002 5.134 6.991 5.229 7.003 5.323C7.014 5.417 7.049 5.506 7.103 5.583C7.157 5.661 7.229 5.724 7.312 5.768C7.396 5.811 7.489 5.834 7.583 5.833H11.667C11.777 5.833 11.885 5.864 11.979 5.923C12.072 5.981 12.147 6.065 12.195 6.165C12.243 6.264 12.261 6.375 12.248 6.485C12.235 6.595 12.191 6.698 12.122 6.784L6.347 12.734C6.303 12.784 6.244 12.818 6.179 12.83C6.114 12.842 6.047 12.832 5.989 12.8C5.93 12.769 5.884 12.719 5.858 12.658C5.832 12.598 5.827 12.53 5.845 12.466L6.965 8.954C6.998 8.866 7.009 8.771 6.997 8.677C6.986 8.583 6.951 8.494 6.897 8.417C6.843 8.339 6.771 8.276 6.688 8.232C6.604 8.189 6.511 8.166 6.417 8.167H2.333Z" stroke="currentColor" stroke-width="1.167" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-
-const activationFeatures: { label: string; svg: string; color: string; bg: string }[] = [
-  { label: 'Criação do workspace para a sua operação em poucos minutos', svg: SVG_ICON_GRID,    color: '#3BB56D', bg: 'rgba(59,181,109,0.12)' },
-  { label: 'Conexão inicial com Meta Ads, Google Ads e WhatsApp',        svg: SVG_ICON_PLUG,    color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
-  { label: 'Onboarding guiado para mapear fontes, eventos e leitura de vendas', svg: SVG_ICON_COMPASS, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-  { label: 'Primeiro dashboard com leads, receita atribuída e ROI',      svg: SVG_ICON_CHART,   color: '#3BB56D', bg: 'rgba(59,181,109,0.12)' },
-  { label: 'Entrada self-serve para ativar a operação no seu ritmo',     svg: SVG_ICON_BOLT,         color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
-  { label: 'Validação do rastreamento antes do primeiro relatório',       svg: SVG_ICON_CHECK_CIRCLE, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
-]
-
-const activationSignals = [
-  'Sem cartão de crédito',
-  'Setup guiado em 5 minutos',
-  'Acesso imediato ao workspace',
-]
-
-const firstSessionOutcomes = [
-  'Cria o workspace com a estrutura inicial da operação.',
-  'Conecta mídia e WhatsApp sem depender de configuração manual longa.',
-  'Sai com a primeira leitura de leads, vendas e ROI atribuídos.',
-]
+  const savings = plan.monthly * 12 - plan.annualYearly
+  return `R$ ${formatPrice(plan.annualYearly)}/ano · economize R$ ${formatPrice(savings)}`
+}
 
 const faqs = [
   {
@@ -731,8 +790,8 @@ const starVB = '0 0 137 130'
               <span class="hero-accent">Sua campanha precisa saber disso.</span>
             </h1>
             <p class="hero-subtitle hero-subtitle--light">
-              O Adsmagic conecta o clique no anúncio à venda no WhatsApp
-              e devolve esses dados para Meta e Google otimizarem por receita, não por lead.
+              O Adsmagic conecta o clique no anúncio à venda no WhatsApp e devolve esses dados para Meta e Google<br>
+              otimizarem por receita, não por lead.
             </p>
           </div>
 
@@ -748,8 +807,8 @@ const starVB = '0 0 137 130'
           </div>
 
           <p class="hero-trust-line reveal-child">
-            <span class="hero-trust-dot" aria-hidden="true"></span>
-            Usado por gestores de tráfego e agências que renovam contratos com dados de receita, não de lead
+            Usado por gestores de tráfego e agências que renovam<br>
+            contratos com dados de receita, não de lead
           </p>
         </div>
 
@@ -1208,94 +1267,88 @@ const starVB = '0 0 137 130'
       </div>
       <div class="lp-container">
         <div class="text-center">
-          <h2 class="section-heading">Sua operação começa a provar receita ainda hoje</h2>
+          <h2 class="section-heading">3 planos para 3 perfis de operação</h2>
           <p class="section-subtitle">
-            Crie sua conta, conecte suas fontes e veja o primeiro dado de venda rastreado antes de terminar o dia.
+            Comece validando o rastreamento, ganhe mais controle e automação, ou estruture uma operação em escala com mais governança.
           </p>
           <p class="roi-anchor-line">Uma venda média de R$&nbsp;400 já cobre 2 meses de Adsmagic.</p>
         </div>
-        <div ref="pricingGlassRef" class="pricing-card mx-auto mt-12">
-          <div class="pricing-card-backdrop" aria-hidden="true"></div>
-          <svg class="pricing-card-shell" viewBox="0 0 980 470" preserveAspectRatio="none" aria-hidden="true">
-            <path
-              d="M0 20C0 8.95431 8.95431 0 20 0H960C971.046 0 980 8.95431 980 20V450C980 461.046 971.046 470 960 470H20C8.95431 470 0 461.046 0 450V20Z"
-            />
-          </svg>
-          <div class="pricing-card-layout">
-            <div class="pricing-card-main">
-              <!-- Billing toggle -->
-              <div class="pricing-billing-toggle">
-                <button
-                  type="button"
-                  class="pricing-toggle-btn"
-                  :class="{ 'is-active': billingCycle === 'monthly' }"
-                  :aria-pressed="billingCycle === 'monthly' ? 'true' : 'false'"
-                  @click="billingCycle = 'monthly'"
-                >
-                  Mensal
-                </button>
-                <button
-                  type="button"
-                  class="pricing-toggle-btn"
-                  :class="{ 'is-active': billingCycle === 'annual' }"
-                  :aria-pressed="billingCycle === 'annual' ? 'true' : 'false'"
-                  @click="billingCycle = 'annual'"
-                >
-                  Anual
-                  <span class="pricing-save-badge">–20%</span>
-                </button>
+        <div class="pricing-billing-toggle pricing-billing-toggle--section mt-12">
+          <button
+            type="button"
+            class="pricing-toggle-btn"
+            :class="{ 'is-active': billingCycle === 'monthly' }"
+            :aria-pressed="billingCycle === 'monthly' ? 'true' : 'false'"
+            @click="billingCycle = 'monthly'"
+          >
+            Mensal
+          </button>
+          <button
+            type="button"
+            class="pricing-toggle-btn"
+            :class="{ 'is-active': billingCycle === 'annual' }"
+            :aria-pressed="billingCycle === 'annual' ? 'true' : 'false'"
+            @click="billingCycle = 'annual'"
+          >
+            Anual
+            <span class="pricing-save-badge">Economize 20%</span>
+          </button>
+        </div>
+
+        <div ref="pricingGlassRef" class="pricing-card mx-auto mt-8">
+          <article
+            v-for="plan in pricingPlans"
+            :key="plan.id"
+            class="pricing-plan-card"
+            :class="{ 'is-featured': plan.featured }"
+          >
+            <div class="pricing-plan-card-backdrop" aria-hidden="true"></div>
+            <svg class="pricing-plan-card-shell" viewBox="0 0 340 540" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M0 24C0 10.7452 10.7452 0 24 0H316C329.255 0 340 10.7452 340 24V516C340 529.255 329.255 540 316 540H24C10.7452 540 0 529.255 0 516V24Z" />
+            </svg>
+
+            <div v-if="plan.featured" class="pricing-plan-badge">Recomendado</div>
+
+            <div class="pricing-plan-inner">
+              <div class="pricing-plan-heading">
+                <div class="pricing-plan-title-row">
+                  <h3 class="pricing-plan-name">{{ plan.name }}</h3>
+                </div>
+                <p class="pricing-plan-audience">{{ plan.audience }}</p>
               </div>
 
-              <!-- Price display -->
-              <div class="pricing-amount pricing-amount--diagnostic" aria-live="polite">
+              <div class="pricing-amount pricing-amount--plan" aria-live="polite">
                 <Transition name="price-swap" mode="out-in">
-                  <div :key="billingCycle" class="pricing-price-row">
+                  <div :key="`${plan.id}-${billingCycle}`" class="pricing-price-row pricing-price-row--plan">
                     <span class="pricing-currency">R$</span>
-                    <span class="pricing-value">{{ billingCycle === 'monthly' ? PRICE_MONTHLY : PRICE_ANNUAL_MO }}</span>
+                    <span class="pricing-value">{{ getPlanPrice(plan) }}</span>
                     <span class="pricing-period">/mês</span>
                   </div>
                 </Transition>
-                <Transition name="price-swap" mode="out-in">
-                  <div :key="billingCycle + '_sub'" class="pricing-billing-info">
-                    <span v-if="billingCycle === 'monthly'" class="pricing-phase-badge">
-                      Preço de lançamento
-                    </span>
-                    <span v-else class="pricing-annual-detail">
-                      R$ {{ PRICE_ANNUAL_YR.toLocaleString('pt-BR') }}/ano · economize R$ {{ (PRICE_MONTHLY * 12 - PRICE_ANNUAL_YR).toLocaleString('pt-BR') }}
-                    </span>
-                  </div>
-                </Transition>
+                <div class="pricing-billing-info">
+                  <span :class="billingCycle === 'annual' ? 'pricing-annual-detail' : 'pricing-phase-badge'">
+                    {{ getPlanBillingInfo(plan) }}
+                  </span>
+                </div>
               </div>
 
-              <div class="pricing-signal-list" role="list" aria-label="Condicoes de entrada">
-                <Badge
-                  v-for="signal in activationSignals"
-                  :key="signal"
-                  variant="outline"
-                  role="listitem"
-                  class="pricing-signal-tag"
-                >{{ signal }}</Badge>
-              </div>
+              <ul class="pricing-features pricing-features--stacked">
+                <li v-for="feature in plan.features" :key="feature" class="pricing-feature pricing-feature--plan">
+                  <span class="pricing-feature-check">
+                    <Check class="h-3.5 w-3.5" />
+                  </span>
+                  <span>{{ feature }}</span>
+                </li>
+              </ul>
 
-              <a href="/cadastro" class="pricing-cta group">
-                <span>Começar: ver receita hoje</span>
+              <a :href="plan.ctaHref" class="pricing-cta group" :class="{ 'is-featured': plan.featured, 'is-secondary': !plan.featured }">
+                <span>{{ plan.ctaLabel }}</span>
                 <ArrowRight class="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </a>
-              <p class="pricing-scarcity-note">Preço de lançamento. Pode subir a qualquer momento.</p>
-            </div>
 
-            <div class="pricing-card-details">
-              <div class="pricing-features-block">
-                <span class="pricing-features-label">O que entra na ativação</span>
-                <ul class="pricing-features">
-                  <li v-for="feat in activationFeatures" :key="feat.label" class="pricing-feature">
-                    <span class="pricing-feature-icon" :style="{ background: feat.bg, color: feat.color, borderColor: feat.color }" v-html="feat.svg"></span>
-                    <span>{{ feat.label }}</span>
-                  </li>
-                </ul>
-              </div>
+              <p class="pricing-scarcity-note pricing-scarcity-note--plan">{{ plan.footnote }}</p>
             </div>
-          </div>
+          </article>
         </div>
       </div>
     </section>
@@ -1958,7 +2011,9 @@ const starVB = '0 0 137 130'
 
 .hero-subtitle--light {
   color: rgba(228, 231, 236, 0.78);
-  max-width: 38rem;
+  font-size: 1rem;
+  letter-spacing: -0.03em;
+  max-width: 58rem;
   margin-left: auto;
   margin-right: auto;
 }
@@ -2002,11 +2057,12 @@ const starVB = '0 0 137 130'
 .hero-trust-line {
   margin-top: 0.5rem;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
   max-width: 40rem;
   font-family: 'DM Sans', sans-serif;
   font-size: 0.875rem;
+  --hero-trust-line-height: 1.45;
   line-height: 1.45;
   color: rgba(228, 231, 236, 0.55);
   letter-spacing: 0.01em;
@@ -2019,6 +2075,7 @@ const starVB = '0 0 137 130'
   border-radius: 50%;
   background: #3bb56d;
   flex-shrink: 0;
+  margin-top: calc((1em * var(--hero-trust-line-height) - 6px) / 2);
   box-shadow: 0 0 8px rgba(59, 181, 109, 0.5);
 }
 
@@ -2327,12 +2384,6 @@ const starVB = '0 0 137 130'
     justify-content: center;
   }
 
-  .pricing-card {
-    max-width: 100%;
-    padding: 2rem 1.25rem;
-    border-radius: 1.25rem;
-  }
-
   .pricing-billing-toggle {
     display: flex;
     width: 100%;
@@ -2349,12 +2400,20 @@ const starVB = '0 0 137 130'
     font-size: 3rem;
   }
 
-  .pricing-feature {
-    align-items: flex-start;
+  .pricing-card {
+    gap: 1rem;
   }
 
-  .pricing-feature-icon {
-    margin-top: 0.125rem;
+  .pricing-plan-card {
+    min-height: 0;
+  }
+
+  .pricing-plan-inner {
+    padding: 1.35rem 1rem 1.15rem;
+  }
+
+  .pricing-feature {
+    align-items: flex-start;
   }
 }
 
@@ -2381,31 +2440,12 @@ const starVB = '0 0 137 130'
     flex-shrink: 0;
   }
 
-  .pricing-card {
-    padding: 1.625rem 1rem;
-  }
-
-  .pricing-signal-list {
-    gap: 0.375rem;
-    margin-bottom: 1rem;
-  }
-
-  .pricing-signal-tag {
-    width: 100%;
-    font-size: 0.72rem;
+  .pricing-billing-toggle--section {
+    max-width: 100%;
   }
 
   .pricing-value {
-    font-size: 2.6rem;
-  }
-
-  .pricing-outcomes {
-    padding: 0.875rem;
-  }
-
-  .pricing-outcomes-list {
-    gap: 0.45rem;
-    font-size: 0.8125rem;
+    font-size: 2.8rem;
   }
 
   .pricing-feature {
@@ -2415,6 +2455,10 @@ const starVB = '0 0 137 130'
   .cta-band-btn,
   .pricing-cta {
     width: 100%;
+  }
+
+  .pricing-plan-badge {
+    top: 1rem;
   }
 }
 
@@ -2803,14 +2847,17 @@ const starVB = '0 0 137 130'
 
 /* ── Bento Card ── */
 .bento-card {
+  --glass-outline: rgba(129, 140, 248, 0.18);
   --glass-shadow: rgba(99, 102, 241, 0.16);
   position: relative;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.05);
-  border: none;
+  border: 1px solid var(--glass-outline);
   isolation: isolate;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(1, 5, 67, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 10px 30px rgba(1, 5, 67, 0.18);
   transition:
     transform 0.5s cubic-bezier(0.25, 1, 0.5, 1),
     border-color 0.35s ease,
@@ -2906,24 +2953,28 @@ const starVB = '0 0 137 130'
 }
 
 .bento-card--origins {
+  --glass-outline: rgba(59, 181, 109, 0.2);
   --glass-accent: rgba(59, 181, 109, 0.46);
   --glass-accent-soft: rgba(59, 181, 109, 0.22);
   --glass-shadow: rgba(59, 181, 109, 0.18);
 }
 
 .bento-card--whatsapp {
+  --glass-outline: rgba(37, 211, 102, 0.22);
   --glass-accent: rgba(37, 211, 102, 0.5);
   --glass-accent-soft: rgba(37, 211, 102, 0.22);
   --glass-shadow: rgba(37, 211, 102, 0.18);
 }
 
 .bento-card--dashboard {
+  --glass-outline: rgba(129, 140, 248, 0.2);
   --glass-accent: rgba(129, 140, 248, 0.48);
   --glass-accent-soft: rgba(129, 140, 248, 0.2);
   --glass-shadow: rgba(99, 102, 241, 0.18);
 }
 
 .bento-card--optimize {
+  --glass-outline: rgba(255, 207, 94, 0.18);
   --glass-accent: rgba(255, 207, 94, 0.52);
   --glass-accent-soft: rgba(255, 207, 94, 0.2);
   --glass-shadow: rgba(255, 207, 94, 0.16);
@@ -3025,29 +3076,31 @@ const starVB = '0 0 137 130'
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid transparent;
-  overflow: hidden;
+  gap: 0.625rem;
+  background: transparent;
+  border: none;
+  overflow: visible;
 }
 
 .wa-mock-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: rgba(37, 211, 102, 0.1);
-  border-bottom: 1px solid transparent;
+  align-self: flex-start;
+  padding: 0.45rem 0.75rem;
+  background: rgba(37, 211, 102, 0.08);
+  border: 1px solid rgba(37, 211, 102, 0.12);
+  border-radius: 999px;
   font-size: 0.6875rem;
   font-weight: 600;
   color: #25D366;
 }
 
 .wa-mock-body {
-  padding: 0.5rem 0.625rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.5rem;
 }
 
 .wa-msg {
@@ -3079,8 +3132,8 @@ const starVB = '0 0 137 130'
   background: rgba(59, 181, 109, 0.2);
   color: #3bb56d;
   font-weight: 600;
-  border: 1px solid rgba(59, 181, 109, 0.3);
-  animation: salePulse 2s ease-in-out infinite;
+  border: 1px solid transparent;
+  animation: none;
 }
 
 @keyframes salePulse {
@@ -4046,19 +4099,36 @@ const starVB = '0 0 137 130'
 
 /* ── Pricing Card — SVG/CSS Liquid Glass ── */
 .pricing-card {
-  max-width: 980px;
+  max-width: 1120px;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+/* Liquid glass backdrop layer — SVG feDisplacementMap refraction */
+.pricing-plan-card {
+  min-height: 100%;
   border-radius: 20px;
-  text-align: center;
+  text-align: left;
   position: relative;
   isolation: isolate;
   overflow: hidden;
   background: transparent;
   border: none;
   box-shadow: 0 10px 30px rgba(1, 5, 67, 0.18);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Liquid glass backdrop layer — SVG feDisplacementMap refraction */
-.pricing-card-backdrop {
+.pricing-plan-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 42px rgba(1, 5, 67, 0.24);
+}
+
+.pricing-plan-card.is-featured {
+  box-shadow: 0 18px 48px rgba(1, 5, 67, 0.3);
+}
+
+.pricing-plan-card-backdrop {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -4068,7 +4138,7 @@ const starVB = '0 0 137 130'
   pointer-events: none;
 }
 
-.pricing-card-shell {
+.pricing-plan-card-shell {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -4077,13 +4147,13 @@ const starVB = '0 0 137 130'
   pointer-events: none;
 }
 
-.pricing-card-shell path {
+.pricing-plan-card-shell path {
   fill: white;
   fill-opacity: 0.05;
 }
 
 /* Liquid glass subtle gradient overlay */
-.pricing-card::before {
+.pricing-plan-card::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -4099,7 +4169,7 @@ const starVB = '0 0 137 130'
 }
 
 /* Animated conic-gradient border — rotating light sweep */
-.pricing-card::after {
+.pricing-plan-card::after {
   content: '';
   position: absolute;
   inset: -1px;
@@ -4129,57 +4199,60 @@ const starVB = '0 0 137 130'
   z-index: 3;
 }
 
-.pricing-card-layout {
+.pricing-plan-inner {
   position: relative;
   z-index: 4;
-  padding: 1.6rem;
-  display: grid;
-  gap: 1.25rem;
-}
-
-.pricing-card-main,
-.pricing-card-details {
-  position: relative;
-}
-
-.pricing-card-main {
+  height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 1.6rem 1.4rem 1.35rem;
+}
+
+.pricing-plan-badge {
+  position: absolute;
+  top: 1.2rem;
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  display: inline-flex;
   align-items: center;
-}
-
-.pricing-card-details {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.pricing-signal-list {
-  display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  margin-bottom: 0.25rem;
-}
-
-.pricing-signal-tag {
-  color: rgba(255, 255, 255, 0.72);
-  border-color: rgba(255, 255, 255, 0.16);
-  border-width: 0.8px;
-  background: rgba(255, 255, 255, 0.07);
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.pricing-scarcity-note {
-  margin-top: 0.6rem;
+  min-height: 1.9rem;
+  padding: 0.28rem 0.9rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(59, 181, 109, 0.95), rgba(79, 70, 229, 0.95));
+  color: #ffffff;
   font-size: 0.75rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
-  letter-spacing: 0.01em;
-  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 25px rgba(1, 5, 67, 0.28);
+}
+
+.pricing-plan-heading {
+  padding-top: 0.35rem;
+}
+
+.pricing-plan-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pricing-plan-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.pricing-plan-audience {
+  margin-top: 0.55rem;
+  min-height: 3rem;
+  font-size: 0.975rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* Billing toggle */
@@ -4193,6 +4266,15 @@ const starVB = '0 0 137 130'
   margin-bottom: 1.5rem;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
+}
+
+.pricing-billing-toggle--section {
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  max-width: 100%;
+  justify-content: center;
 }
 
 .pricing-toggle-btn {
@@ -4244,15 +4326,16 @@ const starVB = '0 0 137 130'
   gap: 0;
 }
 
-.pricing-amount--diagnostic {
-  margin-top: 0.25rem;
+.pricing-amount--plan {
+  margin-top: 1.4rem;
+  align-items: flex-start;
 }
 
 .pricing-billing-info {
   min-height: 1.5rem;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   margin-top: 6px;
 }
 
@@ -4309,6 +4392,10 @@ const starVB = '0 0 137 130'
   gap: 2px;
 }
 
+.pricing-price-row--plan {
+  min-height: 4rem;
+}
+
 .pricing-phase-badge {
   display: inline-block;
   font-size: 0.75rem;
@@ -4324,74 +4411,19 @@ const starVB = '0 0 137 130'
   color: #637083;
 }
 
-.pricing-outcomes-text {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.pricing-outcomes {
-  margin-top: 0;
-  padding: 1rem;
-  border-radius: 14px;
-  background: rgba(99, 102, 241, 0.10);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  backdrop-filter: blur(8px);
-  text-align: left;
-}
-
-.pricing-features-block {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20.8px 18.4px 18.4px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 0.8px solid rgba(255, 255, 255, 0.10);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-}
-
-.pricing-features-label {
-  display: inline-flex;
-  margin-bottom: 14px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: rgba(255, 255, 255, 0.90);
-  line-height: 18px;
-}
-
-.pricing-outcomes-label {
-  display: inline-flex;
-  margin-bottom: 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #3bb56d;
-}
-
-.pricing-outcomes-list {
-  margin: 0;
-  padding-left: 1rem;
-  display: grid;
-  gap: 0.5rem;
-  color: #334155;
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
 .pricing-features {
-  margin-top: 0;
+  margin-top: 1.5rem;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 16px;
+  gap: 0.85rem;
   text-align: left;
   list-style: none;
   padding: 0;
+}
+
+.pricing-features--stacked {
+  grid-template-columns: 1fr;
+  flex: 1 1 auto;
+  margin-bottom: 1.65rem;
 }
 
 .pricing-feature {
@@ -4403,15 +4435,23 @@ const starVB = '0 0 137 130'
   color: rgba(255, 255, 255, 0.72);
 }
 
-.pricing-feature-icon {
+.pricing-feature--plan {
+  font-size: 0.96rem;
+  line-height: 1.55;
+}
+
+.pricing-feature-check {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 16px;
-  border: 0.8px solid;
+  width: 1.45rem;
+  height: 1.45rem;
+  margin-top: 0.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(59, 181, 109, 0.38);
+  background: rgba(59, 181, 109, 0.14);
+  color: #3bb56d;
 }
 
 .pricing-cta {
@@ -4422,7 +4462,7 @@ const starVB = '0 0 137 130'
   width: 100%;
   max-width: 320px;
   height: 52px;
-  margin-top: 1.5rem;
+  margin-top: auto;
   padding: 0 24px;
   white-space: nowrap;
   font-size: 16px;
@@ -4436,6 +4476,21 @@ const starVB = '0 0 137 130'
     0 4px 20px rgba(59, 181, 109, 0.35);
 }
 
+.pricing-cta.is-secondary {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.14) inset,
+    0 8px 22px rgba(1, 5, 67, 0.14);
+}
+
+.pricing-cta.is-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+    0 12px 28px rgba(1, 5, 67, 0.22);
+}
+
 .pricing-cta:hover {
   background-color: #33a060;
   box-shadow:
@@ -4444,34 +4499,41 @@ const starVB = '0 0 137 130'
   transform: translateY(-2px);
 }
 
+.pricing-scarcity-note {
+  margin-top: 0.95rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.01em;
+}
+
+.pricing-scarcity-note--plan {
+  min-height: 3.4rem;
+  text-align: left;
+}
+
 @media (min-width: 960px) {
   .pricing-card {
-    padding: 24.8px;
-  }
-
-  .pricing-card-layout {
-    grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.05fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: stretch;
-    gap: 1.5rem;
   }
 
-  .pricing-card-main {
-    justify-content: center;
+  .pricing-plan-card {
     min-height: 100%;
-    padding: 1rem 0.5rem;
   }
+}
 
-  .pricing-card-details {
-    grid-template-rows: auto 1fr;
-  }
-
-  .pricing-features {
+@media (min-width: 640px) and (max-width: 959px) {
+  .pricing-card {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 1rem;
   }
 
-  .pricing-feature {
-    align-items: flex-start;
+  .pricing-plan-card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .pricing-plan-inner {
+    padding: 1.5rem 1.25rem 1.25rem;
   }
 }
 
