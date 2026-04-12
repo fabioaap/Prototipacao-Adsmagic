@@ -119,15 +119,13 @@ Os pacotes ficam em `deliverables/lps/<slug>/`.
 
 ### Documentação das Landing Pages
 
-> Os links abaixo abrem no portal de docs local (`npm run docs:dev` → http://localhost:3001). Para ler no GitHub, navegue em [`docs/docs/marketing/`](./docs/docs/marketing/) e [`docs/docs/workflow/`](./docs/docs/workflow/).
-
-| Doc | Link local | Arquivo |
-|-----|-----------|---------|
-| Assets e Campanhas | [↗ abrir](http://localhost:3001/wiki/marketing/assets-e-campanhas) | [assets-e-campanhas.md](./docs/docs/marketing/assets-e-campanhas.md) |
-| Handoff Cloudflare Pages | [↗ abrir](http://localhost:3001/workflow/cloudflare-pages-lps) | [cloudflare-pages-lps.md](./docs/docs/workflow/cloudflare-pages-lps.md) |
-| Copies Google Ads | [↗ abrir](http://localhost:3001/wiki/marketing/copies-google-ads) | [copies-google-ads.md](./docs/docs/marketing/copies-google-ads.md) |
-| Copies Meta Ads | [↗ abrir](http://localhost:3001/wiki/marketing/copies-meta-ads) | [copies-meta-ads.md](./docs/docs/marketing/copies-meta-ads.md) |
-| Oferta para Agências | [↗ abrir](http://localhost:3001/wiki/marketing/oferta-para-agencias) | [oferta-para-agencias.md](./docs/docs/marketing/oferta-para-agencias.md) |
+| Doc | Descrição |
+|-----|-----------|
+| [Assets e Campanhas](./docs/docs/marketing/assets-e-campanhas.md) | Índice de LPs, status de SEO, canônicos, copies vinculadas |
+| [Handoff Cloudflare Pages](./docs/docs/workflow/cloudflare-pages-lps.md) | Deploy, domínios, checklist pós-deploy com verificação SEO |
+| [Copies Google Ads](./docs/docs/marketing/copies-google-ads.md) | Copies de anúncios Google vinculadas às LPs |
+| [Copies Meta Ads](./docs/docs/marketing/copies-meta-ads.md) | Copies de anúncios Meta vinculadas às LPs |
+| [Oferta para Agências](./docs/docs/marketing/oferta-para-agencias.md) | Proposta de valor e oferta da LP para agências |
 
 ---
 
