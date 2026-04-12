@@ -71,6 +71,9 @@ npm install
 # No Plataforma
 npm install --prefix Plataforma
 
+# No app dedicado de LPs
+npm run lps:install
+
 # No portal de documentacao
 npm run docs:install
 ```
@@ -83,6 +86,9 @@ npm run dev
 
 # Plataforma standalone (primeira porta livre entre 3000 e 3006)
 npm run dev:fo
+
+# Landing pages standalone (porta 4173 por padrao)
+npm run lps:dev
 
 # Apenas o workspace raiz
 npm run dev:workspace
@@ -98,6 +104,21 @@ Acesse o workspace em **http://localhost:3000** ou na próxima porta livre até 
 
 Documentacao: **http://localhost:3001**
 
+Landing pages standalone: **http://localhost:4173**
+
+Para gerar handoffs estaticos por LP:
+
+```bash
+npm run lps:build
+npm run lps:package
+```
+
+Os pacotes ficam em `deliverables/lps/<slug>/`.
+
+Handoff operacional para deploy das LPs no Cloudflare Pages:
+
+- [Handoff Cloudflare Pages para LPs](./docs/docs/workflow/cloudflare-pages-lps.md)
+
 ---
 
 ## Estrutura do Projeto
@@ -106,6 +127,8 @@ Documentacao: **http://localhost:3001**
 Prototipacao-Adsmagic/
 ├── docs/                   # Wiki de produto
 ├── Plataforma/             # App Vue 3
+├── landing-pages/          # App dedicado para LPs exportaveis
+├── marketing/              # Manifestos e insumos editoriais das LPs
 │   ├── src/
 │   │   ├── components/
 │   │   │   └── layout/      # AppLayout, AppHeader, SidebarNav
@@ -135,7 +158,7 @@ npm run docs:build
 npm run docs:serve
 ```
 
-Use a wiki de produto para registrar mudancas estruturais do Adsmagic. Em desenvolvimento, `Plataforma/.env.development` fixa `VITE_DOCS_PORTAL_URL` em `http://localhost:3001`, e `npm run dev` ja sobe workspace + wiki juntos. Se o portal nao responder, a rota `/wiki` mostra um estado local estavel em vez de recarregar infinitamente.
+Use a wiki de produto para registrar mudancas estruturais do Adsmagic. Em desenvolvimento, `Plataforma/.env.development` fixa `VITE_DOCS_PORTAL_URL` em `http://localhost:3001` e `VITE_LANDING_PAGES_PREVIEW_URL` em `http://localhost:4173`. Se o portal nao responder, a rota `/wiki` mostra um estado local estavel em vez de recarregar infinitamente; o catalogo de LPs usa a URL de preview para abrir as superficies standalone. Os atalhos legados `/lp/home` e `/lp/agencias` agora funcionam como redirects de compatibilidade para essas superficies, preservando query string e hash.
 
 ---
 
