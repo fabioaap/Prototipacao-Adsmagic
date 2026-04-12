@@ -43,6 +43,14 @@ npm run dev
 
 Acesse em: **http://localhost:3000** ou na próxima porta livre até **http://localhost:3006**
 
+Se o prototipo for uma landing page exportavel, trabalhe no app dedicado em `landing-pages/` e valide com:
+
+```bash
+npm run lps:dev
+```
+
+O preview dedicado roda em **http://localhost:4173** e o manifesto central fica em `marketing/lps.manifest.json`. Na Plataforma, os atalhos legados `/lp/home` e `/lp/agencias` devem ser tratados apenas como redirects de compatibilidade para esse app dedicado.
+
 ### 4. Faça commits com a convenção correta
 
 ```bash
@@ -82,6 +90,7 @@ git push origin prototypes/feature/nome-da-feature
 |----------|-----|---------|
 | Root (via vite.config.js raiz) | primeira porta livre entre http://localhost:3000 e http://localhost:3006 | `npm run dev` |
 | Plataforma standalone | primeira porta livre entre http://localhost:3000 e http://localhost:3006 | `npm run dev:fo` |
+| Landing pages standalone | http://localhost:4173 | `npm run lps:dev` |
 
 ---
 
@@ -152,6 +161,20 @@ Por serem a mesma stack (Vue 3 + Vite + Tailwind), o código de um protótipo ap
 3. O @devops configura o deploy de canary via Cloudflare Pages
 4. Testes A/B com tráfego real na URL de preview
 5. Merge para `main` após validação das métricas
+
+### Handoff especifico para LPs exportaveis
+
+Quando a entrega for uma landing page publicada fora do workspace principal, gere um pacote estatico por superficie antes do handoff:
+
+```bash
+npm run lps:build
+npm run lps:package
+```
+
+Resultado esperado:
+- manifesto central atualizado em `marketing/lps.manifest.json`
+- preview validado no app `landing-pages/`
+- pacote final em `deliverables/lps/<slug>/` com `index.html`, `assets/`, `img/`, `manifest.json` e `README-handoff.md`
 
 ### O que @devops e @architect precisam decidir
 
