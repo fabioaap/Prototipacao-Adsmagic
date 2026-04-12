@@ -21,7 +21,7 @@ export interface LandingPageMetric {
 export interface LandingPageLink {
   label: string
   to: string
-  kind: 'app' | 'docs'
+  kind: 'app' | 'docs' | 'external'
   helper?: string
 }
 
@@ -42,6 +42,7 @@ export interface LandingPageVersion {
 
 export interface LandingPage {
   id: string
+  manifestId?: string
   name: string
   version?: string
   status: LandingPageSurfaceStatus
@@ -69,7 +70,7 @@ export interface LandingCatalogQuickAccess {
   icon: string
   tone: LandingPageTone
   cta: string
-  kind: 'app' | 'docs'
+  kind: 'app' | 'docs' | 'external'
 }
 
 export interface LandingCatalogStat {
@@ -78,84 +79,253 @@ export interface LandingCatalogStat {
   helper: string
 }
 
+type LandingManifestLinkKey = keyof LandingPagesManifestLinks
+
+const landingPagesManifest = __LANDING_PAGES_MANIFEST__
+const landingPagesPreviewBaseUrl = (
+  import.meta.env.VITE_LANDING_PAGES_PREVIEW_URL || (import.meta.env.DEV ? 'http://localhost:4173' : '')
+).replace(/\/$/, '')
+
+const vendasManifestId = 'lp-vendas-whatsapp'
+const agenciasManifestId = 'lp-para-agencias'
+
+function getManifestPage(manifestId: string) {
+  return landingPagesManifest.pages.find((page) => page.id === manifestId) ?? null
+}
+
+function normalizePath(path: string) {
+  return path.startsWith('/') ? path : `/${path}`
+}
+
+function resolvePreviewUrl(manifestId: string, fallbackPath: string) {
+  const previewPath = getManifestPage(manifestId)?.previewPath || fallbackPath
+  const normalizedPath = normalizePath(previewPath)
+  return landingPagesPreviewBaseUrl ? `${landingPagesPreviewBaseUrl}${normalizedPath}` : normalizedPath
+}
+
+function resolveCanonicalUrl(manifestId: string, fallbackUrl: string) {
+  return getManifestPage(manifestId)?.canonicalUrl || fallbackUrl
+}
+
+function resolveManifestLink(manifestId: string, key: LandingManifestLinkKey, fallbackUrl: string) {
+  return getManifestPage(manifestId)?.links[key] || fallbackUrl
+}
+
+function buildPreviewLink(manifestId: string, fallbackPath: string, helper: string): LandingPageLink {
+  return {
+    label: 'Abrir preview standalone',
+    to: resolvePreviewUrl(manifestId, fallbackPath),
+    kind: 'external',
+    helper,
+  }
+}
+
+function buildCanonicalLink(manifestId: string, fallbackUrl: string, helper: string): LandingPageLink {
+  return {
+    label: 'Abrir URL canonica',
+    to: resolveCanonicalUrl(manifestId, fallbackUrl),
+    kind: 'external',
+    helper,
+  }
+}
+
+const vendasPreviewLink = buildPreviewLink(
+  vendasManifestId,
+  '/lp/home',
+  'App landing-pages em porta dedicada',
+)
+
+const vendasCanonicalLink = buildCanonicalLink(
+  vendasManifestId,
+  '/lp/home',
+  'Destino de publicacao registrado no manifesto',
+)
+
+const agenciasPreviewLink = buildPreviewLink(
+  agenciasManifestId,
+  '/lp/agencias',
+  'App landing-pages em porta dedicada',
+)
+
+const agenciasCanonicalLink = buildCanonicalLink(
+  agenciasManifestId,
+  '/lp/agencias',
+  'Destino de publicacao registrado no manifesto',
+)
+
+const vendasLegacyLink: LandingPageLink = {
+  label: 'Testar atalho legado da Plataforma',
+  to: '/lp/home',
+  kind: 'app',
+  helper: 'Redireciona para a superficie standalone preservando query e hash',
+}
+
+const agenciasLegacyLink: LandingPageLink = {
+  label: 'Testar atalho legado da Plataforma',
+  to: '/lp/agencias',
+  kind: 'app',
+  helper: 'Redireciona para a superficie standalone preservando query e hash',
+}
+
 export const mockLandingPages: LandingPage[] = [
   {
-    id: 'lp-agencias',
-    name: 'LP Agencias',
+    id: 'lp-vendas-whatsapp',
+    manifestId: vendasManifestId,
+    name: 'LP Vendas no WhatsApp',
     version: 'v0.1',
     status: 'active',
-    statusLabel: 'Publicada em v0.1',
-    summary: 'LP de campanha para agencias de performance e gestores de trafego que precisam provar atribuicao, receita e qualidade de conversao via WhatsApp.',
-    focus: 'Conecta mensagem de captura de intencao, demo diagnostica, deck comercial e blueprint da oferta numa mesma superficie.',
-    stage: 'Blueprint consolidado, superficie catalogada e landing standalone publicada em v0.1.',
-    completed: 3,
-    total: 6,
+    statusLabel: 'Preview ativo',
+    summary: getManifestPage(vendasManifestId)?.description || 'Landing page principal focada em rastreamento de leads e vendas via WhatsApp com atribuicao para midia paga.',
+    focus: 'Mensagem de categoria mais ampla para operacoes que precisam ligar clique, conversa e venda e devolver sinais reais para Google e Meta Ads.',
+    stage: 'Preview standalone e pacote estatico prontos para publicacao separada da Plataforma.',
+    completed: 4,
+    total: 5,
+    icon: 'chat',
+    tone: 'emerald',
+    audiences: ['Times de performance in-house', 'Operacoes de vendas', 'Negocios que fecham no WhatsApp'],
+    channels: ['Google Ads', 'Meta Ads', 'WhatsApp', 'Site institucional'],
+    outcomes: ['Preview multipage desacoplado da Plataforma', 'CTA externo centralizado no manifesto', 'Entrega estatica pronta para handoff'],
+    context: {
+      icp: 'Operacoes que vendem pelo WhatsApp e precisam ligar clique, conversa e venda numa unica leitura.',
+      owner: getManifestPage(vendasManifestId)?.owner || 'Marketing + produto',
+      lastUpdate: landingPagesManifest.lastUpdated,
+      nextStep: 'Sincronizar a URL canonica quando houver deploy externo e remover a view legada quando o workspace nao depender mais do atalho /lp/home.',
+      primaryCta: 'Testar gratis agora',
+      checklist: [
+        'Manifesto central registrado em marketing/lps.manifest.json',
+        'Preview standalone publicado em /vendas-whatsapp/',
+        'Deliverable estatico gerado para handoff',
+        'Atalho legado /lp/home redirecionando para a superficie standalone',
+      ],
+      completionPercent: 80,
+    },
+    versions: [
+      {
+        id: 'lp-vendas-whatsapp-v0-1',
+        label: 'v0.1',
+        status: 'canary',
+        statusLabel: 'Preview',
+        summary: 'Primeiro corte standalone da LP principal de categoria, com assets copiados e links externos centralizados no manifesto.',
+        branch: __GIT_BRANCH__,
+        lastUpdate: landingPagesManifest.lastUpdated,
+        focus: 'Validar navegacao independente, pacote de handoff e substituicao do acoplamento com rotas internas da Plataforma.',
+        notes: [
+          'A marca no topo agora volta para #top dentro da propria LP.',
+          'Cadastro, login e links legais passaram a ser lidos do manifesto central.',
+          'O atalho /lp/home agora redireciona para a superficie standalone.',
+        ],
+        metrics: [
+          { label: 'Manifesto', value: '1', helper: 'entrada centralizada no catalogo de marketing' },
+          { label: 'Handoff', value: 'OK', helper: 'preview e pacote estatico gerados' },
+          { label: 'Atalho legado', value: '/lp/home', helper: 'redireciona para a superficie standalone' },
+        ],
+        links: [
+          vendasPreviewLink,
+          vendasCanonicalLink,
+          vendasLegacyLink,
+        ],
+      },
+    ],
+    destinations: [
+      { ...vendasPreviewLink, helper: 'Destino final para validacao e handoff' },
+      vendasCanonicalLink,
+      vendasLegacyLink,
+      { label: 'Abrir CTA principal', to: resolveManifestLink(vendasManifestId, 'primaryCta', '/cadastro'), kind: 'external', helper: 'Fluxo externo de trial usado pela LP' },
+    ],
+  },
+  {
+    id: 'lp-agencias',
+    manifestId: agenciasManifestId,
+    name: 'LP Agencias de Performance',
+    version: 'v0.1',
+    status: 'active',
+    statusLabel: 'Preview ativo',
+    summary: getManifestPage(agenciasManifestId)?.description || 'Landing page de aquisicao para agencias e gestores de trafego que precisam provar receita e atribuicao em vendas por WhatsApp.',
+    focus: 'Une narrativa de atribuicao, prova de receita, deck comercial e blueprint editorial numa superficie pronta para campanha e handoff.',
+    stage: 'Manifesto central, preview standalone e deliverable estatico ativos.',
+    completed: 4,
+    total: 5,
     icon: 'ads_click',
     tone: 'primary',
     audiences: ['Donos de agencia', 'Gestores de trafego', 'Operacoes que vendem via WhatsApp'],
     channels: ['Google Ads', 'Meta Ads', 'Outbound consultivo', 'Instagram organico'],
-    outcomes: ['Oferta alinhada ao ICP vigente', 'CTA principal congelado em demo diagnostica', 'Entrada pronta para futuras variacoes de copy e layout'],
+    outcomes: ['Preview multipage desacoplado da Plataforma', 'URL canonica registrada no manifesto central', 'Deck comercial e docs ligados para apoio operacional'],
     context: {
       icp: 'Agencias de performance, growth e trafego pago com vendas via WhatsApp.',
-      owner: 'Marketing + produto',
-      lastUpdate: '2026-04-02',
-      nextStep: 'Adicionar prova social real, captacao de demo e proximas variacoes de copy por canal.',
+      owner: getManifestPage(agenciasManifestId)?.owner || 'Marketing + produto',
+      lastUpdate: landingPagesManifest.lastUpdated,
+      nextStep: 'Validar o deploy externo da URL canonica e remover a view legada quando o workspace nao depender mais do atalho /lp/agencias.',
       primaryCta: 'Agende uma demo diagnostica',
       checklist: [
-        'Blueprint editorial fechado',
-        'Catalogo da superficie criado no workspace',
-        'Ligacao com deck e wiki registrada',
-        'LP standalone alinhada a Search e Meta Ads',
+        'Manifesto central registrado em marketing/lps.manifest.json',
+        'Preview standalone publicado em /para-agencias/',
+        'Deliverable estatico gerado para handoff',
+        'Atalho legado /lp/agencias redirecionando para a superficie standalone',
       ],
-      completionPercent: 75,
+      completionPercent: 80,
     },
     versions: [
       {
         id: 'lp-agencias-v0-1',
         label: 'v0.1',
-        status: 'building',
-        statusLabel: 'Building',
-        summary: 'Primeira versao catalogada da LP Agencias. Consolida a narrativa, os blocos da oferta e os links operacionais numa landing standalone funcional.',
-        branch: 'prototypes/feature/lp-agencias',
-        lastUpdate: '2026-04-02',
-        focus: 'Narrativa de captura de intencao com atribuicao, inteligencia e envio de conversoes como categoria do produto.',
+        status: 'canary',
+        statusLabel: 'Preview',
+        summary: 'Primeira versao desacoplada da Plataforma, publicada em app standalone com build multipage e deliverable estatico.',
+        branch: __GIT_BRANCH__,
+        lastUpdate: landingPagesManifest.lastUpdated,
+        focus: 'Navegacao de campanha, CTA externo e handoff de publicacao alinhados ao manifesto central.',
         experimentId: 'PROTO-003',
         notes: [
-          'A rota /lp/agencias agora segue a estrutura operacional usada em Search, Meta Ads e materiais de vendas.',
-          'As ancoras #atribuicao, #como-funciona e #demo estao disponiveis para campanha e sitelinks.',
-          'Deck comercial e copies da motion continuam ligados como apoio operacional.',
+          'A superficie agora vive em app standalone separado da Plataforma.',
+          'Deck comercial e blueprint editorial continuam ligados como apoio operacional.',
+          'A URL canonica e o preview agora saem do manifesto central.',
+          'O atalho /lp/agencias da Plataforma agora redireciona para a superficie standalone.',
         ],
         metrics: [
-          { label: 'Blocos', value: '8', helper: 'estrutura principal da LP de campanha' },
-          { label: 'CTA', value: '1', helper: 'demo diagnostica congelada' },
-          { label: 'Status', value: '75%', helper: 'landing funcional; prova social e CTA comercial ainda pendentes' },
+          { label: 'Manifesto', value: '1', helper: 'entrada centralizada no catalogo de marketing' },
+          { label: 'Docs', value: '2', helper: 'deck comercial + blueprint ligados' },
+          { label: 'Handoff', value: 'OK', helper: 'preview e pacote estatico gerados' },
+          { label: 'Atalho legado', value: '/lp/agencias', helper: 'redireciona para a superficie standalone' },
         ],
         links: [
-          { label: 'Abrir LP standalone', to: '/lp/agencias', kind: 'app', helper: 'Rota final da landing' },
+          agenciasPreviewLink,
+          agenciasCanonicalLink,
+          agenciasLegacyLink,
           { label: 'Abrir deck comercial', to: '/deck/agencias', kind: 'app', helper: 'One-pager de apoio' },
           { label: 'Ler blueprint da oferta', to: 'wiki/marketing/oferta-para-agencias', kind: 'docs', helper: 'Fonte editorial da LP' },
         ],
       },
     ],
     destinations: [
-      { label: 'Abrir LP standalone', to: '/lp/agencias', kind: 'app', helper: 'Destino final da superficie' },
+      { ...agenciasPreviewLink, helper: 'Destino final para validacao e handoff' },
+      agenciasCanonicalLink,
+      agenciasLegacyLink,
       { label: 'Abrir deck comercial', to: '/deck/agencias', kind: 'app', helper: 'Apoio de vendas consultivas' },
       { label: 'Ler blueprint', to: 'wiki/marketing/oferta-para-agencias', kind: 'docs', helper: 'Oferta e copy-base' },
-      { label: 'Ver assets e campanhas', to: 'wiki/marketing/assets-e-campanhas', kind: 'docs', helper: 'Contexto operacional do GTM' },
     ],
   },
 ]
 
 export const mockLandingCatalogQuickAccess: LandingCatalogQuickAccess[] = [
   {
-    to: '/lp/agencias',
+    to: vendasPreviewLink.to,
+    title: 'LP Vendas no WhatsApp',
+    description: 'Abra o preview standalone da LP principal de categoria ja separada da Plataforma.',
+    area: 'Preview standalone',
+    icon: 'open_in_new',
+    tone: 'emerald',
+    cta: 'Abrir preview',
+    kind: 'external',
+  },
+  {
+    to: agenciasPreviewLink.to,
     title: 'LP Agencias',
-    description: 'Abra a landing standalone ja publicada para revisar a narrativa principal da oferta.',
-    area: 'Superficie final',
+    description: 'Abra o preview standalone da LP de aquisicao para agencias de performance.',
+    area: 'Preview standalone',
     icon: 'open_in_new',
     tone: 'primary',
-    cta: 'Abrir LP',
-    kind: 'app',
+    cta: 'Abrir preview',
+    kind: 'external',
   },
   {
     to: '/deck/agencias',
@@ -180,8 +350,8 @@ export const mockLandingCatalogQuickAccess: LandingCatalogQuickAccess[] = [
 ]
 
 export const mockLandingCatalogStats: LandingCatalogStat[] = [
-  { value: '1', label: 'LP Catalogada', helper: 'Superficie registrada no workspace' },
-  { value: '1', label: 'Versao Ativa', helper: 'Entrada inicial pronta para evoluir' },
-  { value: '3', label: 'Destinos Ligados', helper: 'LP, deck e blueprint conectados' },
-  { value: '4', label: 'Canais Mapeados', helper: 'Capitacao priorizada para esta oferta' },
+  { value: '2', label: 'LPs Catalogadas', helper: 'Superficies ligadas ao manifesto central' },
+  { value: '2', label: 'Superficies Ativas', helper: 'Entradas prontas para preview e handoff' },
+  { value: '9', label: 'Destinos Ligados', helper: 'Previews, URLs externas e docs validos' },
+  { value: '7', label: 'Canais Mapeados', helper: 'Aquisicao e operacao por superficie' },
 ]

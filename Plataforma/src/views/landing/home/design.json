@@ -2,92 +2,97 @@
   "meta": {
     "name": "Adsmagic Home Clone",
     "source": "https://adsmagic.com.br/",
-    "capturedAt": "2026-04-06",
+    "captured": "2026-07-13",
     "route": "/lp/home",
-    "implementation": "vue-tailwind-local-assets"
+    "implementation": "vue-scoped-css-local-assets",
+    "methodology": "design-clone skill — extracted from live Framer site"
   },
   "tokens": {
     "color": {
-      "primary": "#6366f1",
-      "primaryDark": "#4f46e5",
-      "primarySoft": "#eef2ff",
+      "primary": "#3BB56D",
+      "primaryHover": "#2a9e58",
+      "primarySoft": "rgba(59, 181, 109, 0.08)",
+      "heading": "#010542",
+      "body": "#3a3f5f",
+      "muted": "#64748b",
       "surface": "#ffffff",
-      "surfaceAlt": "#f8fafc",
-      "text": "#0f172a",
-      "textMuted": "#64748b",
-      "border": "#e2e8f0",
-      "success": "#10b981",
-      "shadow": "rgba(15, 23, 42, 0.08)"
+      "surfaceAlt": "#edf2fa",
+      "footerBg": "#fdfffa",
+      "border": "rgba(226, 232, 240, 0.85)",
+      "ctaDark": "#010542",
+      "white": "#ffffff"
     },
     "typography": {
-      "fontFamily": "Inter, system-ui, sans-serif",
-      "heroEyebrow": "1rem / 600",
-      "heroTitle": "clamp(2.75rem, 7vw, 4.75rem) / 700",
-      "sectionTitle": "clamp(2rem, 4vw, 3.25rem) / 700",
-      "body": "1rem / 1.65",
-      "small": "0.95rem / 1.5"
-    },
-    "radius": {
-      "pill": "9999px",
-      "control": "16px",
-      "card": "28px"
-    },
-    "shadow": {
-      "card": "0 30px 80px rgba(15, 23, 42, 0.08)",
-      "button": "0 18px 40px rgba(99, 102, 241, 0.28)"
+      "fontFamily": "'Roboto', sans-serif",
+      "fontFamilyFallback": "Inter, system-ui, -apple-system, sans-serif",
+      "h1": { "size": "56px", "weight": 700, "lineHeight": "67.2px" },
+      "h2Section": { "size": "48px", "weight": 700, "lineHeight": "1.15" },
+      "h2Tagline": { "size": "24px", "weight": 500, "color": "#3BB56D" },
+      "h3Pricing": { "size": "32px", "weight": 500, "color": "#3BB56D" },
+      "h3Faq": { "size": "18px", "weight": 400 },
+      "body": { "size": "16px", "weight": 400, "lineHeight": "1.7" },
+      "small": { "size": "14px", "weight": 400 }
     },
     "spacing": {
-      "sectionY": "clamp(4rem, 9vw, 7rem)",
-      "container": "min(1180px, calc(100vw - 2rem))",
-      "gridGap": "clamp(1.25rem, 3vw, 2rem)"
+      "sectionPadding": "72px 48px",
+      "container": "min(1200px, calc(100vw - 2rem))",
+      "gridGap": "24px"
+    },
+    "radius": {
+      "button": "8px",
+      "card": "16px",
+      "cardLg": "24px",
+      "pill": "9999px"
+    },
+    "shadow": {
+      "card": "0 20px 60px rgba(1, 5, 66, 0.06)",
+      "cardHover": "0 30px 80px rgba(1, 5, 66, 0.10)",
+      "button": "0 14px 36px rgba(59, 181, 109, 0.28)"
+    },
+    "cta": {
+      "bg": "#3BB56D",
+      "color": "#ffffff",
+      "borderRadius": "8px",
+      "padding": "12px 24px"
     }
   },
   "sections": [
     "navigation",
     "hero",
-    "why-it-works",
+    "do-clique-ao-roi",
     "features-grid",
-    "roi-cta",
-    "offer-pricing",
-    "testimonial",
+    "cta-dark",
+    "pricing",
     "faq",
     "footer"
   ],
   "assets": [
-    {
-      "local": "/img/landing/home/feature-dashboard.png",
-      "source": "https://framerusercontent.com/images/rXFayc1o8nOakeWSntsZ6FxWTyQ.png?width=1185&height=1001"
-    },
-    {
-      "local": "/img/landing/home/feature-contacts.png",
-      "source": "https://framerusercontent.com/images/uIVsg141gatFHNZVXXIFXguHUM.png?width=1185&height=1001"
-    },
-    {
-      "local": "/img/landing/home/feature-journey.png",
-      "source": "https://framerusercontent.com/images/xVqJ4oiOr6tI1mZGObuSkB5bKkQ.png?scale-down-to=512&width=889&height=751"
-    },
-    {
-      "local": "/img/landing/home/feature-optimization.png",
-      "source": "https://framerusercontent.com/images/eWuPuz9MJgj5YcI7r3HXAfSW18.png?scale-down-to=512&width=1185&height=1001"
-    },
-    {
-      "local": "/img/landing/home/feature-funnel.png",
-      "source": "https://framerusercontent.com/images/7nn3MBbKjZj5WX5QxIio0wWdk.png?scale-down-to=512&width=1185&height=1001"
-    },
-    {
-      "local": "/img/landing/home/feature-report.png",
-      "source": "https://framerusercontent.com/images/EAfn0APavNsX59QuuEAuLYIpog.png?scale-down-to=512&width=1185&height=1001"
-    }
+    { "local": "/img/landing/hero/hero-dashboard.png", "role": "hero-dashboard" },
+    { "local": "/img/landing/hero/logo-abstartups.png", "role": "partner-logo" },
+    { "local": "/img/landing/hero/logo-sebrae.png", "role": "partner-logo" },
+    { "local": "/img/landing/home/flow-diagram.png", "role": "flow-diagram", "source": "https://framerusercontent.com/images/BiBwZxsGRIsrv7E9T8WMswiGdg.png" },
+    { "local": "/img/landing/home/cta-bg.png", "role": "cta-background", "source": "https://framerusercontent.com/images/bhAfcIYNw8boxjKxSWJ52PR0UfE.png" },
+    { "local": "/img/landing/home/feature-dashboard.png", "role": "feature-card" },
+    { "local": "/img/landing/home/feature-conversations.png", "role": "feature-card" },
+    { "local": "/img/landing/home/feature-journey.png", "role": "feature-card" },
+    { "local": "/img/landing/home/feature-optimization.png", "role": "feature-card" },
+    { "local": "/img/landing/home/feature-funnel.png", "role": "feature-card" },
+    { "local": "/img/landing/home/feature-campaigns.png", "role": "feature-card" }
   ],
   "interactions": [
     "mobile-navigation-sheet",
     "pricing-cycle-toggle",
     "faq-accordion",
-    "cta-hover-elevation"
+    "cta-hover-elevation",
+    "sticky-header-on-scroll"
   ],
   "externalLinks": {
     "signup": "https://app.adsmagic.com.br/singup/?access_uuid=556feeb5-8f7d-445d-84a7-59876d25d2fc&utm_source=direct&utm_medium=none",
+    "signupNav": "https://app.adsmagic.com.br/singup/?access_uuid=fd18531d-89d0-4b89-a174-81722b562e8d&utm_source=direct&utm_medium=none",
     "login": "https://app.adsmagic.com.br/login/?access_uuid=fd18531d-89d0-4b89-a174-81722b562e8d&utm_source=direct&utm_medium=none",
-    "contact": "https://r.adsmagic.com.br/fd3344b2-dc4a-4334-b309-311c9d938c3d?utm_source=direct&utm_medium=none&landing_url=https%3A%2F%2Fadsmagic.com.br%2F"
+    "contact": "https://r.adsmagic.com.br/fd3344b2-dc4a-4334-b309-311c9d938c3d?utm_source=direct&utm_medium=none&landing_url=https%3A%2F%2Fadsmagic.com.br%2F",
+    "privacy": "https://adsmagic.com.br/legal/privacy-policy",
+    "cookies": "https://adsmagic.com.br/legal/cookie-policy",
+    "terms": "https://adsmagic.com.br/legal/terms-of-service"
   }
 }

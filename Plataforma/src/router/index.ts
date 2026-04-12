@@ -1,5 +1,36 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
 import AppLayout from '@/components/layout/AppLayout.vue'
+
+const landingPagesManifest = __LANDING_PAGES_MANIFEST__
+const landingPagesPreviewBaseUrl = (import.meta.env.VITE_LANDING_PAGES_PREVIEW_URL || '').replace(/\/$/, '')
+
+function getManifestPage(manifestId: string) {
+  return landingPagesManifest.pages.find((page) => page.id === manifestId) ?? null
+}
+
+function normalizePath(path: string) {
+  return path.startsWith('/') ? path : `/${path}`
+}
+
+function buildLegacyLandingTarget(manifestId: string, fallbackPath: string, to: RouteLocationNormalized) {
+  const manifestPage = getManifestPage(manifestId)
+  const previewPath = normalizePath(manifestPage?.previewPath || fallbackPath)
+  const baseTarget = landingPagesPreviewBaseUrl
+    ? `${landingPagesPreviewBaseUrl}${previewPath}`
+    : manifestPage?.canonicalUrl || previewPath
+
+  const currentUrl = new URL(to.fullPath, window.location.origin)
+  const targetUrl = new URL(baseTarget, window.location.origin)
+  targetUrl.search = currentUrl.search
+  targetUrl.hash = currentUrl.hash
+
+  return targetUrl.toString()
+}
+
+function redirectLegacyLanding(manifestId: string, fallbackPath: string, to: RouteLocationNormalized) {
+  window.location.replace(buildLegacyLandingTarget(manifestId, fallbackPath, to))
+  return false
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,12 +44,14 @@ const router = createRouter({
     {
       path: '/lp/agencias',
       name: 'lp-agencias',
+      beforeEnter: (to) => redirectLegacyLanding('lp-para-agencias', '/para-agencias/', to),
       component: () => import('@/views/landing/AgenciasLandingView.vue'),
       meta: { title: 'Adsmagic para Agências' }
     },
     {
       path: '/lp/home',
       name: 'lp-home',
+      beforeEnter: (to) => redirectLegacyLanding('lp-vendas-whatsapp', '/vendas-whatsapp/', to),
       component: () => import('@/views/landing/home/HomeLandingView.vue'),
       meta: { title: 'Adsmagic | Rastrear Leads e Vendas no WhatsApp' }
     },
