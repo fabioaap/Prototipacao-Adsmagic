@@ -46,7 +46,8 @@ Estes materiais ainda não existem como peça final. A estrutura estratégica es
 
 | Asset | Objetivo | Derivado de | Canal | Status |
 |-------|----------|-------------|-------|--------|
-| Landing page para agências | Converter tráfego pago e orgânico em demos diagnósticas | Oferta para Agências + Mensagens-Chave | Web | **Protótipo pronto** ([/lp/agencias](pathname:///lp/agencias)) |
+| Landing page vendas WhatsApp | Converter tráfego pago em trials de rastreamento | Mensagens-Chave | Web | **SEO pronto** — canonical `adsmagic.com.br/vendas-whatsapp` · [Preview](http://localhost:4173/vendas-whatsapp/) |
+| Landing page para agências | Converter tráfego pago e orgânico em demos diagnósticas | Oferta para Agências + Mensagens-Chave | Web | **SEO pronto** — canonical `adsmagic.com.br/para-agencias` · [Preview](http://localhost:4173/para-agencias/) |
 | Deck comercial / one-pager | Apoiar vendas consultivas e outbound | Oferta para Agências | Comercial | **Protótipo pronto** ([/deck/agencias](pathname:///deck/agencias)) |
 | Kit de copies para Meta Ads | Anúncios de criação de demanda (4 ângulos: anti-CPL, prova de receita, funil invisível, diferenciação) | Mensagens-Chave (seção mídia paga) | Meta Ads | **Ativo** ([Wiki](/wiki/marketing/copies-meta-ads)) |
 | Kit de copies para Google Ads | Anúncios de captura de intenção (search) | Mensagens-Chave | Google Ads | **Ativo** ([Wiki](/wiki/marketing/copies-google-ads)) |
@@ -73,7 +74,7 @@ Lista das peças que precisam existir para que o GTM funcione conforme o plano d
 
 ### Críticas (bloqueiam as motions da fase 31-60)
 
-1. ~~**Landing page para agências**~~ — **Resolvida.** Protótipo funcional disponível em [/lp/agencias](pathname:///lp/agencias). Blueprint na wiki ([Oferta para Agências](/wiki/marketing/oferta-para-agencias)).
+1. ~~**Landing pages standalone (vendas + agências)**~~ — **Resolvida.** Ambas as LPs possuem protótipo funcional com SEO configurado (meta tags, JSON-LD, Open Graph, robots.txt, sitemap.xml). Canonicals: `adsmagic.com.br/vendas-whatsapp` e `adsmagic.com.br/para-agencias`. Blueprint de agências na wiki ([Oferta para Agências](/wiki/marketing/oferta-para-agencias)). Handoff de deploy: [Cloudflare Pages para LPs](/workflow/cloudflare-pages-lps).
 2. **Automação de captura (LP → CRM)** — sem fluxo automatizado, leads da LP não entram no pipeline comercial. Depende de definição de ferramenta e SLA de resposta.
 3. ~~**Kit de copies para mídia paga (Meta + Google)**~~ — **Resolvida.** Kits operacionais disponíveis: [Meta Ads](/wiki/marketing/copies-meta-ads) (11 variações, 4 ângulos) e [Google Ads](/wiki/marketing/copies-google-ads) (4 RSAs, 4 grupos de keywords). Derivados de [Mensagens-Chave](/wiki/marketing/mensagens-chave).
 
