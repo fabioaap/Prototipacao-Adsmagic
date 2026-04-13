@@ -10,6 +10,8 @@ export function useArrowCanvas(
   options: { color?: string } = {}
 ) {
   let animId = 0
+  let isVisible = true
+  let visibilityObserver: IntersectionObserver | null = null
   const mouse = { x: null as number | null, y: null as number | null }
 
   /* ── resolve stroke colour ── */
@@ -109,20 +111,32 @@ export function useArrowCanvas(
     document.addEventListener('mouseleave', onMouseLeave)
 
     function loop() {
-      if (!canvas || !ctx || !target) return
+      if (!canvas || !ctx || !target || !isVisible) return
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      // Only draw while the target element is visible in the viewport
-      const targetRect = target.getBoundingClientRect()
-      if (targetRect.bottom > 0 && targetRect.top < canvas.height) {
-        draw(ctx, target)
-      }
+      draw(ctx, target)
       animId = requestAnimationFrame(loop)
     }
+
+    // Pause/resume loop when target leaves/enters viewport
+    visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        const wasVisible = isVisible
+        isVisible = entries[0].isIntersecting
+        if (isVisible && !wasVisible) {
+          animId = requestAnimationFrame(loop)
+        }
+      },
+      { threshold: 0 },
+    )
+    visibilityObserver.observe(target)
+
     loop()
   })
 
   onBeforeUnmount(() => {
     cancelAnimationFrame(animId)
+    visibilityObserver?.disconnect()
+    visibilityObserver = null
     window.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseleave', onMouseLeave)
     window.removeEventListener('resize', () => {})

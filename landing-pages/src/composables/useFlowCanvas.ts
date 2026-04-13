@@ -51,9 +51,10 @@ export function useFlowCanvas(
   canvasRef: Ref<HTMLCanvasElement | null>,
   options: FlowCanvasOptions = {},
 ) {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const {
-    particleCount = 80,
-    burstLineCount = 40,
+    particleCount = isMobile ? 40 : 80,
+    burstLineCount = isMobile ? 20 : 40,
     colors = DEFAULT_COLORS,
     connectionDistance = 120,
     speed = 0.3,
@@ -72,6 +73,8 @@ export function useFlowCanvas(
   let mouseX = -1000
   let mouseY = -1000
   const isActive = ref(false)
+  let isVisible = true
+  let visibilityObserver: IntersectionObserver | null = null
 
   // 4 node centers — will map to the 4 flow cards
   let nodePositions: { x: number; y: number }[] = []
@@ -340,6 +343,10 @@ export function useFlowCanvas(
 
   function render() {
     if (!ctx || !isActive.value) return
+    if (!isVisible) {
+      // Pause loop; will resume via IntersectionObserver
+      return
+    }
     time++
 
     ctx.clearRect(0, 0, width, height)
@@ -388,6 +395,19 @@ export function useFlowCanvas(
     canvas.addEventListener('mouseleave', handleMouseLeave)
     window.addEventListener('resize', resize)
 
+    // Pause/resume loop when canvas leaves/enters viewport
+    visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        const wasVisible = isVisible
+        isVisible = entries[0].isIntersecting
+        if (isVisible && !wasVisible && isActive.value) {
+          animationId = requestAnimationFrame(render)
+        }
+      },
+      { threshold: 0 },
+    )
+    visibilityObserver.observe(canvas)
+
     // Trigger burst animation after a small delay
     setTimeout(triggerBurst, 600)
   }
@@ -395,6 +415,8 @@ export function useFlowCanvas(
   function stop() {
     isActive.value = false
     cancelAnimationFrame(animationId)
+    visibilityObserver?.disconnect()
+    visibilityObserver = null
     const canvas = canvasRef.value
     canvas?.removeEventListener('mousemove', handleMouseMove)
     canvas?.removeEventListener('mouseleave', handleMouseLeave)

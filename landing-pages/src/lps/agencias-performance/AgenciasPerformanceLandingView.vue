@@ -11,7 +11,7 @@ import MetaAdsLogoIcon from '@/components/icons/MetaAdsLogoIcon.vue'
 import { useFlowCanvas } from '@/composables/useFlowCanvas'
 import { useArrowCanvas } from '@/composables/useArrowCanvas'
 import { useMagneticStarfield } from '@/composables/useMagneticStarfield'
-import { LiquidGlassEffect, GlassFilter } from '@/components/ui/liquid-glass'
+import { LiquidGlassEffect } from '@/components/ui/liquid-glass'
 import { getLandingPageById } from '@/lib/manifest'
 import { publicAsset } from '@/lib/publicAsset'
 
@@ -132,334 +132,69 @@ useArrowCanvas(arrowCanvasRef, heroCtaRef, { color: 'rgba(255,255,255,0.6)' })
 useFlowCanvas(flowCanvasRef)
 useMagneticStarfield(pricingCanvasRef, pricingSectionRef, { count: 70, magnetRadius: 360 })
 
-/* ── Liquid Glass (SVG feDisplacementMap approach from archisvaze/liquid-glass) ── */
-type LiquidGlassOptions = {
-  glassThickness: number
-  bezelWidth: number
-  ior: number
-  scaleRatio: number
-  blurAmount: number
-  specOpacity: number
-  specSaturation: number
-  borderRadius: number
-  mapScale: number
-  maxMapDimension: number
-  profileSamples: number
-}
-
-const BENTO_LIQUID_GLASS_OPTS: LiquidGlassOptions = {
-  glassThickness: 40,
-  bezelWidth: 24,
-  ior: 2.2,
-  scaleRatio: 1.0,
-  blurAmount: 4,
-  specOpacity: 0.18,
-  specSaturation: 2,
-  borderRadius: 20,
-  mapScale: 0.5,
-  maxMapDimension: 420,
-  profileSamples: 96,
-}
-
-const PRICING_LIQUID_GLASS_OPTS: LiquidGlassOptions = {
-  glassThickness: 40,
-  bezelWidth: 24,
-  ior: 2.2,
-  scaleRatio: 1,
-  blurAmount: 4,
-  specOpacity: 0.18,
-  specSaturation: 2,
-  borderRadius: 20,
-  mapScale: 0.5,
-  maxMapDimension: 420,
-  profileSamples: 96,
-}
-
-const STATS_LIQUID_GLASS_OPTS: LiquidGlassOptions = {
-  glassThickness: 40,
-  bezelWidth: 24,
-  ior: 2.2,
-  scaleRatio: 1,
-  blurAmount: 4,
-  specOpacity: 0.18,
-  specSaturation: 2,
-  borderRadius: 20,
-  mapScale: 0.5,
-  maxMapDimension: 420,
-  profileSamples: 96,
-}
-
-function lgSurfaceFn(x: number) {
-  return Math.pow(1 - Math.pow(1 - x, 4), 0.25)
-}
-
-function lgCalcRefractionProfile(glassThickness: number, bezelWidth: number, heightFn: (x: number) => number, ior: number, samples: number) {
-  const eta = 1 / ior
-  function refract(nx: number, ny: number) {
-    const dot = ny
-    const k = 1 - eta * eta * (1 - dot * dot)
-    if (k < 0) return null
-    const sq = Math.sqrt(k)
-    return [-(eta * dot + sq) * nx, eta - (eta * dot + sq) * ny]
-  }
-  const profile = new Float64Array(samples)
-  for (let i = 0; i < samples; i++) {
-    const x = i / samples
-    const y = heightFn(x)
-    const dx = x < 1 ? 0.0001 : -0.0001
-    const y2 = heightFn(x + dx)
-    const deriv = (y2 - y) / dx
-    const mag = Math.sqrt(deriv * deriv + 1)
-    const ref = refract(-deriv / mag, -1 / mag)
-    if (!ref) { profile[i] = 0; continue }
-    profile[i] = ref[0] * ((y * bezelWidth + glassThickness) / ref[1])
-  }
-  return profile
-}
-
-function lgGetRenderScale(w: number, h: number, opts: LiquidGlassOptions) {
-  const { mapScale, maxMapDimension } = opts
-  return Math.min(1, mapScale, maxMapDimension / Math.max(w, h))
-}
-
-function lgGenerateDisplacementMap(w: number, h: number, radius: number, bezelWidth: number, profile: Float64Array, maxDisp: number) {
-  const c = document.createElement('canvas')
-  c.width = w; c.height = h
-  const ctx = c.getContext('2d')!
-  const img = ctx.createImageData(w, h)
-  const d = img.data
-  for (let i = 0; i < d.length; i += 4) { d[i] = 128; d[i + 1] = 128; d[i + 2] = 0; d[i + 3] = 255 }
-  const r = radius, rSq = r * r, r1Sq = (r + 1) ** 2
-  const rBSq = Math.max(r - bezelWidth, 0) ** 2
-  const wB = w - r * 2, hB = h - r * 2, S = profile.length
-  for (let y1 = 0; y1 < h; y1++) {
-    for (let x1 = 0; x1 < w; x1++) {
-      const x = x1 < r ? x1 - r : x1 >= w - r ? x1 - r - wB : 0
-      const y = y1 < r ? y1 - r : y1 >= h - r ? y1 - r - hB : 0
-      const dSq = x * x + y * y
-      if (dSq > r1Sq || dSq < rBSq) continue
-      const dist = Math.sqrt(dSq)
-      const fromSide = r - dist
-      const op = dSq < rSq ? 1 : 1 - (dist - Math.sqrt(rSq)) / (Math.sqrt(r1Sq) - Math.sqrt(rSq))
-      if (op <= 0 || dist === 0) continue
-      const cos = x / dist, sin = y / dist
-      const bi = Math.min(((fromSide / bezelWidth) * S) | 0, S - 1)
-      const disp = profile[bi] || 0
-      const dX = (-cos * disp) / maxDisp, dY = (-sin * disp) / maxDisp
-      const idx = (y1 * w + x1) * 4
-      d[idx] = (128 + dX * 127 * op + 0.5) | 0
-      d[idx + 1] = (128 + dY * 127 * op + 0.5) | 0
-    }
-  }
-  ctx.putImageData(img, 0, 0)
-  return c.toDataURL()
-}
-
-function lgGenerateSpecularMap(w: number, h: number, radius: number, bezelWidth: number, angle?: number) {
-  angle = angle != null ? angle : Math.PI / 3
-  const c = document.createElement('canvas')
-  c.width = w; c.height = h
-  const ctx = c.getContext('2d')!
-  const img = ctx.createImageData(w, h)
-  const d = img.data
-  d.fill(0)
-  const r = radius, rSq = r * r, r1Sq = (r + 1) ** 2
-  const rBSq = Math.max(r - bezelWidth, 0) ** 2
-  const wB = w - r * 2, hB = h - r * 2
-  const sv = [Math.cos(angle), Math.sin(angle)]
-  for (let y1 = 0; y1 < h; y1++) {
-    for (let x1 = 0; x1 < w; x1++) {
-      const x = x1 < r ? x1 - r : x1 >= w - r ? x1 - r - wB : 0
-      const y = y1 < r ? y1 - r : y1 >= h - r ? y1 - r - hB : 0
-      const dSq = x * x + y * y
-      if (dSq > r1Sq || dSq < rBSq) continue
-      const dist = Math.sqrt(dSq)
-      const fromSide = r - dist
-      const op = dSq < rSq ? 1 : 1 - (dist - Math.sqrt(rSq)) / (Math.sqrt(r1Sq) - Math.sqrt(rSq))
-      if (op <= 0 || dist === 0) continue
-      const cos = x / dist, sin = -y / dist
-      const dot = Math.abs(cos * sv[0] + sin * sv[1])
-      const edge = Math.sqrt(Math.max(0, 1 - (1 - fromSide) ** 2))
-      const coeff = dot * edge
-      const col = (255 * coeff) | 0
-      const alpha = (col * coeff * op) | 0
-      const idx = (y1 * w + x1) * 4
-      d[idx] = col; d[idx + 1] = col; d[idx + 2] = col; d[idx + 3] = alpha
-    }
-  }
-  ctx.putImageData(img, 0, 0)
-  return c.toDataURL()
-}
-
-function createLiquidGlassController(filterId: string, getTarget: () => HTMLElement | null, optsOrGetter: LiquidGlassOptions | (() => LiquidGlassOptions)) {
-  let svgEl: SVGSVGElement | null = null
-  let resizeObserver: ResizeObserver | null = null
-  let frame: number | null = null
-  let signature = ''
-
-  function rebuild() {
-    const el = getTarget()
-    if (!el) return
-
-    const w = el.offsetWidth
-    const h = el.offsetHeight
-    if (w < 2 || h < 2) return
-
-    const opts = typeof optsOrGetter === 'function' ? optsOrGetter() : optsOrGetter
-    const { glassThickness, bezelWidth, ior, scaleRatio, blurAmount, specOpacity, specSaturation, borderRadius, profileSamples } = opts
-    const renderScale = lgGetRenderScale(w, h, opts)
-    const mapW = Math.max(2, Math.round(w * renderScale))
-    const mapH = Math.max(2, Math.round(h * renderScale))
-    const scaledRadius = Math.max(2, Math.round(borderRadius * renderScale))
-    const scaledGlassThickness = glassThickness * renderScale
-    const scaledBezelBase = bezelWidth * renderScale
-    const clampedBezel = Math.min(scaledBezelBase, scaledRadius - 1, Math.min(mapW, mapH) / 2 - 1)
-    const nextSignature = [
-      w,
-      h,
-      mapW,
-      mapH,
-      scaledRadius,
-      scaledGlassThickness.toFixed(2),
-      clampedBezel.toFixed(2),
-      ior.toFixed(3),
-      scaleRatio,
-      blurAmount,
-      specOpacity,
-      specSaturation,
-      profileSamples,
-    ].join(':')
-    if (nextSignature === signature) return
-
-    const profile = lgCalcRefractionProfile(scaledGlassThickness, clampedBezel, lgSurfaceFn, ior, profileSamples)
-    const maxDisp = Math.max(...Array.from(profile).map(Math.abs)) || 1
-    const dispUrl = lgGenerateDisplacementMap(mapW, mapH, scaledRadius, clampedBezel, profile, maxDisp)
-    const specUrl = lgGenerateSpecularMap(mapW, mapH, scaledRadius, clampedBezel * 2.5)
-    const scale = (maxDisp / renderScale) * scaleRatio
-
-    if (!svgEl) {
-      svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-      svgEl.setAttribute('width', '0')
-      svgEl.setAttribute('height', '0')
-      svgEl.style.position = 'absolute'
-      svgEl.style.overflow = 'hidden'
-      svgEl.setAttribute('color-interpolation-filters', 'sRGB')
-      document.body.appendChild(svgEl)
-    }
-
-    signature = nextSignature
-    svgEl.innerHTML = `<defs>
-      <filter id="${filterId}" x="0%" y="0%" width="100%" height="100%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="${blurAmount}" result="blurred_source" />
-        <feImage href="${dispUrl}" x="0" y="0" width="${w}" height="${h}" result="disp_map" preserveAspectRatio="none" />
-        <feDisplacementMap in="blurred_source" in2="disp_map" scale="${scale}" xChannelSelector="R" yChannelSelector="G" result="displaced" />
-        <feColorMatrix in="displaced" type="saturate" values="${specSaturation}" result="displaced_sat" />
-        <feImage href="${specUrl}" x="0" y="0" width="${w}" height="${h}" result="spec_layer" preserveAspectRatio="none" />
-        <feComposite in="displaced_sat" in2="spec_layer" operator="in" result="spec_masked" />
-        <feComponentTransfer in="spec_layer" result="spec_faded"><feFuncA type="linear" slope="${specOpacity}" /></feComponentTransfer>
-        <feBlend in="spec_masked" in2="displaced" mode="normal" result="with_sat" />
-        <feBlend in="spec_faded" in2="with_sat" mode="normal" />
-      </filter>
-    </defs>`
-  }
-
-  function schedule() {
-    if (frame !== null) return
-    frame = requestAnimationFrame(() => {
-      frame = null
-      rebuild()
-    })
-  }
-
-  function observe() {
-    const el = getTarget()
-    if (!el) return
-    resizeObserver?.disconnect()
-    resizeObserver = new ResizeObserver(() => schedule())
-    resizeObserver.observe(el)
-  }
-
-  function destroy() {
-    resizeObserver?.disconnect()
-    resizeObserver = null
-    if (frame !== null) {
-      cancelAnimationFrame(frame)
-      frame = null
-    }
-    if (svgEl) {
-      svgEl.remove()
-      svgEl = null
-    }
-    signature = ''
-  }
-
-  return { schedule, observe, destroy }
-}
-const bentoGlass = createLiquidGlassController(
-  'liquid-glass-bento-filter',
-  () => flowBentoRef.value?.querySelector<HTMLElement>('.bento-card') ?? null,
-  BENTO_LIQUID_GLASS_OPTS,
-)
-const pricingGlass = createLiquidGlassController(
-  'liquid-glass-pricing-filter',
-  () => pricingGlassRef.value?.querySelector<HTMLElement>('.pricing-plan-card') ?? null,
-  PRICING_LIQUID_GLASS_OPTS,
-)
-const statsGlass = createLiquidGlassController(
-  'liquid-glass-stats-filter',
-  () => statsGlassRef.value,
-  STATS_LIQUID_GLASS_OPTS,
-)
-
-/* ── Spotlight Card — pointer tracking for glow ── */
-function syncSpotlight(e: PointerEvent) {
+/* ── Spotlight Card — pointer tracking for glow (cached DOM) ── */
+let cachedSpotlightCards: { card: HTMLElement; inner: HTMLElement }[] = []
+function cacheSpotlightCards() {
   const cards = document.querySelectorAll<HTMLElement>('.feature-stack-card[data-glow]')
+  cachedSpotlightCards = []
   cards.forEach((card) => {
     const inner = card.querySelector<HTMLElement>('.feature-stack-card__inner')
-    if (!inner) return
-    const rect = inner.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    card.style.setProperty('--x', `${x.toFixed(2)}`)
-    card.style.setProperty('--y', `${y.toFixed(2)}`)
-    card.style.setProperty('--xp', (e.clientX / window.innerWidth).toFixed(2))
+    if (inner) cachedSpotlightCards.push({ card, inner })
   })
 }
+function syncSpotlight(e: PointerEvent) {
+  const ww = window.innerWidth
+  for (const { card, inner } of cachedSpotlightCards) {
+    const rect = inner.getBoundingClientRect()
+    card.style.setProperty('--x', `${(e.clientX - rect.left).toFixed(2)}`)
+    card.style.setProperty('--y', `${(e.clientY - rect.top).toFixed(2)}`)
+    card.style.setProperty('--xp', (e.clientX / ww).toFixed(2))
+  }
+}
 
-/* ── Scroll-stacking — scale & dim cards pushed behind ── */
-/* ── Nav glass scroll-adaptive background ── */
+/* ── Scroll handlers ── */
 function onNavScroll() {
   navScrolled.value = window.scrollY > 80
 }
+
 /* ── Hero dashboard perspective scroll (Bombon-style) ── */
 function onHeroDashScroll() {
   const el = heroDashRef.value
   if (!el) return
   const rect = el.getBoundingClientRect()
   const viewH = window.innerHeight
-  // Progress 0→1 as element goes from below viewport to above it
   const raw = 1 - (rect.top / viewH)
   const progress = Math.min(1, Math.max(0, raw))
-  // Interpolate from tilted to flat
   const rotateX = 26 * (1 - progress)
   const scale = 0.82 + 0.18 * progress
   const translateY = -80 * (1 - progress)
   el.style.transform = `perspective(1200px) translateY(${translateY.toFixed(1)}px) scale(${scale.toFixed(4)}) rotateX(${rotateX.toFixed(2)}deg)`
 }
 
-function onStackScroll() {
+/* ── Stacking cards scroll (cached DOM, batched reads/writes) ── */
+let cachedStackCards: { el: HTMLElement; inner: HTMLElement; stickyTop: number }[] = []
+function cacheStackCards() {
   const cards = document.querySelectorAll<HTMLElement>('.feature-stack-card')
-  const total = cards.length
-  if (!total) return
+  cachedStackCards = []
   cards.forEach((card, i) => {
     const inner = card.querySelector<HTMLElement>('.feature-stack-card__inner')
     if (!inner) return
-    const rect = card.getBoundingClientRect()
-    const stickyTopPx = parseFloat(getComputedStyle(card).top) || (80 + i * 28)
-    const isStuck = rect.top <= stickyTopPx + 2
+    const stickyTop = parseFloat(getComputedStyle(card).top) || (80 + i * 28)
+    cachedStackCards.push({ el: card, inner, stickyTop })
+  })
+}
+function onStackScroll() {
+  const total = cachedStackCards.length
+  if (!total) return
+  // READ phase — batch all geometry reads
+  const rects = cachedStackCards.map(c => c.el.getBoundingClientRect())
+  // WRITE phase — apply transforms
+  for (let i = 0; i < total; i++) {
+    const { inner, stickyTop } = cachedStackCards[i]
+    const rect = rects[i]
+    const isStuck = rect.top <= stickyTop + 2
     if (isStuck && i < total - 1) {
-      const nextCard = cards[i + 1]
-      const nextRect = nextCard.getBoundingClientRect()
+      const nextRect = rects[i + 1]
       const overlap = Math.max(0, rect.top + rect.height - nextRect.top)
       const ratio = Math.min(1, overlap / rect.height)
       const scale = 1 - ratio * 0.05
@@ -470,17 +205,25 @@ function onStackScroll() {
       inner.style.transform = ''
       inner.style.filter = ''
     }
+  }
+}
+
+/* ── Single rAF-gated scroll handler ── */
+let scrollRaf = 0
+function onScroll() {
+  if (scrollRaf) return
+  scrollRaf = requestAnimationFrame(() => {
+    scrollRaf = 0
+    onNavScroll()
+    onHeroDashScroll()
+    onStackScroll()
   })
 }
 
 onBeforeUnmount(() => {
-  bentoGlass.destroy()
-  pricingGlass.destroy()
-  statsGlass.destroy()
   document.removeEventListener('pointermove', syncSpotlight)
-  window.removeEventListener('scroll', onHeroDashScroll)
-  window.removeEventListener('scroll', onNavScroll)
-  window.removeEventListener('scroll', onStackScroll)
+  window.removeEventListener('scroll', onScroll)
+  if (scrollRaf) cancelAnimationFrame(scrollRaf)
   document.body.style.overflow = ''
 })
 
@@ -553,26 +296,18 @@ onMounted(() => {
     flowObs.observe(flowEl)
   }
 
-  /* ── Liquid Glass – init ── */
   nextTick(() => {
-    bentoGlass.schedule()
-    bentoGlass.observe()
-    pricingGlass.schedule()
-    pricingGlass.observe()
-    statsGlass.schedule()
-    statsGlass.observe()
+    /* Cache DOM for spotlight & stacking cards */
+    cacheSpotlightCards()
+    cacheStackCards()
 
     /* Spotlight pointer listener */
     document.addEventListener('pointermove', syncSpotlight)
 
-    /* Hero dashboard perspective scroll */
-    window.addEventListener('scroll', onHeroDashScroll, { passive: true })
-    window.addEventListener('scroll', onNavScroll, { passive: true })
+    /* Single rAF-gated scroll handler for all scroll effects */
+    window.addEventListener('scroll', onScroll, { passive: true })
     onHeroDashScroll()
     onNavScroll()
-
-    /* Stacking cards scroll listener */
-    window.addEventListener('scroll', onStackScroll, { passive: true })
 
     /* Stats counter – trigger on first intersection */
     if (statsGlassRef.value) {
@@ -730,9 +465,6 @@ const starVB = '0 0 137 130'
 
 <template>
   <div id="top" class="lp-root">
-    <!-- SVG filter used by liquid-glass components -->
-    <GlassFilter />
-
     <!-- Nav — liquid glass bar -->
     <div class="lp-nav-wrap">
       <LiquidGlassEffect tag="div" :class="['lp-nav-glass-bar', { 'nav-scrolled': navScrolled }]">
@@ -1592,7 +1324,7 @@ const starVB = '0 0 137 130'
 }
 .lp-nav-glass-bar :deep(.liquid-glass__backdrop) {
   backdrop-filter: blur(6px) saturate(1.2);
-  filter: url(#glass-distortion-soft);
+  filter: none;
 }
 .lp-nav-glass-bar :deep(.liquid-glass__specular) {
   box-shadow:
@@ -2893,8 +2625,8 @@ const starVB = '0 0 137 130'
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  -webkit-backdrop-filter: url(#liquid-glass-bento-filter);
-  backdrop-filter: url(#liquid-glass-bento-filter);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
   pointer-events: none;
 }
 
@@ -3357,8 +3089,8 @@ const starVB = '0 0 137 130'
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  -webkit-backdrop-filter: url(#liquid-glass-stats-filter);
-  backdrop-filter: url(#liquid-glass-stats-filter);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
   pointer-events: none;
 }
 
@@ -3523,7 +3255,6 @@ const starVB = '0 0 137 130'
     0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
   overflow: hidden;
-  will-change: transform, filter;
   transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), filter 0.5s ease, box-shadow 0.35s ease;
 }
 
@@ -4004,8 +3735,8 @@ const starVB = '0 0 137 130'
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  -webkit-backdrop-filter: url(#liquid-glass-stats-filter);
-  backdrop-filter: url(#liquid-glass-stats-filter);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
   pointer-events: none;
 }
 
@@ -4156,8 +3887,8 @@ const starVB = '0 0 137 130'
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  -webkit-backdrop-filter: url(#liquid-glass-pricing-filter);
-  backdrop-filter: url(#liquid-glass-pricing-filter);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
   pointer-events: none;
 }
 
@@ -4752,13 +4483,11 @@ const starVB = '0 0 137 130'
 /* ── Star marks — shared base ── */
 .grafismo-star {
   position: absolute;
-  will-change: transform;
 }
 
 /* ── Diagonal bars — shared base ── */
 .grafismo-bars {
   position: absolute;
-  will-change: transform;
 }
 
 /* ─── Hero grafismos ─── */
@@ -5115,6 +4844,23 @@ const starVB = '0 0 137 130'
 
   /* FAQ: larger touch targets */
   .faq-trigger { min-height: 48px; padding: 0.875rem 0; }
+}
+
+/* ── Reduced motion: disable heavy animations ── */
+@media (prefers-reduced-motion: reduce) {
+  .grafismo-flow-star,
+  .grafismo-flow-dot,
+  .grafismo-flow-glow,
+  .glass-border-inner,
+  .grafismo-cta-star,
+  .grafismo-cta-dot {
+    animation: none !important;
+  }
+  .feature-stack-card__inner,
+  .bento-card,
+  .pricing-plan-card {
+    transition: none !important;
+  }
 }
 </style>
 
