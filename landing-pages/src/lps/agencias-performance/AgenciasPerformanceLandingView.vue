@@ -134,7 +134,7 @@ const statsGlassRef = ref<HTMLElement | null>(null)
 const pricingCanvasRef = ref<HTMLCanvasElement | null>(null)
 const pricingSectionRef = ref<HTMLElement | null>(null)
 const arrowCanvasEnabled = computed(() => !isScrolling.value && !isReducedEffects.value)
-const starfieldEnabled = computed(() => !isScrolling.value)
+const starfieldEnabled = computed(() => false)
 
 useArrowCanvas(arrowCanvasRef, heroCtaRef, {
   color: 'rgba(255,255,255,0.6)',
@@ -2538,10 +2538,7 @@ const starVB = '0 0 137 130'
 
 /* ── Radial glows ── */
 .flow-glow {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .flow-glow--left {
@@ -2575,11 +2572,7 @@ const starVB = '0 0 137 130'
 /* ═══════════════════ FLOW GRAFISMOS ═══════════════════ */
 
 .grafismo-flow {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  overflow: hidden;
+  display: none;
 }
 
 /* ── Diagonal bars ── */
@@ -2851,8 +2844,7 @@ const starVB = '0 0 137 130'
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  -webkit-backdrop-filter: blur(12px) saturate(1.4);
-  backdrop-filter: blur(12px) saturate(1.4);
+  background: rgba(7, 18, 58, 0.18);
   pointer-events: none;
 }
 
@@ -2882,7 +2874,7 @@ const starVB = '0 0 137 130'
 }
 
 .bento-card::after {
-  content: '';
+  content: none;
   position: absolute;
   inset: -1px;
   z-index: 3;
@@ -2963,16 +2955,7 @@ const starVB = '0 0 137 130'
 
 /* ── Card Glow ── */
 .bento-card-glow {
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  bottom: -60px;
-  right: -60px;
-  filter: blur(60px);
-  opacity: 0;
-  transition: opacity 0.5s;
-  z-index: 0;
+  display: none;
 }
 
 .bento-card:hover .bento-card-glow { opacity: 1; }
@@ -3282,7 +3265,7 @@ const starVB = '0 0 137 130'
   height: 8px;
   border-radius: 50%;
   background: #3bb56d;
-  animation: statusPulse 1.5s ease-in-out infinite;
+  animation: none;
 }
 
 @keyframes statusPulse {
@@ -3930,12 +3913,7 @@ const starVB = '0 0 137 130'
 }
 
 .pricing-stars-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .lp-section--pricing-stars .grafismo-pricing,
@@ -3961,8 +3939,7 @@ const starVB = '0 0 137 130'
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  -webkit-backdrop-filter: blur(10px) saturate(1.3);
-  backdrop-filter: blur(10px) saturate(1.3);
+  background: rgba(7, 18, 58, 0.18);
   pointer-events: none;
 }
 
@@ -3991,7 +3968,7 @@ const starVB = '0 0 137 130'
 }
 
 .stats-card::after {
-  content: '';
+  content: none;
   position: absolute;
   inset: -1px;
   z-index: 3;
@@ -4113,8 +4090,7 @@ const starVB = '0 0 137 130'
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  -webkit-backdrop-filter: blur(12px) saturate(1.4);
-  backdrop-filter: blur(12px) saturate(1.4);
+  background: rgba(7, 18, 58, 0.18);
   pointer-events: none;
 }
 
@@ -4150,7 +4126,7 @@ const starVB = '0 0 137 130'
 
 /* Animated conic-gradient border — rotating light sweep */
 .pricing-plan-card::after {
-  content: '';
+  content: none;
   position: absolute;
   inset: -1px;
   z-index: 3;
@@ -4819,7 +4795,7 @@ const starVB = '0 0 137 130'
   height: 68px;
   top: 10%;
   right: 8%;
-  animation: grafismoFloat2 14s ease-in-out 2s infinite;
+  display: none;
 }
 
 @media (max-width: 768px) {
