@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import {
   ArrowRight,
   BarChart3,
@@ -40,6 +40,10 @@ const navScrolled = ref(false)
 const mobileMenuOpen = ref(false)
 const openFaq = ref<number | null>(null)
 const billingCycle = ref<BillingCycle>('annual')
+const isScrolling = ref(false)
+const isReducedEffects = ref(false)
+const heroDashInView = ref(true)
+const featureStackInView = ref(false)
 const pricingPlans: PricingPlan[] = [
   {
     id: 'starter',
@@ -124,13 +128,36 @@ const heroDashRef = ref<HTMLElement | null>(null)
 const flowCanvasRef = ref<HTMLCanvasElement | null>(null)
 const flowSectionRef = ref<HTMLElement | null>(null)
 const flowBentoRef = ref<HTMLElement | null>(null)
+const featuresStackRef = ref<HTMLElement | null>(null)
 const pricingGlassRef = ref<HTMLElement | null>(null)
 const statsGlassRef = ref<HTMLElement | null>(null)
 const pricingCanvasRef = ref<HTMLCanvasElement | null>(null)
 const pricingSectionRef = ref<HTMLElement | null>(null)
-useArrowCanvas(arrowCanvasRef, heroCtaRef, { color: 'rgba(255,255,255,0.6)' })
+const arrowCanvasEnabled = computed(() => !isScrolling.value && !isReducedEffects.value)
+const starfieldEnabled = computed(() => !isScrolling.value)
+
+useArrowCanvas(arrowCanvasRef, heroCtaRef, {
+  color: 'rgba(255,255,255,0.6)',
+  enabled: arrowCanvasEnabled,
+})
 useFlowCanvas(flowCanvasRef)
-useMagneticStarfield(pricingCanvasRef, pricingSectionRef, { count: 70, magnetRadius: 360 })
+useMagneticStarfield(pricingCanvasRef, pricingSectionRef, {
+  count: 36,
+  reducedCount: 18,
+  magnetRadius: 320,
+  enabled: starfieldEnabled,
+  reducedEffects: isReducedEffects,
+})
+
+let scrollIdleTimeout = 0
+let resizeFrame = 0
+let revealObserver: IntersectionObserver | null = null
+let flowObserver: IntersectionObserver | null = null
+let heroObserver: IntersectionObserver | null = null
+let featureObserver: IntersectionObserver | null = null
+let statsObserver: IntersectionObserver | null = null
+let reducedMotionQuery: MediaQueryList | null = null
+let coarsePointerQuery: MediaQueryList | null = null
 
 /* ── Spotlight Card — pointer tracking for glow (cached DOM) ── */
 let cachedSpotlightCards: { card: HTMLElement; inner: HTMLElement }[] = []
@@ -143,6 +170,7 @@ function cacheSpotlightCards() {
   })
 }
 function syncSpotlight(e: PointerEvent) {
+  if (isScrolling.value || isReducedEffects.value) return
   const ww = window.innerWidth
   for (const { card, inner } of cachedSpotlightCards) {
     const rect = inner.getBoundingClientRect()
@@ -152,6 +180,52 @@ function syncSpotlight(e: PointerEvent) {
   }
 }
 
+function updateReducedEffectsMode() {
+  if (typeof window === 'undefined') return
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const coarsePointer = window.matchMedia('(pointer: coarse)').matches
+  isReducedEffects.value = prefersReducedMotion || coarsePointer || window.innerWidth < 1024
+}
+
+function resetHeroDashTransform() {
+  const el = heroDashRef.value
+  if (!el) return
+  if (isReducedEffects.value) {
+    el.style.transform = 'none'
+    return
+  }
+  el.style.transform = ''
+}
+
+function resetStackCards() {
+  cachedStackCards.forEach(({ inner }) => {
+    inner.style.transform = ''
+    inner.style.filter = ''
+  })
+}
+
+function scheduleViewportRefresh() {
+  if (resizeFrame) return
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = 0
+    updateReducedEffectsMode()
+    cacheStackCards()
+
+    if (isReducedEffects.value) {
+      resetHeroDashTransform()
+      resetStackCards()
+      return
+    }
+
+    if (heroDashInView.value) {
+      onHeroDashScroll()
+    }
+    if (featureStackInView.value) {
+      onStackScroll()
+    }
+  })
+}
+
 /* ── Scroll handlers ── */
 function onNavScroll() {
   navScrolled.value = window.scrollY > 80
@@ -159,6 +233,7 @@ function onNavScroll() {
 
 /* ── Hero dashboard perspective scroll (Bombon-style) ── */
 function onHeroDashScroll() {
+  if (isReducedEffects.value || !heroDashInView.value) return
   const el = heroDashRef.value
   if (!el) return
   const rect = el.getBoundingClientRect()
@@ -184,6 +259,7 @@ function cacheStackCards() {
   })
 }
 function onStackScroll() {
+  if (isReducedEffects.value || !featureStackInView.value) return
   const total = cachedStackCards.length
   if (!total) return
   // READ phase — batch all geometry reads
@@ -198,9 +274,8 @@ function onStackScroll() {
       const overlap = Math.max(0, rect.top + rect.height - nextRect.top)
       const ratio = Math.min(1, overlap / rect.height)
       const scale = 1 - ratio * 0.05
-      const brightness = 1 - ratio * 0.35
       inner.style.transform = `scale(${scale.toFixed(4)})`
-      inner.style.filter = `brightness(${brightness.toFixed(3)})`
+      inner.style.filter = ''
     } else {
       inner.style.transform = ''
       inner.style.filter = ''
@@ -210,26 +285,71 @@ function onStackScroll() {
 
 /* ── Single rAF-gated scroll handler ── */
 let scrollRaf = 0
+function markScrolling() {
+  isScrolling.value = true
+  if (scrollIdleTimeout) {
+    window.clearTimeout(scrollIdleTimeout)
+  }
+  scrollIdleTimeout = window.setTimeout(() => {
+    isScrolling.value = false
+  }, 140)
+}
+
 function onScroll() {
+  markScrolling()
   if (scrollRaf) return
   scrollRaf = requestAnimationFrame(() => {
     scrollRaf = 0
     onNavScroll()
-    onHeroDashScroll()
-    onStackScroll()
+    if (heroDashInView.value && !isReducedEffects.value) {
+      onHeroDashScroll()
+    }
+    if (featureStackInView.value && !isReducedEffects.value) {
+      onStackScroll()
+    } else {
+      resetStackCards()
+    }
   })
 }
 
 onBeforeUnmount(() => {
   document.removeEventListener('pointermove', syncSpotlight)
   window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', scheduleViewportRefresh)
+  reducedMotionQuery?.removeEventListener('change', scheduleViewportRefresh)
+  coarsePointerQuery?.removeEventListener('change', scheduleViewportRefresh)
   if (scrollRaf) cancelAnimationFrame(scrollRaf)
+  if (resizeFrame) cancelAnimationFrame(resizeFrame)
+  if (scrollIdleTimeout) window.clearTimeout(scrollIdleTimeout)
+  revealObserver?.disconnect()
+  flowObserver?.disconnect()
+  heroObserver?.disconnect()
+  featureObserver?.disconnect()
+  statsObserver?.disconnect()
   document.body.style.overflow = ''
 })
 
 // Body scroll lock when mobile menu is open
 watch(mobileMenuOpen, (open) => {
   document.body.style.overflow = open ? 'hidden' : ''
+})
+
+watch([isScrolling, isReducedEffects], ([scrolling, reduced]) => {
+  if (scrolling || reduced) {
+    resetStackCards()
+  }
+
+  if (reduced) {
+    resetHeroDashTransform()
+    return
+  }
+
+  if (!scrolling && heroDashInView.value) {
+    onHeroDashScroll()
+  }
+  if (!scrolling && featureStackInView.value) {
+    onStackScroll()
+  }
 })
 
 function animateCounter(index: number, target: number, decimals: number, delay: number) {
@@ -254,6 +374,13 @@ function startStatsAnimation() {
 
 /* ── Scroll-reveal with staggered children ── */
 onMounted(() => {
+  updateReducedEffectsMode()
+  reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  coarsePointerQuery = window.matchMedia('(pointer: coarse)')
+  reducedMotionQuery.addEventListener('change', scheduleViewportRefresh)
+  coarsePointerQuery.addEventListener('change', scheduleViewportRefresh)
+  window.addEventListener('resize', scheduleViewportRefresh)
+
   const targets = document.querySelectorAll('.lp-hero, .lp-section, .lp-cta-band')
 
   /* Flow section — show immediately, no scroll-fade */
@@ -261,7 +388,7 @@ onMounted(() => {
     el.classList.add('child-visible')
   })
   document.querySelector('.flow-section')?.classList.add('in-view')
-  const io = new IntersectionObserver(
+  revealObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) {
@@ -271,29 +398,29 @@ onMounted(() => {
             ;(child as HTMLElement).style.transitionDelay = `${i * 120}ms`
             requestAnimationFrame(() => child.classList.add('child-visible'))
           })
-          io.unobserve(e.target)
+          revealObserver?.unobserve(e.target)
         }
       })
     },
     { threshold: 0.04, rootMargin: '0px 0px 40px 0px' },
   )
-  targets.forEach((t) => io.observe(t))
+  targets.forEach((t) => revealObserver?.observe(t))
 
   /* Flow section in-view */
   const flowEl = document.querySelector('.flow-section')
   if (flowEl) {
-    const flowObs = new IntersectionObserver(
+    flowObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
             e.target.classList.add('in-view')
-            flowObs.unobserve(e.target)
+            flowObserver?.unobserve(e.target)
           }
         })
       },
       { threshold: 0.15 },
     )
-    flowObs.observe(flowEl)
+    flowObserver.observe(flowEl)
   }
 
   nextTick(() => {
@@ -306,21 +433,55 @@ onMounted(() => {
 
     /* Single rAF-gated scroll handler for all scroll effects */
     window.addEventListener('scroll', onScroll, { passive: true })
-    onHeroDashScroll()
     onNavScroll()
+
+    if (heroDashRef.value) {
+      heroObserver = new IntersectionObserver(
+        ([entry]) => {
+          heroDashInView.value = !!entry?.isIntersecting
+          if (heroDashInView.value && !isReducedEffects.value && !isScrolling.value) {
+            onHeroDashScroll()
+          }
+        },
+        { threshold: 0, rootMargin: '120px 0px' },
+      )
+      heroObserver.observe(heroDashRef.value)
+    }
+
+    if (featuresStackRef.value) {
+      featureObserver = new IntersectionObserver(
+        ([entry]) => {
+          featureStackInView.value = !!entry?.isIntersecting
+          if (!featureStackInView.value || isReducedEffects.value || isScrolling.value) {
+            resetStackCards()
+            return
+          }
+          onStackScroll()
+        },
+        { threshold: 0, rootMargin: '180px 0px' },
+      )
+      featureObserver.observe(featuresStackRef.value)
+    }
+
+    if (isReducedEffects.value) {
+      resetHeroDashTransform()
+    } else {
+      onHeroDashScroll()
+    }
 
     /* Stats counter – trigger on first intersection */
     if (statsGlassRef.value) {
-      const statsObs = new IntersectionObserver(
+      statsObserver = new IntersectionObserver(
         (entries) => {
           if (entries[0].isIntersecting) {
             startStatsAnimation()
-            statsObs.disconnect()
+            statsObserver?.disconnect()
+            statsObserver = null
           }
         },
         { threshold: 0.5 },
       )
-      statsObs.observe(statsGlassRef.value)
+      statsObserver.observe(statsGlassRef.value)
     }
   })
 
@@ -464,7 +625,16 @@ const starVB = '0 0 137 130'
 </script>
 
 <template>
-  <div id="top" class="lp-root">
+  <div
+    id="top"
+    :class="[
+      'lp-root',
+      {
+        'is-scrolling': isScrolling,
+        'reduced-effects': isReducedEffects,
+      },
+    ]"
+  >
     <!-- Nav — liquid glass bar -->
     <div class="lp-nav-wrap">
       <LiquidGlassEffect tag="div" :class="['lp-nav-glass-bar', { 'nav-scrolled': navScrolled }]">
@@ -862,7 +1032,7 @@ const starVB = '0 0 137 130'
         </div>
 
         <!-- Features Stack — Scroll Stacking Cards à la Framer -->
-        <div class="features-stack">
+        <div ref="featuresStackRef" class="features-stack">
           <div
             v-for="(feature, i) in features"
             :key="i"
@@ -1279,6 +1449,62 @@ const starVB = '0 0 137 130'
 /* ═══════════════════ SMOOTH SCROLL ═══════════════════ */
 .lp-root {
   scroll-behavior: smooth;
+}
+
+/* ═══════════════════ PERFORMANCE MODES ═══════════════════ */
+
+.lp-root.is-scrolling .bento-card-backdrop,
+.lp-root.is-scrolling .pricing-plan-card-backdrop,
+.lp-root.is-scrolling .stats-card-backdrop,
+.lp-root.reduced-effects .bento-card-backdrop,
+.lp-root.reduced-effects .pricing-plan-card-backdrop,
+.lp-root.reduced-effects .stats-card-backdrop {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: rgba(7, 18, 58, 0.18);
+}
+
+.lp-root.is-scrolling .bento-card::after,
+.lp-root.is-scrolling .pricing-plan-card::after,
+.lp-root.is-scrolling .stats-card::after,
+.lp-root.reduced-effects .bento-card::after,
+.lp-root.reduced-effects .pricing-plan-card::after,
+.lp-root.reduced-effects .stats-card::after {
+  content: none;
+}
+
+.lp-root.is-scrolling .feature-stack-card__inner,
+.lp-root.reduced-effects .feature-stack-card__inner {
+  background: linear-gradient(160deg, #080e2e 0%, #050d2c 50%, #030824 100%);
+}
+
+.lp-root.is-scrolling .feature-stack-card__inner::before,
+.lp-root.is-scrolling .feature-stack-card__glow,
+.lp-root.reduced-effects .feature-stack-card__inner::before,
+.lp-root.reduced-effects .feature-stack-card__glow {
+  opacity: 0 !important;
+}
+
+.lp-root.reduced-effects .feature-stack-card {
+  position: relative;
+  top: auto;
+  z-index: auto;
+}
+
+.lp-root.reduced-effects .feature-stack-card__inner {
+  transform: none !important;
+  filter: none !important;
+}
+
+.lp-root.reduced-effects .hero-dashboard {
+  transform: none !important;
+  will-change: auto;
+}
+
+.lp-root.reduced-effects .bento-card:hover,
+.lp-root.reduced-effects .pricing-plan-card:hover,
+.lp-root.reduced-effects .feature-stack-card:hover .feature-stack-card__img {
+  transform: none !important;
 }
 
 /* ═══════════════════ NAV ═══════════════════ */

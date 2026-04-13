@@ -1,28 +1,44 @@
-import { onMounted, onBeforeUnmount, type Ref } from 'vue'
+import { onMounted, onBeforeUnmount, unref, watch, type Ref } from 'vue'
+
+type BooleanRef = boolean | Ref<boolean>
+
+interface ArrowCanvasOptions {
+  color?: string
+  enabled?: BooleanRef
+}
 
 /**
  * Draws a dashed curved arrow from the mouse cursor to a target element.
- * Adapted from the React DynamicHero canvas arrow effect.
+ * The canvas redraws only on interaction/resize instead of running a full-time RAF loop.
  */
 export function useArrowCanvas(
   canvasRef: Ref<HTMLCanvasElement | null>,
   targetRef: Ref<HTMLElement | null>,
-  options: { color?: string } = {}
+  options: ArrowCanvasOptions = {},
 ) {
-  let animId = 0
+  let frameId = 0
   let isVisible = true
   let visibilityObserver: IntersectionObserver | null = null
   const mouse = { x: null as number | null, y: null as number | null }
 
-  /* ── resolve stroke colour ── */
   const strokeColor = options.color ?? 'rgba(255,255,255,0.6)'
 
-  function parseRgb(c: string) {
-    const m = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
-    return m ? { r: +m[1], g: +m[2], b: +m[3] } : null
+  function isEnabled() {
+    return options.enabled === undefined ? true : unref(options.enabled)
   }
 
-  /* ── draw one frame ── */
+  function parseRgb(color: string) {
+    const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+    return match ? { r: +match[1], g: +match[2], b: +match[3] } : null
+  }
+
+  function clearCanvas() {
+    const canvas = canvasRef.value
+    const ctx = canvas?.getContext('2d')
+    if (!canvas || !ctx) return
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+  }
+
   function draw(ctx: CanvasRenderingContext2D, target: HTMLElement) {
     if (mouse.x === null || mouse.y === null) return
 
@@ -45,7 +61,6 @@ export function useArrowCanvas(
     const opacity = Math.min(1, (dist - Math.max(rect.width, rect.height) / 2) / 500)
     if (opacity <= 0) return
 
-    /* resolve colour with dynamic opacity */
     const parsed = parseRgb(strokeColor)
     const rgba = parsed
       ? `rgba(${parsed.r},${parsed.g},${parsed.b},${opacity})`
@@ -54,7 +69,6 @@ export function useArrowCanvas(
     ctx.strokeStyle = rgba
     ctx.lineWidth = 2
 
-    /* curve */
     ctx.save()
     ctx.beginPath()
     ctx.moveTo(mouse.x, mouse.y)
@@ -63,32 +77,58 @@ export function useArrowCanvas(
     ctx.stroke()
     ctx.restore()
 
-    /* arrowhead */
     const headAngle = Math.atan2(y1 - controlY, x1 - controlX)
     const headLen = 13
     ctx.beginPath()
     ctx.moveTo(x1, y1)
     ctx.lineTo(
       x1 - headLen * Math.cos(headAngle - Math.PI / 6),
-      y1 - headLen * Math.sin(headAngle - Math.PI / 6)
+      y1 - headLen * Math.sin(headAngle - Math.PI / 6),
     )
     ctx.moveTo(x1, y1)
     ctx.lineTo(
       x1 - headLen * Math.cos(headAngle + Math.PI / 6),
-      y1 - headLen * Math.sin(headAngle + Math.PI / 6)
+      y1 - headLen * Math.sin(headAngle + Math.PI / 6),
     )
     ctx.stroke()
   }
 
-  /* ── lifecycle ── */
-  function onMouseMove(e: MouseEvent) {
-    mouse.x = e.clientX
-    mouse.y = e.clientY
+  function drawFrame() {
+    frameId = 0
+    const canvas = canvasRef.value
+    const target = targetRef.value
+    const ctx = canvas?.getContext('2d')
+    if (!canvas || !ctx) return
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    if (!target || !isVisible || !isEnabled()) return
+    draw(ctx, target)
+  }
+
+  function scheduleDraw() {
+    if (frameId) return
+    frameId = requestAnimationFrame(drawFrame)
+  }
+
+  function resize() {
+    const canvas = canvasRef.value
+    if (!canvas) return
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    scheduleDraw()
+  }
+
+  function onMouseMove(event: MouseEvent) {
+    if (!isEnabled()) return
+    mouse.x = event.clientX
+    mouse.y = event.clientY
+    scheduleDraw()
   }
 
   function onMouseLeave() {
     mouse.x = null
     mouse.y = null
+    scheduleDraw()
   }
 
   onMounted(() => {
@@ -96,49 +136,48 @@ export function useArrowCanvas(
     const target = targetRef.value
     if (!canvas || !target) return
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    function resize() {
-      if (!canvas) return
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    }
     resize()
 
     window.addEventListener('resize', resize)
     window.addEventListener('mousemove', onMouseMove)
     document.addEventListener('mouseleave', onMouseLeave)
 
-    function loop() {
-      if (!canvas || !ctx || !target || !isVisible) return
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      draw(ctx, target)
-      animId = requestAnimationFrame(loop)
-    }
-
-    // Pause/resume loop when target leaves/enters viewport
     visibilityObserver = new IntersectionObserver(
       (entries) => {
-        const wasVisible = isVisible
         isVisible = entries[0].isIntersecting
-        if (isVisible && !wasVisible) {
-          animId = requestAnimationFrame(loop)
+        if (!isVisible) {
+          clearCanvas()
+          return
         }
+        scheduleDraw()
       },
       { threshold: 0 },
     )
     visibilityObserver.observe(target)
 
-    loop()
+    watch(
+      () => isEnabled(),
+      (enabled) => {
+        if (!enabled) {
+          mouse.x = null
+          mouse.y = null
+          if (frameId) cancelAnimationFrame(frameId)
+          frameId = 0
+          clearCanvas()
+          return
+        }
+        scheduleDraw()
+      },
+      { immediate: true },
+    )
   })
 
   onBeforeUnmount(() => {
-    cancelAnimationFrame(animId)
+    if (frameId) cancelAnimationFrame(frameId)
     visibilityObserver?.disconnect()
     visibilityObserver = null
     window.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseleave', onMouseLeave)
-    window.removeEventListener('resize', () => {})
+    window.removeEventListener('resize', resize)
   })
 }
