@@ -1,0 +1,13 @@
+# Cloudflare Pages — LPs no apex (paths /vendas-whatsapp, /para-agencias, …)
+#
+# Painel (recomendado): Workers & Pages → Create → Connect to Git
+#   Framework preset: None
+#   Root directory: (vazio — raiz do repositório)
+#   Build command:  npm install && npm install --prefix landing-pages && npm run lps:build && npm run lps:package
+#   Output directory: deliverables/lps
+#
+# Deploy manual (CLI): defina CLOUDFLARE_API_TOKEN e rode npm run cf:pages:deploy
+# Ajuste "name" para coincidir com o nome do projeto no painel Cloudflare.
+
+name = "adsmagic-lps"
+compatibility_date = "2025-04-01"

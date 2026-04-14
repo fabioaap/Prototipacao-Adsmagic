@@ -12,6 +12,8 @@
     "lps:build": "npm run build --prefix landing-pages",
     "lps:preview": "npm run preview --prefix landing-pages",
     "lps:package": "npm run package --prefix landing-pages",
+    "lps:deliverables": "npm run lps:build && npm run lps:package",
+    "cf:pages:deploy": "npm run lps:deliverables && wrangler pages deploy deliverables/lps --project-name=adsmagic-lps",
     "predev:all": "node -e \"console.log('dev:all usa a primeira porta livre entre 3000 e 3006')\"",
     "dev:all": "concurrently --kill-others-on-fail -n ROOT,PLATAFORMA -c blue,green \"vite\" \"npm run dev --prefix Plataforma\"",
     "docs:install": "npm install --prefix docs",
@@ -31,6 +33,7 @@
     "@vitejs/plugin-vue": "^6.0.4",
     "concurrently": "^9.2.1",
     "playwright": "^1.58.2",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "wrangler": "^4.28.1"
   }
 }

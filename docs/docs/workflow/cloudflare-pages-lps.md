@@ -4,27 +4,21 @@ title: Handoff Cloudflare Pages para LPs
 
 # Handoff de deploy das LPs no Cloudflare Pages
 
-Este documento registra o handoff operacional para publicar as duas landing pages standalone do workspace em **dois projetos separados** no Cloudflare Pages.
+Este documento registra o handoff operacional para publicar as landing pages standalone do workspace no **Cloudflare Pages**, com ênfase no modelo **um projeto, paths no apex** (`adsmagic.com.br/<slug>`).
 
 ## Escopo deste handoff
 
-As duas superfícies publicadas neste fluxo são:
+As superfícies publicadas neste fluxo seguem `marketing/lps.manifest.json` (hoje: vendas no WhatsApp e agências).
 
-- `lp-vendas-whatsapp`
-- `lp-para-agencias`
-
-Os pacotes finais usados no deploy são gerados a partir de `landing-pages/` e empacotados em:
-
-- `deliverables/lps/vendas-whatsapp`
-- `deliverables/lps/para-agencias`
+Os pacotes finais são gerados a partir de `landing-pages/` e empacotados sob `deliverables/lps/<slug>/`.
 
 ## Importante: qual pasta sobe
 
-Não use as subpastas isoladas dentro de `landing-pages/dist/<slug>` para deploy separado.
+Não use as subpastas isoladas dentro de `landing-pages/dist/<slug>` para deploy.
 
 Essas pastas contêm apenas o `index.html`, porque o build multipage do Vite centraliza `assets/` e `img/` na raiz de `landing-pages/dist/`.
 
-Para publicar **uma LP por projeto**, use sempre os diretórios empacotados em `deliverables/lps/<slug>`, porque eles já trazem:
+Use o empacotamento em `deliverables/lps/`: cada slug vira uma pasta com tudo que o host precisa:
 
 - `index.html`
 - `assets/`
@@ -34,6 +28,8 @@ Para publicar **uma LP por projeto**, use sempre os diretórios empacotados em `
 - `robots.txt`
 - `sitemap.xml`
 - `README-handoff.md`
+- `_redirects` (raiz do site + normalização de barra final nos slugs)
+- `_headers` (headers de segurança básicos no nível do site)
 
 ## Geração local dos artefatos
 
@@ -42,89 +38,85 @@ Na raiz do repositório:
 ```bash
 npm install
 npm install --prefix landing-pages
-npm run lps:build
-npm run lps:package
+npm run lps:deliverables
 ```
 
-Depois disso, os diretórios prontos para publicação estarão em `deliverables/lps/`.
+(`lps:deliverables` equivale a `lps:build` + `lps:package`.)
 
-## Configuração do projeto 1 no Cloudflare Pages
+Depois disso, a árvore pronta para publicação path-based estará em `deliverables/lps/` (vários diretórios irmãos, um por slug).
 
-Projeto sugerido: `lp-vendas-whatsapp`
+## Configuração recomendada: um projeto Pages (apex)
 
-Configuração:
+Projeto sugerido no painel: `adsmagic-lps` (ajuste se necessário; o mesmo nome é referenciado em `wrangler.toml` e no workflow GitHub opcional).
 
-- Production branch: `main` ou a branch oficial de publicação
-- Framework preset: `None`
-- Root directory: vazio, usando a raiz do repositório
-- Build command:
+| Campo | Valor |
+|--------|--------|
+| Production branch | `main` (ou a branch oficial) |
+| Framework preset | `None` |
+| Root directory | **vazio** (raiz do repositório) |
+| Build command | `npm install && npm install --prefix landing-pages && npm run lps:build && npm run lps:package` |
+| Build output directory | `deliverables/lps` |
+
+A pasta `deliverables/lps` já contém `vendas-whatsapp/`, `para-agencias/`, etc., no formato esperado para URLs `/<slug>/`.
+
+### Raiz `/` e redirects
+
+O script `landing-pages/scripts/package-lps.mjs` grava `deliverables/lps/_redirects`:
+
+- `/` → `/<slug-da-primeira-pagina-no-manifest>/` com **301** (hoje: `/vendas-whatsapp/`). Para mudar a “home” da raiz, reordene as entradas em `marketing/lps.manifest.json` ou ajuste o script.
+- Para cada LP: `/<slug>` → `/<slug>/` com **301** (evita duplicidade de URL com e sem barra final).
+
+### Arquivos no repositório
+
+- `wrangler.toml` — comentários com os mesmos parâmetros do painel e nome do projeto.
+- `package.json` (raiz) — scripts `lps:deliverables` e `cf:pages:deploy` (deploy manual via Wrangler após build).
+- `.github/workflows/deploy-lps-cloudflare.yml` — deploy manual por **workflow_dispatch**; exige secrets `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID`. **Não** use este workflow em paralelo com a integração Git do mesmo projeto no Cloudflare, para evitar deploy duplicado.
+
+### Deploy manual (CLI)
+
+Com token da API no ambiente:
 
 ```bash
-npm install && npm install --prefix landing-pages && npm run lps:build && npm run lps:package
+export CLOUDFLARE_API_TOKEN=…
+npm run cf:pages:deploy
 ```
 
-- Build output directory:
+O comando publica `deliverables/lps` no projeto `adsmagic-lps` (altere em `package.json` / workflow se o nome no painel for outro).
 
-```text
-deliverables/lps/vendas-whatsapp
-```
+## Apontamento de domínio (DNS)
 
-## Configuração do projeto 2 no Cloudflare Pages
+Depois que o primeiro deploy concluir no Pages:
 
-Projeto sugerido: `lp-para-agencias`
+1. No projeto Pages: **Custom domains** → adicionar `adsmagic.com.br` e, se aplicável, `www.adsmagic.com.br`.
+2. No DNS da zona Cloudflare (ou outro provedor), seguir as instruções do painel (CNAME para `*.pages.dev` ou registros indicados).
+3. Aguardar emissão de certificado TLS (automático).
+4. Validar `https://adsmagic.com.br/` (redirect para a LP principal) e cada `https://adsmagic.com.br/<slug>/`.
 
-Configuração:
+## Por que o root directory do Pages fica na raiz do repo
 
-- Production branch: `main` ou a branch oficial de publicação
-- Framework preset: `None`
-- Root directory: vazio, usando a raiz do repositório
-- Build command:
+O output final está em `deliverables/`, na raiz do workspace. Se o projeto Pages usar `landing-pages/` como root, o diretório de output `deliverables/lps` ficará fora da árvore que o build enxerga e o deploy falha ou publica arquivos errados.
 
-```bash
-npm install && npm install --prefix landing-pages && npm run lps:build && npm run lps:package
-```
+## Alternativa: dois projetos Pages (uma LP cada)
 
-- Build output directory:
+Útil apenas se cada LP tiver domínio próprio ou ciclo de deploy isolado.
 
-```text
-deliverables/lps/para-agencias
-```
+- Root directory: vazio (raiz do repositório)
+- Mesmo build command acima
+- Build output directory: `deliverables/lps/vendas-whatsapp` ou `deliverables/lps/para-agencias` conforme o projeto
 
-## Por que o root directory fica na raiz
-
-Neste handoff, o output final está em `deliverables/`, que é gerado na raiz do workspace.
-
-Se o projeto do Cloudflare Pages usar `landing-pages/` como root directory neste cenário de duas Pages separadas, o output configurado ficará fora da área esperada do build e o deploy fica inconsistente.
-
-Para dois projetos separados, mantenha o root directory na raiz e publique a pasta final dentro de `deliverables/lps/<slug>`.
+Nesse modo, `_redirects` na raiz de cada pacote não se aplica da mesma forma que no modelo path-based; prefira o modelo de **um projeto** para apex com vários paths.
 
 ## Alternativa: Direct Upload
 
-Se a publicação for feita por upload direto em vez de integração com Git:
-
-- projeto da LP de vendas: subir o conteúdo de `deliverables/lps/vendas-whatsapp`
-- projeto da LP de agências: subir o conteúdo de `deliverables/lps/para-agencias`
+- **Um projeto path-based:** subir o conteúdo de `deliverables/lps` inteiro (incluindo `_redirects` e `_headers`).
+- **Dois projetos separados:** subir cada `deliverables/lps/<slug>` isoladamente.
 
 ## Domínios e URLs canônicas
 
-As URLs canônicas registradas no manifest são baseadas em path no domínio raiz:
+As URLs canônicas no manifest são paths no domínio raiz, por exemplo:
 
 - `https://adsmagic.com.br/vendas-whatsapp`
 - `https://adsmagic.com.br/para-agencias`
-
-Esse modelo concentra toda a autoridade de domínio em `adsmagic.com.br`.
-
-### Deploy path-based (recomendado)
-
-Para servir ambas as LPs sob o mesmo domínio com paths, use **um único projeto** no Cloudflare Pages. A estrutura de output já fornece as pastas com os slugs corretos — basta compor a raiz de publicação com os dois diretórios:
-
-```text
-publish-root/
-  vendas-whatsapp/
-    index.html, assets/, img/, robots.txt, sitemap.xml …
-  para-agencias/
-    index.html, assets/, img/, robots.txt, sitemap.xml …
-```
 
 ### Alternativa: dois projetos com subdomínios
 
@@ -137,9 +129,9 @@ Nesse caso, as `canonicalUrl` no manifest e as tags `<link rel="canonical">`, `o
 
 ## Checklist pós-deploy
 
-Validar em cada projeto:
+Validar no projeto Pages (path-based no apex):
 
-1. abertura da home sem erro 404
+1. `https://<domínio>/` redireciona (301) para a LP principal; cada `https://<domínio>/<slug>/` abre sem 404
 2. carregamento de `assets/` e `img/`
 3. hero, logos e imagens internas
 4. CTA principal e CTA de login

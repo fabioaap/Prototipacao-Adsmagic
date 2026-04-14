@@ -1,0 +1,46 @@
+# Deploy manual das LPs para Cloudflare Pages (artefato: deliverables/lps).
+# Use este workflow OU a integração Git do painel Cloudflare — não os dois no mesmo branch,
+# para evitar deploy duplicado.
+#
+# Secrets necessários (Settings → Secrets → Actions):
+#   CLOUDFLARE_API_TOKEN — permissão Account · Cloudflare Pages · Edit
+#   CLOUDFLARE_ACCOUNT_ID — visível no painel direito da visão geral da conta
+
+name: Deploy LPs — Cloudflare Pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            landing-pages/package-lock.json
+
+      - name: Install dependencies (root + landing-pages)
+        run: |
+          npm ci
+          npm ci --prefix landing-pages
+
+      - name: Build and package LPs
+        run: npm run lps:deliverables
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy deliverables/lps --project-name=adsmagic-lps

@@ -133,6 +133,24 @@ try {
     writeFileSync(join(targetDir, 'robots.txt'), buildRobotsTxt(page.canonicalUrl))
   }
 
+  const defaultSlug = manifest.pages[0]?.slug
+  if (defaultSlug) {
+    const redirectLines = [`/ /${defaultSlug}/ 301`]
+    for (const page of manifest.pages) {
+      redirectLines.push(`/${page.slug} /${page.slug}/ 301`)
+    }
+    writeFileSync(join(deliverablesRoot, '_redirects'), `${redirectLines.join('\n')}\n`)
+  }
+
+  const securityHeaders = [
+    '/*',
+    '  X-Content-Type-Options: nosniff',
+    '  Referrer-Policy: strict-origin-when-cross-origin',
+    '  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()',
+    '',
+  ].join('\n')
+  writeFileSync(join(deliverablesRoot, '_headers'), securityHeaders)
+
   console.log(`Deliverables gerados em ${deliverablesRoot}`)
 } catch (error) {
   console.error(error instanceof Error ? error.message : error)
