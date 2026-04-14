@@ -43,7 +43,6 @@ const billingCycle = ref<BillingCycle>('annual')
 const isScrolling = ref(false)
 const isReducedEffects = ref(false)
 const heroDashInView = ref(true)
-const featureStackInView = ref(false)
 const pricingPlans: PricingPlan[] = [
   {
     id: 'starter',
@@ -128,7 +127,6 @@ const heroDashRef = ref<HTMLElement | null>(null)
 const flowCanvasRef = ref<HTMLCanvasElement | null>(null)
 const flowSectionRef = ref<HTMLElement | null>(null)
 const flowBentoRef = ref<HTMLElement | null>(null)
-const featuresStackRef = ref<HTMLElement | null>(null)
 const pricingGlassRef = ref<HTMLElement | null>(null)
 const statsGlassRef = ref<HTMLElement | null>(null)
 const pricingCanvasRef = ref<HTMLCanvasElement | null>(null)
@@ -154,31 +152,9 @@ let resizeFrame = 0
 let revealObserver: IntersectionObserver | null = null
 let flowObserver: IntersectionObserver | null = null
 let heroObserver: IntersectionObserver | null = null
-let featureObserver: IntersectionObserver | null = null
 let statsObserver: IntersectionObserver | null = null
 let reducedMotionQuery: MediaQueryList | null = null
 let coarsePointerQuery: MediaQueryList | null = null
-
-/* ── Spotlight Card — pointer tracking for glow (cached DOM) ── */
-let cachedSpotlightCards: { card: HTMLElement; inner: HTMLElement }[] = []
-function cacheSpotlightCards() {
-  const cards = document.querySelectorAll<HTMLElement>('.feature-stack-card[data-glow]')
-  cachedSpotlightCards = []
-  cards.forEach((card) => {
-    const inner = card.querySelector<HTMLElement>('.feature-stack-card__inner')
-    if (inner) cachedSpotlightCards.push({ card, inner })
-  })
-}
-function syncSpotlight(e: PointerEvent) {
-  if (isScrolling.value || isReducedEffects.value) return
-  const ww = window.innerWidth
-  for (const { card, inner } of cachedSpotlightCards) {
-    const rect = inner.getBoundingClientRect()
-    card.style.setProperty('--x', `${(e.clientX - rect.left).toFixed(2)}`)
-    card.style.setProperty('--y', `${(e.clientY - rect.top).toFixed(2)}`)
-    card.style.setProperty('--xp', (e.clientX / ww).toFixed(2))
-  }
-}
 
 function updateReducedEffectsMode() {
   if (typeof window === 'undefined') return
@@ -197,31 +173,19 @@ function resetHeroDashTransform() {
   el.style.transform = ''
 }
 
-function resetStackCards() {
-  cachedStackCards.forEach(({ inner }) => {
-    inner.style.transform = ''
-    inner.style.filter = ''
-  })
-}
-
 function scheduleViewportRefresh() {
   if (resizeFrame) return
   resizeFrame = requestAnimationFrame(() => {
     resizeFrame = 0
     updateReducedEffectsMode()
-    cacheStackCards()
 
     if (isReducedEffects.value) {
       resetHeroDashTransform()
-      resetStackCards()
       return
     }
 
     if (heroDashInView.value) {
       onHeroDashScroll()
-    }
-    if (featureStackInView.value) {
-      onStackScroll()
     }
   })
 }
@@ -246,43 +210,6 @@ function onHeroDashScroll() {
   el.style.transform = `perspective(1200px) translateY(${translateY.toFixed(1)}px) scale(${scale.toFixed(4)}) rotateX(${rotateX.toFixed(2)}deg)`
 }
 
-/* ── Stacking cards scroll (cached DOM, batched reads/writes) ── */
-let cachedStackCards: { el: HTMLElement; inner: HTMLElement; stickyTop: number }[] = []
-function cacheStackCards() {
-  const cards = document.querySelectorAll<HTMLElement>('.feature-stack-card')
-  cachedStackCards = []
-  cards.forEach((card, i) => {
-    const inner = card.querySelector<HTMLElement>('.feature-stack-card__inner')
-    if (!inner) return
-    const stickyTop = parseFloat(getComputedStyle(card).top) || (80 + i * 28)
-    cachedStackCards.push({ el: card, inner, stickyTop })
-  })
-}
-function onStackScroll() {
-  if (isReducedEffects.value || !featureStackInView.value) return
-  const total = cachedStackCards.length
-  if (!total) return
-  // READ phase — batch all geometry reads
-  const rects = cachedStackCards.map(c => c.el.getBoundingClientRect())
-  // WRITE phase — apply transforms
-  for (let i = 0; i < total; i++) {
-    const { inner, stickyTop } = cachedStackCards[i]
-    const rect = rects[i]
-    const isStuck = rect.top <= stickyTop + 2
-    if (isStuck && i < total - 1) {
-      const nextRect = rects[i + 1]
-      const overlap = Math.max(0, rect.top + rect.height - nextRect.top)
-      const ratio = Math.min(1, overlap / rect.height)
-      const scale = 1 - ratio * 0.05
-      inner.style.transform = `scale(${scale.toFixed(4)})`
-      inner.style.filter = ''
-    } else {
-      inner.style.transform = ''
-      inner.style.filter = ''
-    }
-  }
-}
-
 /* ── Single rAF-gated scroll handler ── */
 let scrollRaf = 0
 function markScrolling() {
@@ -304,16 +231,10 @@ function onScroll() {
     if (heroDashInView.value && !isReducedEffects.value) {
       onHeroDashScroll()
     }
-    if (featureStackInView.value && !isReducedEffects.value) {
-      onStackScroll()
-    } else {
-      resetStackCards()
-    }
   })
 }
 
 onBeforeUnmount(() => {
-  document.removeEventListener('pointermove', syncSpotlight)
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('resize', scheduleViewportRefresh)
   reducedMotionQuery?.removeEventListener('change', scheduleViewportRefresh)
@@ -324,7 +245,6 @@ onBeforeUnmount(() => {
   revealObserver?.disconnect()
   flowObserver?.disconnect()
   heroObserver?.disconnect()
-  featureObserver?.disconnect()
   statsObserver?.disconnect()
   document.body.style.overflow = ''
 })
@@ -335,10 +255,6 @@ watch(mobileMenuOpen, (open) => {
 })
 
 watch([isScrolling, isReducedEffects], ([scrolling, reduced]) => {
-  if (scrolling || reduced) {
-    resetStackCards()
-  }
-
   if (reduced) {
     resetHeroDashTransform()
     return
@@ -346,9 +262,6 @@ watch([isScrolling, isReducedEffects], ([scrolling, reduced]) => {
 
   if (!scrolling && heroDashInView.value) {
     onHeroDashScroll()
-  }
-  if (!scrolling && featureStackInView.value) {
-    onStackScroll()
   }
 })
 
@@ -424,13 +337,6 @@ onMounted(() => {
   }
 
   nextTick(() => {
-    /* Cache DOM for spotlight & stacking cards */
-    cacheSpotlightCards()
-    cacheStackCards()
-
-    /* Spotlight pointer listener */
-    document.addEventListener('pointermove', syncSpotlight)
-
     /* Single rAF-gated scroll handler for all scroll effects */
     window.addEventListener('scroll', onScroll, { passive: true })
     onNavScroll()
@@ -446,21 +352,6 @@ onMounted(() => {
         { threshold: 0, rootMargin: '120px 0px' },
       )
       heroObserver.observe(heroDashRef.value)
-    }
-
-    if (featuresStackRef.value) {
-      featureObserver = new IntersectionObserver(
-        ([entry]) => {
-          featureStackInView.value = !!entry?.isIntersecting
-          if (!featureStackInView.value || isReducedEffects.value || isScrolling.value) {
-            resetStackCards()
-            return
-          }
-          onStackScroll()
-        },
-        { threshold: 0, rootMargin: '180px 0px' },
-      )
-      featureObserver.observe(featuresStackRef.value)
     }
 
     if (isReducedEffects.value) {
@@ -505,6 +396,7 @@ const features = [
       'Centraliza mensagens, origem e histórico de cada atendimento. Sua equipe age rápido sem perder contexto.',
     image: publicAsset('img/landing/home/feature-conversations.png'),
     gradient: 'linear-gradient(145deg, #061a12 0%, #0b2e1f 40%, #0d3826 100%)',
+    imageVariant: 'portrait',
   },
   {
     title: 'Acompanha a jornada completa',
@@ -1032,7 +924,7 @@ const starVB = '0 0 137 130'
         </div>
 
         <!-- Features Stack — Scroll Stacking Cards à la Framer -->
-        <div ref="featuresStackRef" class="features-stack">
+        <div class="features-stack">
           <div
             v-for="(feature, i) in features"
             :key="i"
@@ -1061,7 +953,12 @@ const starVB = '0 0 137 130'
                 <img
                   :src="feature.image"
                   :alt="feature.title"
-                  class="feature-stack-card__img"
+                  :class="[
+                    'feature-stack-card__img',
+                    {
+                      'feature-stack-card__img--portrait': feature.imageVariant === 'portrait',
+                    },
+                  ]"
                   loading="lazy"
                 />
               </div>
@@ -2538,7 +2435,11 @@ const starVB = '0 0 137 130'
 
 /* ── Radial glows ── */
 .flow-glow {
-  display: none;
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.45;
 }
 
 .flow-glow--left {
@@ -2547,7 +2448,7 @@ const starVB = '0 0 137 130'
   top: -10%;
   left: -8%;
   background: radial-gradient(ellipse, rgba(59, 181, 109, 0.12) 0%, transparent 70%);
-  filter: blur(40px);
+  filter: none;
 }
 
 .flow-glow--right {
@@ -2556,7 +2457,7 @@ const starVB = '0 0 137 130'
   bottom: -5%;
   right: -5%;
   background: radial-gradient(ellipse, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
-  filter: blur(40px);
+  filter: none;
 }
 
 .flow-glow--center {
@@ -2566,13 +2467,17 @@ const starVB = '0 0 137 130'
   left: 50%;
   transform: translate(-50%, -50%);
   background: radial-gradient(ellipse, rgba(255, 207, 94, 0.04) 0%, transparent 70%);
-  filter: blur(30px);
+  filter: none;
 }
 
 /* ═══════════════════ FLOW GRAFISMOS ═══════════════════ */
 
 .grafismo-flow {
-  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 /* ── Diagonal bars ── */
@@ -2585,7 +2490,7 @@ const starVB = '0 0 137 130'
   height: 600px;
   top: -40px;
   left: -20px;
-  animation: grafismoFloat 18s ease-in-out infinite;
+  animation: none;
 }
 
 .grafismo-flow-bars--br {
@@ -2593,7 +2498,7 @@ const starVB = '0 0 137 130'
   height: 560px;
   bottom: -60px;
   right: -10px;
-  animation: grafismoFloat 22s ease-in-out infinite reverse;
+  animation: none;
 }
 
 .grafismo-flow-bars--cl {
@@ -2601,7 +2506,7 @@ const starVB = '0 0 137 130'
   height: 200px;
   top: 45%;
   left: 3%;
-  animation: grafismoFloat 15s ease-in-out infinite 3s;
+  animation: none;
 }
 
 @keyframes grafismoFloat {
@@ -2621,7 +2526,7 @@ const starVB = '0 0 137 130'
   height: 124px;
   top: 5%;
   right: 5%;
-  animation: starTwinkle 6s ease-in-out infinite;
+  animation: none;
 }
 
 .grafismo-flow-star--2 {
@@ -2629,7 +2534,7 @@ const starVB = '0 0 137 130'
   height: 76px;
   bottom: 12%;
   left: 6%;
-  animation: starTwinkle 8s ease-in-out infinite 2s;
+  animation: none;
 }
 
 .grafismo-flow-star--3 {
@@ -2637,7 +2542,7 @@ const starVB = '0 0 137 130'
   height: 48px;
   top: 50%;
   right: 10%;
-  animation: starTwinkle 7s ease-in-out infinite 4s;
+  animation: none;
 }
 
 .grafismo-flow-star--4 {
@@ -2645,7 +2550,7 @@ const starVB = '0 0 137 130'
   height: 34px;
   top: 22%;
   left: 16%;
-  animation: starTwinkle 5s ease-in-out infinite 1s;
+  animation: none;
 }
 
 @keyframes starTwinkle {
@@ -2658,55 +2563,49 @@ const starVB = '0 0 137 130'
 .grafismo-flow-dot {
   position: absolute;
   border-radius: 50%;
-  animation: dotDrift 12s ease-in-out infinite;
+  animation: none;
 }
 
 .grafismo-flow-dot--1 {
   width: 5px; height: 5px;
   background: rgba(59, 181, 109, 0.5);
-  box-shadow: 0 0 8px rgba(59, 181, 109, 0.3);
+  box-shadow: none;
   top: 12%; left: 25%;
-  animation-delay: 0s;
 }
 
 .grafismo-flow-dot--2 {
   width: 4px; height: 4px;
   background: rgba(99, 102, 241, 0.45);
-  box-shadow: 0 0 6px rgba(99, 102, 241, 0.25);
+  box-shadow: none;
   top: 30%; right: 20%;
-  animation-delay: 2s;
 }
 
 .grafismo-flow-dot--3 {
   width: 6px; height: 6px;
   background: rgba(59, 181, 109, 0.4);
-  box-shadow: 0 0 10px rgba(59, 181, 109, 0.2);
+  box-shadow: none;
   bottom: 25%; left: 35%;
-  animation-delay: 4s;
 }
 
 .grafismo-flow-dot--4 {
   width: 4px; height: 4px;
   background: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.1);
+  box-shadow: none;
   top: 65%; right: 30%;
-  animation-delay: 1s;
 }
 
 .grafismo-flow-dot--5 {
   width: 5px; height: 5px;
   background: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
+  box-shadow: none;
   bottom: 10%; right: 15%;
-  animation-delay: 5s;
 }
 
 .grafismo-flow-dot--6 {
   width: 4px; height: 4px;
   background: rgba(59, 181, 109, 0.35);
-  box-shadow: 0 0 6px rgba(59, 181, 109, 0.15);
+  box-shadow: none;
   top: 18%; right: 40%;
-  animation-delay: 3s;
 }
 
 @keyframes dotDrift {
@@ -2721,7 +2620,8 @@ const starVB = '0 0 137 130'
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(50px);
+  filter: none;
+  opacity: 0.35;
 }
 
 .grafismo-flow-glow--tl {
@@ -2730,7 +2630,7 @@ const starVB = '0 0 137 130'
   top: -5%;
   left: -3%;
   background: radial-gradient(ellipse, rgba(30, 58, 138, 0.12) 0%, transparent 70%);
-  animation: glowPulse 10s ease-in-out infinite;
+  animation: none;
 }
 
 .grafismo-flow-glow--br {
@@ -2739,7 +2639,7 @@ const starVB = '0 0 137 130'
   bottom: -8%;
   right: -4%;
   background: radial-gradient(ellipse, rgba(59, 181, 109, 0.1) 0%, transparent 70%);
-  animation: glowPulse 12s ease-in-out infinite 3s;
+  animation: none;
 }
 
 @keyframes glowPulse {
@@ -3418,30 +3318,19 @@ const starVB = '0 0 137 130'
 
 /* ─── Features Stack — Scroll Stacking Cards ─── */
 .features-stack {
-  --spotlight-size: 400px;
-  --spread: 120;
-  --border-size: 1px;
   --stack-gap: 28px;
   --stack-top: 5rem;
   margin-top: 3rem;
 }
 
 .feature-stack-card {
-  --x: -999;
-  --y: -999;
-  --xp: 0.5;
-  --base: 140;
   --radius: 24;
-  --hue: calc(var(--base) + (var(--xp) * var(--spread, 120)));
+  --hue: var(--base, 140);
   position: sticky;
   top: calc(var(--stack-top) + var(--i) * var(--stack-gap));
   z-index: calc(var(--i, 0) + 1);
   margin-bottom: 2rem;
   transform-origin: center top;
-}
-
-.feature-stack-card:last-child {
-  margin-bottom: 0;
 }
 
 .feature-stack-card__inner {
@@ -3451,20 +3340,14 @@ const starVB = '0 0 137 130'
   align-items: center;
   padding: 1.5rem;
   border-radius: calc(var(--radius) * 1px);
-  background:
-    radial-gradient(
-      var(--spotlight-size) at calc(var(--x) * 1px) calc(var(--y) * 1px),
-      hsl(var(--hue) 100% 70% / 0.06),
-      transparent
-    ),
-    linear-gradient(160deg, #080e2e 0%, #050d2c 50%, #030824 100%);
-  border: var(--border-size) solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(160deg, #080e2e 0%, #050d2c 50%, #030824 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.35),
     0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
   overflow: hidden;
-  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), filter 0.5s ease, box-shadow 0.35s ease;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 @media (min-width: 768px) {
@@ -3477,78 +3360,37 @@ const starVB = '0 0 137 130'
 
 /* Border glow — mask-composite spotlight */
 .feature-stack-card__inner::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: calc(var(--radius) * 1px);
-  pointer-events: none;
-  z-index: 4;
-  background:
-    radial-gradient(
-      var(--spotlight-size) at calc(var(--x) * 1px) calc(var(--y) * 1px),
-      hsl(var(--hue) 100% 70% / 0.45),
-      transparent
-    );
-  mask:
-    linear-gradient(#fff, #fff) content-box,
-    linear-gradient(#fff, #fff);
-  -webkit-mask:
-    linear-gradient(#fff, #fff) content-box,
-    linear-gradient(#fff, #fff);
-  mask-composite: exclude;
-  -webkit-mask-composite: xor;
-  padding: var(--border-size);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.feature-stack-card:hover .feature-stack-card__inner::before {
-  opacity: 1;
+  content: none;
 }
 
 .feature-stack-card:hover .feature-stack-card__inner {
   box-shadow:
-    0 20px 56px hsl(var(--hue) 100% 50% / 0.10),
+    0 20px 56px rgba(59, 181, 109, 0.08),
     0 8px 24px rgba(0, 0, 0, 0.25),
-    0 0 0 1px hsl(var(--hue) 100% 70% / 0.12);
+    0 0 0 1px rgba(59, 181, 109, 0.12);
+  transform: translateY(-2px);
 }
 
 /* Outer blur glow */
 .feature-stack-card__glow {
-  position: absolute;
-  inset: -20px;
-  border-radius: calc(var(--radius) * 1px);
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(
-      var(--spotlight-size) at calc(var(--x) * 1px) calc(var(--y) * 1px),
-      hsl(var(--hue) 100% 60% / 0.12),
-      transparent
-    );
-  filter: blur(24px);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.feature-stack-card:hover .feature-stack-card__glow {
-  opacity: 1;
+  display: none;
 }
 
 /* Visual / screenshot side */
 .feature-stack-card__visual {
   border-radius: 16px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 220px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: clamp(250px, 28vw, 320px);
   position: relative;
   z-index: 3;
 }
 
 .feature-stack-card__img {
   width: 100%;
-  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
   object-fit: contain;
   object-position: center center;
   padding: clamp(0.375rem, 1vw, 0.75rem);
@@ -3557,11 +3399,18 @@ const starVB = '0 0 137 130'
     radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 58%),
     rgba(5, 13, 44, 0.15);
   display: block;
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: transform 0.25s ease;
+}
+
+.feature-stack-card__img--portrait {
+  width: auto;
+  max-width: 72%;
+  max-height: calc(100% - 0.5rem);
+  margin: 0 auto;
 }
 
 .feature-stack-card:hover .feature-stack-card__img {
-  transform: scale(1.02);
+  transform: scale(1.01);
 }
 
 /* ── Feature card grafismos ── */
@@ -3580,7 +3429,6 @@ const starVB = '0 0 137 130'
   width: 72px;
   height: 68px;
   color: rgba(59, 181, 109, 0.06);
-  animation: grafismoFloat2 14s ease-in-out infinite;
 }
 
 .feat-grafismo__bars {
@@ -3590,15 +3438,6 @@ const starVB = '0 0 137 130'
   width: 80px;
   height: 130px;
   color: rgba(99, 102, 241, 0.05);
-  animation: grafismoFloat1 18s ease-in-out 2s infinite;
-}
-
-.feature-stack-card:hover .feat-grafismo__star {
-  color: rgba(59, 181, 109, 0.10);
-}
-
-.feature-stack-card:hover .feat-grafismo__bars {
-  color: rgba(99, 102, 241, 0.09);
 }
 
 /* Alternate position on even cards */
@@ -3657,6 +3496,24 @@ const starVB = '0 0 137 130'
   max-width: 38ch;
 }
 
+@media (max-width: 1023px) {
+  .features-stack {
+    --stack-gap: 0px;
+    --stack-top: 0px;
+  }
+
+  .feature-stack-card {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    margin-bottom: 1.5rem;
+  }
+
+  .feature-stack-card__visual {
+    height: clamp(220px, 54vw, 300px);
+  }
+}
+
 /* ─── Browser chrome bar ─── */
 .feat-browser-bar {
   display: flex;
@@ -3700,8 +3557,9 @@ const starVB = '0 0 137 130'
   height: 500px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(59, 181, 109, 0.06) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(59, 181, 109, 0.05) 0%, transparent 70%);
   pointer-events: none;
+  opacity: 0.65;
 }
 
 /* ── Floating icons container ── */
@@ -3718,10 +3576,9 @@ const starVB = '0 0 137 130'
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 /* Google – left */
@@ -3730,7 +3587,7 @@ const starVB = '0 0 137 130'
   height: 56px;
   top: 30%;
   left: 6%;
-  animation: float1 8s ease-in-out infinite;
+  animation: none;
 }
 
 /* Meta – bottom left */
@@ -3739,7 +3596,7 @@ const starVB = '0 0 137 130'
   height: 48px;
   bottom: 15%;
   left: 12%;
-  animation: float2 9s ease-in-out 1s infinite;
+  animation: none;
 }
 
 /* WhatsApp – right */
@@ -3748,7 +3605,7 @@ const starVB = '0 0 137 130'
   height: 56px;
   top: 35%;
   right: 6%;
-  animation: float3 7s ease-in-out 0.5s infinite;
+  animation: none;
 }
 
 /* Instagram – top center */
@@ -3757,9 +3614,9 @@ const starVB = '0 0 137 130'
   height: 44px;
   top: 10%;
   left: 25%;
-  filter: blur(1px);
-  opacity: 0.6;
-  animation: float4 10s ease-in-out 2s infinite;
+  filter: none;
+  opacity: 0.5;
+  animation: none;
 }
 
 /* TikTok – top right */
@@ -3768,9 +3625,9 @@ const starVB = '0 0 137 130'
   height: 40px;
   top: 12%;
   right: 15%;
-  filter: blur(1px);
-  opacity: 0.5;
-  animation: float1 11s ease-in-out 3s infinite;
+  filter: none;
+  opacity: 0.45;
+  animation: none;
 }
 
 @keyframes float1 {
@@ -4755,7 +4612,7 @@ const starVB = '0 0 137 130'
   height: 400px;
   top: -15%;
   left: -3%;
-  animation: grafismoFloat3 15s ease-in-out infinite;
+  animation: none;
 }
 
 .grafismo-bars--cta-right {
@@ -4763,7 +4620,7 @@ const starVB = '0 0 137 130'
   height: 360px;
   bottom: -10%;
   right: -2%;
-  animation: grafismoFloat1 17s ease-in-out 2s infinite;
+  animation: none;
 }
 
 .grafismo-star--cta-1 {
@@ -4771,7 +4628,7 @@ const starVB = '0 0 137 130'
   height: 91px;
   top: 12%;
   right: 18%;
-  animation: grafismoFloat2 12s ease-in-out 1s infinite;
+  animation: none;
 }
 
 .grafismo-star--cta-2 {
@@ -4779,7 +4636,7 @@ const starVB = '0 0 137 130'
   height: 53px;
   bottom: 18%;
   left: 15%;
-  animation: grafismoFloat1 10s ease-in-out 4s infinite;
+  animation: none;
 }
 
 @media (max-width: 768px) {
@@ -4795,7 +4652,7 @@ const starVB = '0 0 137 130'
   height: 68px;
   top: 10%;
   right: 8%;
-  display: none;
+  animation: none;
 }
 
 @media (max-width: 768px) {
@@ -5001,7 +4858,7 @@ const starVB = '0 0 137 130'
 
   /* Feature stack */
   .features-stack                { margin-top: 2rem; }
-  .feature-stack-card__visual    { min-height: 180px; }
+  .feature-stack-card__visual    { height: 220px; }
   .feature-stack-card            { margin-bottom: 1.25rem; }
 
   /* CTA band copy */
@@ -5022,7 +4879,7 @@ const starVB = '0 0 137 130'
   }
 
   /* Feature stack card image area */
-  .feature-stack-card__visual { min-height: 155px; }
+  .feature-stack-card__visual { height: 190px; }
 
   /* Bento cards inner padding */
   .bento-card-inner { padding: 1.25rem 1.25rem 1rem; }

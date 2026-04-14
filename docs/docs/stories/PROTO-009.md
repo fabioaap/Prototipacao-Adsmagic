@@ -26,6 +26,10 @@ Reduzir o jank de scroll da LP sem alterar a mensagem comercial da página, mant
 - [x] A LP mantém scroll mais fluido nas seções com animação e cards sticky
 - [x] O hero dashboard só recalcula perspectiva quando está visível e fora do modo reduzido
 - [x] O stack de features deixa de aplicar `filter` caro no scroll e fica estático em modo reduzido
+- [x] A seção de features mantém o empilhamento visual com CSS sticky, sem lógica JS de scroll
+- [x] A CTA band deixa de renderizar ícones flutuantes, glow e grafismos animados
+- [x] Os fundos decorativos principais foram restaurados em versão estática, sem animação e sem blur
+- [x] A área visual do feature carousel foi normalizada para manter tamanho consistente entre screenshots
 - [x] O canvas da seta do hero deixa de usar RAF contínuo e renderiza sob demanda
 - [x] O starfield da seção de pricing reduz densidade/complexidade e pausa durante scroll
 - [x] Efeitos caros de `backdrop-filter` e bordas animadas são simplificados durante scroll e em modo reduzido
@@ -35,6 +39,10 @@ Reduzir o jank de scroll da LP sem alterar a mensagem comercial da página, mant
 - [x] Adicionados estados `isScrolling` e `isReducedEffects` no componente da LP
 - [x] Aplicadas classes de degradação visual no root da página para scroll ativo e reduced effects
 - [x] Limitados os handlers de scroll ao período em que hero/features estão em viewport
+- [x] Removidos o spotlight dinâmico e os cálculos JS de scroll da seção de features, mantendo sticky só em CSS
+- [x] Removidos os decorativos animados da CTA band para reduzir custo de composição
+- [x] Restaurados fundos decorativos estáticos em flow, CTA band e pricing, sem efeitos dinâmicos
+- [x] Padronizado o viewport das imagens do feature carousel e reduzida a screenshot vertical fora do padrão
 - [x] Atualizado `useArrowCanvas` para desenho sob demanda
 - [x] Atualizado `useMagneticStarfield` para operação adaptativa com menos partículas e pausa por estado
 
