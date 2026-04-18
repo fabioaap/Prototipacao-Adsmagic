@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Drawer - Stages Management</title>
+    <script type="module" src="/src/main.ts"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+
+        .button:hover {
+            background: #0052a3;
+        }
+
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background: #e8f4f8;
+            border: 1px solid #b3d8e8;
+        }
+
+        .error {
+            background: #ffeaa7;
+            border-color: #fdcb6e;
+            color: #d63031;
+        }
+
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-container">
+        <h1>🧪 Teste de Integração: Stages Management Drawer</h1>
+
+        <div class="status" id="status">
+            Carregando componente...
+        </div>
+
+        <div id="controls">
+            <button class="button" id="openDrawer">Abrir Drawer de Etapas</button>
+            <button class="button" id="testStagesLoad">Testar Carregamento de Stages</button>
+            <button class="button" id="testMockData">Ver Dados Mock</button>
+        </div>
+
+        <div id="debug-info">
+            <h3>Informações de Debug:</h3>
+            <pre id="debugOutput"></pre>
+        </div>
+
+        <div id="app"></div>
+    </div>
+
+    <script type="module">
+        import { createApp, ref } from 'vue'
+        import { createPinia } from 'pinia'
+        import StagesManagementDrawer from '/src/components/contacts/StagesManagementDrawer.vue'
+        import { useStagesStore } from '/src/stores/stages'
+        import { stagesService } from '/src/services/api/stages'
+
+        // App de teste
+        const TestApp = {
+            components: {
+                StagesManagementDrawer
+            },
+            setup() {
+                const isDrawerOpen = ref(false)
+                const debugInfo = ref({})
+                const stagesStore = useStagesStore()
+
+                const updateStatus = (message, type = 'info') => {
+                    const statusEl = document.getElementById('status')
+                    statusEl.textContent = message
+                    statusEl.className = `status ${type}`
+                }
+
+                const updateDebug = (info) => {
+                    debugInfo.value = { ...debugInfo.value, ...info }
+                    const debugEl = document.getElementById('debugOutput')
+                    debugEl.textContent = JSON.stringify(debugInfo.value, null, 2)
+                }
+
+                const openDrawer = async () => {
+                    try {
+                        updateStatus('Abrindo drawer...', 'info')
+
+                        // Carregar stages primeiro
+                        await stagesStore.fetchStages()
+                        updateDebug({
+                            stagesLoaded: stagesStore.stages.length,
+                            stagesData: stagesStore.stages
+                        })
+
+                        isDrawerOpen.value = true
+                        updateStatus('✅ Drawer aberto com sucesso!', 'success')
+
+                    } catch (error) {
+                        updateStatus(`❌ Erro ao abrir drawer: ${error.message}`, 'error')
+                        updateDebug({ error: error.message, stack: error.stack })
+                    }
+                }
+
+                const testStagesLoad = async () => {
+                    try {
+                        updateStatus('Carregando stages...', 'info')
+
+                        const stages = await stagesService.getAll()
+                        updateDebug({
+                            stagesFromService: stages.length,
+                            serviceData: stages
+                        })
+
+                        updateStatus(`✅ ${stages.length} etapas carregadas`, 'success')
+
+                    } catch (error) {
+                        updateStatus(`❌ Erro ao carregar stages: ${error.message}`, 'error')
+                        updateDebug({ serviceError: error.message })
+                    }
+                }
+
+                const testMockData = async () => {
+                    try {
+                        updateStatus('Verificando configuração de mock...', 'info')
+
+                        const mockInfo = {
+                            VITE_USE_MOCK: import.meta.env.VITE_USE_MOCK,
+                            VITE_USE_SUPABASE: import.meta.env.VITE_USE_SUPABASE,
+                            mockMode: import.meta.env.VITE_USE_MOCK === 'true'
+                        }
+
+                        updateDebug({ mockConfiguration: mockInfo })
+                        updateStatus('✅ Configuração de mock verificada', 'success')
+
+                    } catch (error) {
+                        updateStatus(`❌ Erro: ${error.message}`, 'error')
+                    }
+                }
+
+                // Setup event listeners
+                document.getElementById('openDrawer')?.addEventListener('click', openDrawer)
+                document.getElementById('testStagesLoad')?.addEventListener('click', testStagesLoad)
+                document.getElementById('testMockData')?.addEventListener('click', testMockData)
+
+                // Inicialização
+                updateStatus('✅ Componente carregado e pronto para teste', 'success')
+                testMockData()
+
+                return {
+                    isDrawerOpen,
+                    debugInfo
+                }
+            },
+            template: `
+                <StagesManagementDrawer
+                    :open="isDrawerOpen"
+                    @update:open="(value) => isDrawerOpen = value"
+                />
+            `
+        }
+
+        // Criar app
+        const pinia = createPinia()
+        const app = createApp(TestApp)
+        app.use(pinia)
+        app.mount('#app')
+
+        console.log('🧪 App de teste iniciado!')
+    </script>
+</body>
+
+</html>

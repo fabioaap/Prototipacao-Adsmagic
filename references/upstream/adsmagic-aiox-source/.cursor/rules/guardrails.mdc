@@ -1,0 +1,70 @@
+---
+alwaysApply: false
+---
+# CursorRules — Guardrails anti-quebra (Front Vue 3 + TS, mock-first)
+
+> ⚠️ **Nota (Março 2026):** A branch `v3` transicionou para API real nas features concluídas.
+> Use `guardralis-prod.mdc` como referência principal. Este arquivo aplica-se apenas a
+> contextos de desenvolvimento isolado sem backend disponível (ex: demos, storybook, testes unitários puros).
+
+## 0) Norte
+- Não introduza **breaking changes** em contratos sem criar nova versão.
+- Em contexto mock: `VITE_USE_MOCK=true` e `VITE_USE_SUPABASE=false` (arquivo `.env.test`).
+- Clareza, testabilidade e rollback fácil > “mágica”.
+
+## 1) Escopo por tarefa
+- **ALLOWED_PATHS** (definir na tarefa): apenas estes diretórios/arquivos podem ser alterados.
+- **FORBIDDEN_PATHS** (sempre): `/infra/**`, `/supabase/**`, `/migrations/**`, `/auth/**`, `/payment/**`, `.env*`, `/RLS/**`.
+- Não renomear/mover pastas raiz sem instrução explícita.
+- Não adicionar libs externas sem justificar no PR (razão, impacto, alternativa nativa).
+
+## 2) Contratos e mocks (fonte da verdade)
+- Contratos vivem em `/src/schemas` (Zod) e `/src/types`.
+- **Proibido** alterar/remover/renomear campos sem:
+  1) atualizar adapters, mocks e tipos;
+  2) ajustar testes;
+  3) registrar no CHANGELOG (seção “Contratos”).
+- API **mock-first**: `VITE_USE_MOCK=true`.  
+  - Proibido `fetch/axios/@supabase/supabase-js` em views/stores; centralizar em `/src/services/api/apiClient.ts`.
+  - Mocks devem simular **latência p95** e **erros 4xx/5xx**; incluir casos: vazio, última página, item inválido, timeout.
+
+## 3) Segurança no front (mesmo em mock)
+- Nunca inserir **secrets/tokens/service-role**.
+- Proibido `v-html` sem sanitização (DOMPurify).
+- Proibido `eval`, `new Function`, `setTimeout` com string.
+- Logs sem PII (e sem tokens); mensagens de erro amigáveis para usuário, detalhes técnicos só no console.
+
+## 4) UX de estados e A11y (obrigatório)
+- Toda tela cobre: **loading, empty, error, success**.
+- Inputs com `label for`, `aria-*`; foco gerenciado em erros e diálogos; navegação por teclado (Tab/Shift+Tab).
+
+## 5) Qualidade mínima por PR
+- TypeScript **strict**; sem `any` nem `@ts-ignore` (salvo com justificativa).
+- Passar: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`.
+- Testes mínimos:
+  - 1 **unit** (adapter/composable) com happy + edge.
+  - 1 **component** cobrindo loading→sucesso→erro.
+- Sem warnings novos de ESLint.
+
+## 6) Feature flags e rollback
+- Alterações de comportamento atrás de `VITE_FLAG_*`.
+- Manter código anterior enquanto a flag puder ser desligada.
+- Descrever **rollback** no PR (desligar flag = estado prévio).
+
+## 7) Política de recusa (a IA deve pedir autorização explícita)
+- Mexer em `/schemas` com **breaking change**.
+- Tocar **infra** (Supabase, RLS, Workers, Stripe, WhatsApp).
+- Incluir dependências de rede/auth/cripto/pagamento.
+- Fazer migrações de dados.
+
+## 8) Template de PR (a IA deve preencher)
+- Objetivo & Escopo  
+- **ALLOWED_PATHS** tocados  
+- Como testar (passo a passo) + screenshots dos estados  
+- Flags usadas (`VITE_FLAG_*`)  
+- Testes adicionados/alterados  
+- Riscos & Rollback  
+- Confirmações:
+  - [ ] Não alterei FORBIDDEN_PATHS
+  - [ ] Não quebrei contratos sem atualizar mocks/adapters/testes/CHANGELOG
+  - [ ] `pnpm typecheck lint test build` passou

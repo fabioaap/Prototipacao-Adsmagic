@@ -1,0 +1,980 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\Educacross\\Documents\\Adsmagic-First-AI\\front-end\\playwright.ci.config.ts",
+    "rootDir": "C:/Users/Educacross/Documents/Adsmagic-First-AI/front-end/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 8
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Users/Educacross/Documents/Adsmagic-First-AI/front-end/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/Educacross/Documents/Adsmagic-First-AI/front-end/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/spike-canary.spec.ts",
+          "**/smoke-login.spec.ts",
+          "**/journeys/auth.spec.ts",
+          "**/journeys/register.spec.ts",
+          "**/journeys/forgot-password.spec.ts",
+          "**/journeys/reset-password.spec.ts",
+          "**/journeys/contacts.spec.ts",
+          "**/journeys/contacts-real.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 8,
+    "webServer": {
+      "command": "pnpm preview -- --port 4173 --strictPort",
+      "url": "http://127.0.0.1:4173",
+      "timeout": 120000,
+      "reuseExistingServer": true
+    }
+  },
+  "suites": [
+    {
+      "title": "journeys\\auth.spec.ts",
+      "file": "journeys/auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Jornada: Autenticacao (preview)",
+          "file": "journeys/auth.spec.ts",
+          "line": 6,
+          "column": 6,
+          "specs": [
+            {
+              "title": "mantem o submit desabilitado ate o formulario ser valido",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2466,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:21.802Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5a6e430b26360c08dfcf-d103579f06640c7de053",
+              "file": "journeys/auth.spec.ts",
+              "line": 7,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "journeys\\contacts-real.spec.ts",
+      "file": "journeys/contacts-real.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Página Real de Contatos (Autenticada)",
+          "file": "journeys/contacts-real.spec.ts",
+          "line": 17,
+          "column": 6,
+          "specs": [
+            {
+              "title": "deve renderizar a página de contatos com título",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4324,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:21.849Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "06ef46de8166f5b883b6-ab6c5a00e9baa90a12c8",
+              "file": "journeys/contacts-real.spec.ts",
+              "line": 24,
+              "column": 5
+            },
+            {
+              "title": "deve exibir tabela ou lista de contatos",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3777,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:21.851Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "06ef46de8166f5b883b6-7a82f6fb2ae65a418c3d",
+              "file": "journeys/contacts-real.spec.ts",
+              "line": 33,
+              "column": 5
+            },
+            {
+              "title": "deve ter campo de busca",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 3638,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:21.821Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "06ef46de8166f5b883b6-9ea0afbd798abbf91dd2",
+              "file": "journeys/contacts-real.spec.ts",
+              "line": 52,
+              "column": 5
+            },
+            {
+              "title": "deve ter botão de adicionar contato",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 4288,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:21.863Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "06ef46de8166f5b883b6-59ba0d1dea5fb9640cd8",
+              "file": "journeys/contacts-real.spec.ts",
+              "line": 70,
+              "column": 5
+            },
+            {
+              "title": "deve ter botões de ação (Filtros, Exportar)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 3767,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:21.900Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "06ef46de8166f5b883b6-b80ebca7b453a38ff6a0",
+              "file": "journeys/contacts-real.spec.ts",
+              "line": 79,
+              "column": 5
+            },
+            {
+              "title": "deve navegar para sidebar quando clica em outro menu",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 3480,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:21.866Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "06ef46de8166f5b883b6-190e2166231739699358",
+              "file": "journeys/contacts-real.spec.ts",
+              "line": 91,
+              "column": 5
+            },
+            {
+              "title": "deve exibir métricas ou estatísticas de contatos",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 3793,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:21.967Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "06ef46de8166f5b883b6-04c75d3979cc9e9d83cb",
+              "file": "journeys/contacts-real.spec.ts",
+              "line": 109,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "journeys\\contacts.spec.ts",
+      "file": "journeys/contacts.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Contacts Page - Usability Smoke",
+          "file": "journeys/contacts.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [
+            {
+              "title": "deve renderizar o header e título da página",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2510,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:24.803Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9d0dd75d8f68a3034d60-0b08e470dd945d5799c8",
+              "file": "journeys/contacts.spec.ts",
+              "line": 17,
+              "column": 5
+            },
+            {
+              "title": "deve exibir os botões de toggle de view (Kanban/Lista)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 2217,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:25.880Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9d0dd75d8f68a3034d60-e165becd65bfdb1c0f05",
+              "file": "journeys/contacts.spec.ts",
+              "line": 25,
+              "column": 5
+            },
+            {
+              "title": "deve exibir os cards informativos",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 2286,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:25.892Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9d0dd75d8f68a3034d60-ac46161f15bc033e4ddf",
+              "file": "journeys/contacts.spec.ts",
+              "line": 34,
+              "column": 5
+            },
+            {
+              "title": "deve alternar entre views Kanban e Lista via tabs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 2995,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:26.077Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9d0dd75d8f68a3034d60-8b790f95bbc779bdc52b",
+              "file": "journeys/contacts.spec.ts",
+              "line": 41,
+              "column": 5
+            },
+            {
+              "title": "deve exibir o botão de adicionar contato",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 2175,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:26.200Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9d0dd75d8f68a3034d60-08a6caee4239b251e3b4",
+              "file": "journeys/contacts.spec.ts",
+              "line": 62,
+              "column": 5
+            },
+            {
+              "title": "deve exibir o kanban com colunas de estágio",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 2506,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:26.634Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9d0dd75d8f68a3034d60-abf32063bc5fa0a5b86a",
+              "file": "journeys/contacts.spec.ts",
+              "line": 68,
+              "column": 5
+            },
+            {
+              "title": "deve exibir a seção Como Funciona",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 2383,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:26.669Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9d0dd75d8f68a3034d60-cfa240273b3ca75bfdfd",
+              "file": "journeys/contacts.spec.ts",
+              "line": 77,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "journeys\\forgot-password.spec.ts",
+      "file": "journeys/forgot-password.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Jornada: Esqueci a senha (preview)",
+          "file": "journeys/forgot-password.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "mantém o submit desabilitado até email válido",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2428,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:26.675Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7028718c87b1a91f7d97-2e50d7585fe52851e277",
+              "file": "journeys/forgot-password.spec.ts",
+              "line": 12,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "journeys\\register.spec.ts",
+      "file": "journeys/register.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Jornada: Cadastro (preview)",
+          "file": "journeys/register.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "renderiza campos e habilita submit com dados válidos",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2109,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:27.527Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "11b3da421ff952b5295e-9477589c5a1fe2c5c098",
+              "file": "journeys/register.spec.ts",
+              "line": 12,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "journeys\\reset-password.spec.ts",
+      "file": "journeys/reset-password.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Jornada: Redefinir senha (preview)",
+          "file": "journeys/reset-password.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "exibe erro de token inválido sem hash de recuperação",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1518,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:28.336Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9e0180745a53ad3adf1b-db5b03b94161bbb45e67",
+              "file": "journeys/reset-password.spec.ts",
+              "line": 13,
+              "column": 5
+            },
+            {
+              "title": "renderiza formulário com token simulado e valida campos",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 1838,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:28.376Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9e0180745a53ad3adf1b-ab5cd577fa8ca27fd912",
+              "file": "journeys/reset-password.spec.ts",
+              "line": 21,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "smoke-login.spec.ts",
+      "file": "smoke-login.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Smoke: Login page no preview (build)",
+          "file": "smoke-login.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "deve renderizar formulário de login no preview",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 1791,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:28.520Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "eaec42e0ae069e51776a-a093a1627a5d8c9cd4a7",
+              "file": "smoke-login.spec.ts",
+              "line": 4,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "spike-canary.spec.ts",
+      "file": "spike-canary.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Spike: Conectividade Playwright + Vite Preview",
+          "file": "spike-canary.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [
+            {
+              "title": "deve conectar ao servidor na porta 4173",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 1729,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ Conexão estabelecida com sucesso!\n"
+                        },
+                        {
+                          "text": "Status: 200\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:29.193Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "613f52dd7c216489ce64-44b8411c876aba920ad2",
+              "file": "spike-canary.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "deve carregar a página inicial",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1508,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "✅ Página carregada com sucesso!\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-21T14:57:29.203Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "613f52dd7c216489ce64-7fb20434a6d62c9a0b64",
+              "file": "spike-canary.spec.ts",
+              "line": 25,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-12-21T14:57:19.288Z",
+    "duration": 11857.697,
+    "expected": 22,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

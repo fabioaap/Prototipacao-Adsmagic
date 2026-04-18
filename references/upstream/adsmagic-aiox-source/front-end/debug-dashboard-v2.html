@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard V2 Debug Inspector</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+        }
+
+        .error {
+            color: #f48771;
+        }
+
+        .success {
+            color: #89d185;
+        }
+
+        .info {
+            color: #75beff;
+        }
+
+        pre {
+            background: #252526;
+            padding: 10px;
+            overflow-x: auto;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔍 Dashboard V2 Debug Inspector</h1>
+
+    <div class="section">
+        <h2 class="info">📋 Page Load Status</h2>
+        <pre id="status">Carregando...</pre>
+    </div>
+
+    <div class="section">
+        <h2 class="info">🎯 Component Rendering</h2>
+        <pre id="components">Verificando componentes...</pre>
+    </div>
+
+    <div class="section">
+        <h2 class="info">⚠️ Console Errors/Warnings</h2>
+        <pre id="console">Capturando logs...</pre>
+    </div>
+
+    <div class="section">
+        <h2 class="info">🔗 Network Status</h2>
+        <pre id="network">Verificando requisições...</pre>
+    </div>
+
+    <script>
+        // Capture all console messages
+        const logs = { errors: [], warnings: [], logs: [] };
+
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const originalLog = console.log;
+
+        console.error = function (...args) {
+            logs.errors.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+            originalError.apply(console, args);
+        };
+
+        console.warn = function (...args) {
+            logs.warnings.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+            originalWarn.apply(console, args);
+        };
+
+        console.log = function (...args) {
+            logs.logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+            originalLog.apply(console, args);
+        };
+
+        // Wait for page to load
+        setTimeout(() => {
+            // Check page elements
+            const checks = {
+                'h1 (Título)': document.querySelector('h1'),
+                '[role="toolbar"] (Filtros)': document.querySelector('[role="toolbar"]'),
+                '[role="article"] (KPI Cards)': document.querySelectorAll('[role="article"]').length,
+                'table (Origin Performance)': document.querySelector('table'),
+                '[role="tablist"] (Tabs)': document.querySelector('[role="tablist"]'),
+                'Button[Exportar]': document.querySelector('button:has-text("Exportar")'),
+                '.container': document.querySelector('.container')
+            };
+
+            const statusEl = document.getElementById('status');
+            statusEl.innerHTML = `
+✅ URL: ${window.location.href}
+⏱️ Document Ready: ${document.readyState}
+📏 Page Height: ${document.documentElement.scrollHeight}px
+🔧 Vue App: ${window.__VUE_APP__ ? '✅ Loaded' : '❌ Missing'}
+            `.trim();
+
+            const componentsEl = document.getElementById('components');
+            componentsEl.innerHTML = Object.entries(checks)
+                .map(([name, el]) => {
+                    const found = typeof el === 'number' ? (el > 0 ? `✅ ${el}` : '❌ 0') : (el ? '✅' : '❌');
+                    return `${found} ${name}`;
+                })
+                .join('\n');
+
+            const consoleEl = document.getElementById('console');
+            consoleEl.innerHTML = `
+Errors (${logs.errors.length}):
+${logs.errors.slice(-5).map(e => '  ❌ ' + e.substring(0, 100)).join('\n') || '  (nenhum)'}
+
+Warnings (${logs.warnings.length}):
+${logs.warnings.slice(-5).map(w => '  ⚠️ ' + w.substring(0, 100)).join('\n') || '  (nenhum)'}
+
+Recent Logs (últimas 3):
+${logs.logs.slice(-3).map(l => '  ℹ️ ' + l.substring(0, 100)).join('\n') || '  (nenhum)'}
+            `.trim();
+
+        }, 3000);
+    </script>
+
+    <script src="http://localhost:5173/@vite/client" type="module" defer></script>
+    <iframe src="http://localhost:5173/pt/projects/9d176ba9-fd09-4fb9-ab4a-8f12fef3e095/dashboard-v2"
+        style="width:100%; height:600px; border:1px solid #3e3e42; margin-top:20px;"></iframe>
+</body>
+
+</html>

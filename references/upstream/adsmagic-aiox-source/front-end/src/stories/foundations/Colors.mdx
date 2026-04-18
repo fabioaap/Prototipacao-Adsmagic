@@ -1,0 +1,141 @@
+# Colors
+
+O sistema de cores do Adsmagic Design System é baseado em tokens semânticos que se adaptam ao tema (claro/escuro).
+
+## Cores Primárias
+
+As cores primárias são usadas para elementos de destaque e ações principais.
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))' }}>
+    <strong>Primary</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--primary</div>
+  </div>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--primary-foreground))', color: 'hsl(var(--primary))', border: '1px solid hsl(var(--border))' }}>
+    <strong>Primary Foreground</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--primary-foreground</div>
+  </div>
+</div>
+
+## Cores Semânticas
+
+Cores usadas para comunicar status e feedback visual.
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--success))', color: 'white' }}>
+    <strong>Success</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--success</div>
+  </div>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--warning))', color: 'black' }}>
+    <strong>Warning</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--warning</div>
+  </div>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--destructive))', color: 'white' }}>
+    <strong>Destructive</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--destructive</div>
+  </div>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--info))', color: 'white' }}>
+    <strong>Info</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--info</div>
+  </div>
+</div>
+
+## Cores de Background
+
+Cores usadas para fundos e superfícies.
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))', border: '1px solid hsl(var(--border))' }}>
+    <strong>Background</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--background</div>
+  </div>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--card-foreground))', border: '1px solid hsl(var(--border))' }}>
+    <strong>Card</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--card</div>
+  </div>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))' }}>
+    <strong>Muted</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--muted</div>
+  </div>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+    <strong>Accent</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--accent</div>
+  </div>
+</div>
+
+## Cores de Texto
+
+Cores usadas para textos e ícones.
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}>
+    <strong>Foreground</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--foreground</div>
+  </div>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'hsl(var(--muted-foreground))', color: 'white' }}>
+    <strong>Muted Foreground</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--muted-foreground</div>
+  </div>
+  <div style={{ padding: '1rem', borderRadius: '0.5rem', border: '2px solid hsl(var(--border))', color: 'hsl(var(--foreground))' }}>
+    <strong>Border</strong>
+    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>--border</div>
+  </div>
+</div>
+
+## Uso em Código
+
+### CSS Variables
+
+```css
+.meu-componente {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: 1px solid hsl(var(--border));
+}
+```
+
+### TailwindCSS
+
+```html
+<div class="bg-primary text-primary-foreground border-border">
+  Conteúdo
+</div>
+```
+
+### Cores Semânticas no Tailwind
+
+```html
+<!-- Sucesso -->
+<span class="text-success bg-success/10">Ativo</span>
+
+<!-- Aviso -->
+<span class="text-warning bg-warning/10">Pendente</span>
+
+<!-- Erro -->
+<span class="text-destructive bg-destructive/10">Erro</span>
+
+<!-- Info -->
+<span class="text-info bg-info/10">Novo</span>
+```
+
+## Tokens de Cor
+
+| Token | Uso | Exemplo |
+|-------|-----|---------|
+| `--background` | Fundo da página | `bg-background` |
+| `--foreground` | Texto principal | `text-foreground` |
+| `--card` | Fundo de cards | `bg-card` |
+| `--card-foreground` | Texto em cards | `text-card-foreground` |
+| `--primary` | Ações principais | `bg-primary` |
+| `--primary-foreground` | Texto em botões primários | `text-primary-foreground` |
+| `--secondary` | Ações secundárias | `bg-secondary` |
+| `--muted` | Fundos sutis | `bg-muted` |
+| `--muted-foreground` | Texto secundário | `text-muted-foreground` |
+| `--accent` | Hovers e destaques | `bg-accent` |
+| `--destructive` | Erros e ações perigosas | `bg-destructive` |
+| `--success` | Status positivos | `bg-success` |
+| `--warning` | Alertas | `bg-warning` |
+| `--info` | Informações | `bg-info` |
+| `--border` | Bordas | `border-border` |
+| `--input` | Bordas de inputs | `border-input` |
+| `--ring` | Focus rings | `ring-ring` |

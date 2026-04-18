@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <radialGradient id="bulletGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#3BB56D" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#010543" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="120" height="120" fill="#010543"/>
+  <rect width="120" height="120" fill="url(#bulletGlow)"/>
+  
+  <!-- Premium Bullet Diamond Shape -->
+  <polygon points="60,30 90,60 60,90 30,60" fill="none" stroke="#3BB56D" stroke-width="4" stroke-opacity="0.8" stroke-linejoin="round"/>
+  <!-- Inner precision point -->
+  <circle cx="60" cy="60" r="6" fill="#3BB56D"/>
+  
+  <!-- Decorative crosshairs -->
+  <line x1="60" y1="15" x2="60" y2="22" stroke="#5B6BC0" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="60" y1="98" x2="60" y2="105" stroke="#5B6BC0" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="15" y1="60" x2="22" y2="60" stroke="#5B6BC0" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="98" y1="60" x2="105" y2="60" stroke="#5B6BC0" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+</svg>

@@ -1,0 +1,33 @@
+/**
+ * Response helpers para Edge Functions
+ *
+ * Funcoes utilitarias para padronizar respostas HTTP
+ */
+
+import { corsHeaders } from './cors.ts'
+
+/**
+ * Resposta de sucesso
+ */
+export function successResponse(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
+  })
+}
+
+/**
+ * Resposta de erro
+ */
+export function errorResponse(message: string, status = 500) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+    },
+  })
+}

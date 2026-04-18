@@ -6,11 +6,11 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { findAvailablePort } from './vite.port-range.js'
 
-const pkg = JSON.parse(readFileSync(new URL('./Plataforma/package.json', import.meta.url), 'utf8'))
-const landingPagesManifest = JSON.parse(readFileSync(new URL('./marketing/lps.manifest.json', import.meta.url), 'utf8'))
+const pkg = JSON.parse(readFileSync(new URL('./apps/plataforma/package.json', import.meta.url), 'utf8'))
+const landingPagesManifest = JSON.parse(readFileSync(new URL('./workspace/marketing/lps.manifest.json', import.meta.url), 'utf8'))
 
 // Resolve tailwindcss and autoprefixer from Plataforma/node_modules
-const requireFO = createRequire(new URL('./Plataforma/src/main.ts', import.meta.url))
+const requireFO = createRequire(new URL('./apps/plataforma/src/main.ts', import.meta.url))
 const tailwindcss = requireFO('tailwindcss')
 const autoprefixer = requireFO('autoprefixer')
 
@@ -35,20 +35,20 @@ export default defineConfig(async ({ command }) => {
     : undefined
 
   return {
-  root: './Plataforma',
+  root: './apps/plataforma',
   base: (command === 'build' && process.env.CI) ? '/Prototipacao-Adsmagic/' : '/',
   plugins: [vue()],
   css: {
     postcss: {
       plugins: [
-        tailwindcss({ config: fileURLToPath(new URL('./Plataforma/tailwind.config.js', import.meta.url)) }),
+        tailwindcss({ config: fileURLToPath(new URL('./apps/plataforma/tailwind.config.js', import.meta.url)) }),
         autoprefixer(),
       ]
     }
   },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./Plataforma/src', import.meta.url))
+      '@': fileURLToPath(new URL('./apps/plataforma/src', import.meta.url))
     }
   },
   define: {

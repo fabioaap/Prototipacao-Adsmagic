@@ -1,0 +1,92 @@
+name: Cloudflare Pages - Pre-deploy Validation
+
+# Workflow opcional para validação antes do deploy
+# Não bloqueia o deploy do Cloudflare Pages, apenas valida o código
+# Útil para detectar erros antes do push
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+    paths:
+      - 'front-end/**'
+      - '.github/workflows/cloudflare-pages.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+    paths:
+      - 'front-end/**'
+      - '.github/workflows/cloudflare-pages.yml'
+
+jobs:
+  validate:
+    name: Validate Build
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: front-end
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          cache-dependency-path: front-end/pnpm-lock.yaml
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Type check
+        run: pnpm exec vue-tsc --noEmit
+        continue-on-error: true
+      
+      - name: Lint
+        run: pnpm lint
+        continue-on-error: true
+      
+      - name: Run tests
+        run: pnpm test
+        continue-on-error: true
+      
+      - name: Build
+        run: pnpm build
+        env:
+          # Variáveis de ambiente mock para build
+          # Valores reais devem estar no Cloudflare Pages
+          VITE_SUPABASE_URL: https://mock.supabase.co
+          VITE_SUPABASE_ANON_KEY: mock_key
+      
+      - name: Check build output
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ Build output directory 'dist' not found"
+            exit 1
+          fi
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ Build output 'dist/index.html' not found"
+            exit 1
+          fi
+          echo "✅ Build output verified"
+      
+      - name: Upload build artifacts (optional)
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-output
+          path: front-end/dist
+          retention-days: 1
+

@@ -1,0 +1,49 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env.local
+.env.*.local
+
+# Testes de integração — arquivos com credenciais e tokens reais
+.env.integration
+tests/e2e/integration/.auth/
+
+# OS
+Thumbs.db
+
+*storybook.log
+storybook-static
+
+# Playwright — artefatos gerados localmente
+test-results/
+playwright-report/
+playwright-integration-report/
+tests/e2e/playwright-report/
+tests/e2e/usability-report/
+spike-canary-screenshot.png
+
+# Dev-only pages (não publicar em produção — apenas para tools internas de dev)
+# src/views/dev/RoutesMapView.vue  ← tracked no git, protegido por router guard

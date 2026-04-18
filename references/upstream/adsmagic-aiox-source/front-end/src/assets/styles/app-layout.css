@@ -1,0 +1,405 @@
+/* ============================================
+   ADSMAGIC - App Shell & Layout (shadcn-vue)
+   Design system moderno com shadcn-vue + Tailwind
+   ============================================ */
+
+:root {
+    --header-height: 64px;
+    --sidebar-width: 16rem;
+    /* 256px - mais compacto */
+    --sidebar-collapsed-width: 4rem;
+    /* 64px */
+}
+
+@layer components {
+
+    /* ============================================
+     APP SHELL - Layout Principal
+     ============================================ */
+    .app-shell {
+        @apply min-h-screen bg-background overflow-x-hidden;
+    }
+
+    .app-shell.is-sidebar-open {
+        @apply overflow-hidden;
+    }
+
+    /* ============================================
+     SIDEBAR - Menu Lateral (shadcn-vue style)
+     ============================================ */
+    .app-sidebar {
+        @apply fixed left-0 top-0 bottom-0 z-40 flex flex-col bg-card border-r transition-all duration-200 ease-in-out;
+        width: var(--sidebar-width);
+    }
+
+    .app-sidebar.app-sidebar-collapsed,
+    .app-sidebar.collapsed {
+        width: var(--sidebar-collapsed-width);
+    }
+
+    .app-sidebar-overlay {
+        @apply fixed inset-0 bg-black/40;
+        /* sem blur para evitar embaçar o conteúdo ao abrir o menu */
+        /* z-30: abaixo do sidebar (z-40) mas acima do conteúdo principal */
+        z-index: 30;
+    }
+
+    .app-sidebar-body {
+        @apply flex flex-col h-full overflow-y-auto;
+    }
+
+    .app-sidebar-header {
+        @apply flex items-center justify-between px-4 py-4;
+    }
+
+    .app-brand {
+        @apply flex items-center gap-2 text-base font-semibold text-foreground no-underline transition-opacity hover:opacity-80;
+    }
+
+    .app-brand-logo {
+        @apply w-auto h-8 max-w-full object-contain;
+    }
+
+    .app-sidebar-toggle {
+        @apply inline-flex items-center justify-center w-8 h-8 rounded-md border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors;
+    }
+
+    .app-sidebar-footer {
+        @apply mt-auto p-4 border-t;
+    }
+
+    /* ============================================
+     HEADER - Top Bar (shadcn-vue style)
+     ============================================ */
+    .app-header {
+        @apply fixed top-0 right-0 z-40 bg-background border-b transition-all duration-200;
+        left: var(--sidebar-width);
+        height: var(--header-height);
+        @apply flex items-center justify-between gap-4 px-6;
+    }
+
+    .app-shell .app-sidebar.app-sidebar-collapsed~.app-content-wrapper .app-header {
+        left: var(--sidebar-collapsed-width);
+    }
+
+    .app-header-inner {
+        @apply flex items-center justify-between gap-6 w-full max-w-screen-2xl mx-auto;
+    }
+
+    .app-header-left {
+        @apply flex items-center gap-4 flex-shrink-0;
+    }
+
+    .app-header-right {
+        @apply flex items-center gap-3;
+    }
+
+    .app-user-card {
+        @apply flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors cursor-pointer;
+    }
+
+    .app-user-info {
+        @apply flex flex-col items-end leading-tight;
+    }
+
+    .app-user-name {
+        @apply text-sm font-medium text-foreground;
+    }
+
+    .app-user-role {
+        @apply text-xs text-muted-foreground;
+    }
+
+    .app-user-avatar {
+        @apply flex items-center justify-center w-9 h-9 rounded-full font-semibold text-sm text-primary-foreground bg-primary;
+    }
+
+    /* ============================================
+     MAIN CONTENT - Área Principal (shadcn-vue style)
+     ============================================ */
+    .app-content-wrapper {
+        @apply flex flex-col flex-1 min-h-screen;
+        margin-left: var(--sidebar-width);
+    }
+
+    .app-shell .app-sidebar.app-sidebar-collapsed~.app-content-wrapper {
+        margin-left: var(--sidebar-collapsed-width);
+    }
+
+    .app-main {
+        @apply flex-1 w-full mx-auto transition-all duration-200;
+        padding: var(--space-4) var(--gutter-tablet) var(--space-8);
+        padding-top: calc(var(--header-height) + var(--space-6));
+        max-width: var(--container-2xl);
+    }
+
+    /* Dashboard V2 - largura completa */
+    .app-main.dashboard-wide,
+    main.dashboard-wide {
+        @apply max-w-none;
+        padding: calc(var(--header-height) + var(--space-4)) var(--gutter-desktop) var(--space-8);
+    }
+
+    /* Kanban - largura completa sem padding direito */
+    .app-main.kanban-wide,
+    main.kanban-wide {
+        @apply max-w-none pr-0;
+        padding-top: calc(var(--header-height) + 1rem);
+    }
+
+    /* ============================================
+     CARDS E MÉTRICAS (shadcn-vue style)
+     ============================================ */
+    .summary-grid {
+        @apply grid gap-4 mb-8;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .summary-card {
+        @apply flex flex-col gap-3 p-6 rounded-lg border bg-card transition-all;
+    }
+
+    .summary-card:hover {
+        @apply shadow-md;
+    }
+
+    .summary-card-header {
+        @apply flex items-center justify-between;
+    }
+
+    .summary-card-label {
+        @apply text-sm font-medium text-muted-foreground;
+    }
+
+    .summary-card-value {
+        @apply text-3xl font-bold text-foreground;
+    }
+
+    .summary-card-caption {
+        @apply text-xs text-muted-foreground;
+    }
+
+    /* ============================================
+     PAGE HEADERS - Cabeçalhos padronizados das páginas
+     ============================================ */
+    .page-header {
+        @apply space-y-1 mb-6;
+    }
+
+    .page-header-section {
+        @apply flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6;
+    }
+
+    .page-header-content {
+        @apply flex flex-col gap-1;
+    }
+
+    .page-title {
+        @apply text-2xl font-semibold tracking-tight text-foreground;
+    }
+
+    .page-title--large {
+        @apply text-3xl font-bold tracking-tight;
+    }
+
+    .page-title--small {
+        @apply text-xl font-semibold tracking-tight;
+    }
+
+    .page-description {
+        @apply text-sm text-muted-foreground leading-relaxed;
+    }
+
+    .page-actions {
+        @apply flex items-center gap-3 flex-shrink-0;
+    }
+
+    /* ============================================
+     TYPOGRAPHY SCALE - Seções internas
+     ============================================ */
+    .section-title-lg {
+        @apply text-xl sm:text-2xl font-semibold tracking-tight text-foreground;
+    }
+
+    .section-title-md {
+        @apply text-lg sm:text-xl font-semibold tracking-tight text-foreground;
+    }
+
+    .section-title-sm {
+        @apply text-base font-semibold text-foreground;
+    }
+
+    .section-kicker {
+        @apply text-sm font-medium text-muted-foreground;
+    }
+
+    .section-description {
+        @apply text-sm text-muted-foreground leading-relaxed;
+    }
+
+    /* ============================================
+     RESPONSIVE - Mobile & Tablet
+     ============================================ */
+    @media (max-width: 1024px) {
+        .app-sidebar {
+            @apply -translate-x-full;
+            width: min(100vw, var(--sidebar-width));
+            z-index: 60;
+        }
+
+        .app-sidebar.is-open {
+            @apply translate-x-0;
+        }
+
+        .app-sidebar-overlay {
+            z-index: 50;
+        }
+
+        .app-header {
+            @apply left-0 right-0 w-full px-4 shadow-sm;
+            position: sticky;
+            top: 0;
+        }
+
+        .app-header-inner {
+            @apply flex-wrap gap-3 max-w-full;
+        }
+
+        .app-header-left {
+            @apply gap-2;
+        }
+
+        .app-content-wrapper {
+            @apply ml-0;
+        }
+
+        .summary-grid {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .app-main.dashboard-wide,
+        main.dashboard-wide {
+            padding: var(--space-5) var(--space-5) calc(var(--space-6) + var(--space-1));
+            padding-top: calc(var(--header-height) + var(--space-3));
+        }
+    }
+
+    @media (max-width: 640px) {
+        .app-main {
+            @apply p-4;
+            padding-top: var(--space-5);
+            margin-top: 0;
+        }
+
+        .app-main.dashboard-wide,
+        main.dashboard-wide {
+            padding: var(--space-4) var(--space-4) var(--space-6);
+            padding-top: var(--space-4);
+        }
+
+        .app-header {
+            @apply left-0 px-4;
+            min-height: var(--header-height);
+            height: auto;
+        }
+
+        .app-header-inner {
+            @apply w-full max-w-full gap-3 flex-col items-stretch justify-start py-3;
+        }
+
+        .app-header-left,
+        .app-header-right {
+            @apply w-full;
+        }
+
+        .app-header-right {
+            @apply gap-2 justify-between flex-wrap;
+        }
+
+        .app-header-left {
+            @apply items-center gap-2;
+        }
+
+        .app-header-left> :first-child {
+            @apply flex-none;
+        }
+
+        .app-header-left> :last-child {
+            @apply flex-1 min-w-0;
+        }
+
+        .app-user-card {
+            @apply ml-auto justify-center px-2 py-1.5 gap-2;
+        }
+
+        .app-user-info {
+            @apply hidden;
+        }
+
+        .app-header-right {
+            @apply items-center;
+        }
+
+        .app-header--workspace {
+            min-height: unset;
+        }
+
+        .app-header--workspace .app-header-inner,
+        .app-header-inner--workspace {
+            @apply flex-row items-center justify-between gap-2 py-2;
+        }
+
+        .app-header--workspace .app-header-left,
+        .app-header--workspace .app-header-right,
+        .app-header-right--workspace {
+            width: auto;
+        }
+
+        .app-header--workspace .app-header-left {
+            @apply flex-none;
+        }
+
+        .app-header--workspace .app-header-right,
+        .app-header-right--workspace {
+            @apply ml-auto flex-nowrap justify-end gap-2;
+        }
+
+        .app-header--workspace .app-user-card {
+            @apply px-0 py-0 bg-transparent hover:bg-transparent;
+        }
+
+        .app-header--workspace .language-selector {
+            flex-shrink: 1;
+        }
+
+        .app-header--workspace .language-button {
+            gap: var(--sym-space-2);
+            padding: 0 var(--sym-space-4);
+        }
+
+        .app-header--workspace .code {
+            font-size: var(--sym-font-size-2);
+        }
+
+        .summary-grid {
+            @apply grid-cols-1;
+        }
+    }
+}
+
+/* ============================================
+   UTILITIES - Ícones e Helpers
+   ============================================ */
+@layer components {
+    .icon-sm {
+        @apply w-4 h-4;
+    }
+
+    .icon-md {
+        @apply w-5 h-5;
+    }
+
+    .icon-lg {
+        @apply w-6 h-6;
+    }
+}

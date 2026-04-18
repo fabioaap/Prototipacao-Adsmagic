@@ -1,0 +1,18 @@
+{
+  "routeUrl": "http://localhost:5200/pt/test-contacts",
+  "frameName": "AdsMagic - Tela Exportada",
+  "target": {
+    "mode": "existingFile",
+    "figmaUrl": "https://www.figma.com/design/FILE_KEY/Projeto?node-id=123-456",
+    "fileKey": "FILE_KEY",
+    "nodeId": "123:456"
+  },
+  "options": {
+    "preferOfficialMcp": true,
+    "useGuardedCapture": false,
+    "verifyNodeId": "123:456",
+    "captureDelayMs": 1800,
+    "topBlockOffsetPx": 0,
+    "selector": "div.page-shell.section-stack-md"
+  }
+}

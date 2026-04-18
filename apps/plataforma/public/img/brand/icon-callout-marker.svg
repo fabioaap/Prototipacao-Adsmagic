@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="calloutGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f1a68"/>
+      <stop offset="100%" stop-color="#010543"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" fill="url(#calloutGrad)"/>
+  
+  <!-- Outer ring -->
+  <circle cx="60" cy="60" r="35" fill="none" stroke="#5B6BC0" stroke-width="2" stroke-opacity="0.4" stroke-dasharray="4 4"/>
+  
+  <!-- Marker point -->
+  <path d="M60 35 L75 55 L75 75 A 15 15 0 0 1 45 75 L45 55 Z" fill="#0d1340" stroke="#5B6BC0" stroke-width="3" stroke-opacity="0.8"/>
+  
+  <!-- Highlight dot -->
+  <circle cx="60" cy="65" r="5" fill="#3BB56D"/>
+  
+  <!-- Sparkle top -->
+  <polygon points="60,18 63,28 73,31 63,34 60,44 57,34 47,31 57,28" fill="#3BB56D" opacity="0.9"/>
+</svg>

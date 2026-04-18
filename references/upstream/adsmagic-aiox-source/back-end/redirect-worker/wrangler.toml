@@ -1,0 +1,18 @@
+name = "adsmagic-redirect"
+main = "src/index.ts"
+compatibility_date = "2026-02-26"
+workers_dev = true
+
+routes = [
+  { pattern = "r.adsmagic.com.br/*", zone_name = "adsmagic.com.br" }
+]
+
+[vars]
+ALLOWED_HOST = "r.adsmagic.com.br"
+
+# SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY sao secrets (wrangler secret put)
+
+[[kv_namespaces]]
+binding = "LINK_CACHE"
+id = "7baee714d0ba43848223540d25631069"
+preview_id = "a7f4e4eb4aa14f3d91f9283df0569248"

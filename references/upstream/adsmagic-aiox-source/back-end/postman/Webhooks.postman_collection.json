@@ -1,0 +1,853 @@
+{
+	"info": {
+		"_postman_id": "webhooks-messaging-001",
+		"name": "Messaging Webhooks - Test Collection",
+		"description": "Collection para testar webhooks do sistema de mensageria\n\n## Métodos de Webhook\n\n1. **Webhook Global** - Identifica conta por token no body\n   - Rota: `POST /messaging/webhook/{brokerType}`\n   - Exemplo: `/messaging/webhook/uazapi`\n\n2. **Webhook por Conta** - Identifica conta por UUID na URL\n   - Rota: `POST /messaging/webhook/{brokerType}/{accountId}`\n   - Exemplo: `/messaging/webhook/gupshup/550e8400-e29b-41d4-a716-446655440000`\n\n## Brokers Suportados\n- uazapi (Webhook Global)\n- gupshup (Webhook por Conta)\n- official_whatsapp (Webhook por Conta)\n- evolution (Webhook Global)\n\n## Variáveis de Ambiente\nConfigure as seguintes variáveis:\n- `base_url`: URL base da API (ex: https://projeto.supabase.co/functions/v1)\n- `account_id`: UUID da conta para testes de webhook por conta\n- `uazapi_token`: Token da instância UAZAPI\n- `webhook_secret`: Secret para validação de assinatura (opcional)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Webhook Global - UAZAPI",
+			"item": [
+				{
+					"name": "UAZAPI - Mensagem de Texto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is empty (webhook requirement)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"{{uazapi_token}}\",\n  \"EventType\": \"messages\",\n  \"message\": {\n    \"chatid\": \"554791662434@s.whatsapp.net\",\n    \"text\": \"Olá! Como posso ajudar?\",\n    \"fromMe\": false,\n    \"isGroup\": false,\n    \"messageType\": \"ExtendedTextMessage\",\n    \"senderName\": \"João Silva\",\n    \"messageTimestamp\": 1642684800,\n    \"content\": {\n      \"text\": \"Olá! Como posso ajudar?\",\n      \"contextInfo\": {\n        \"conversionSource\": \"FB_Ads\",\n        \"externalAdReply\": {\n          \"title\": \"Anúncio Facebook\",\n          \"body\": \"Descrição do anúncio\"\n        }\n      }\n    }\n  },\n  \"owner\": \"554796772041\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/uazapi",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"uazapi"
+							]
+						},
+						"description": "Webhook UAZAPI para mensagem de texto recebida\n\n**Características:**\n- Identifica conta pelo campo `token` no body\n- Processa mensagem e cria/atualiza contato\n- Retorna resposta vazia 2xx (requisito UAZAPI)"
+					},
+					"response": []
+				},
+				{
+					"name": "UAZAPI - Mensagem com Mídia",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is empty\", function () {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"{{uazapi_token}}\",\n  \"EventType\": \"messages\",\n  \"message\": {\n    \"chatid\": \"554791662434@s.whatsapp.net\",\n    \"text\": \"Veja esta imagem\",\n    \"fromMe\": false,\n    \"isGroup\": false,\n    \"messageType\": \"ImageMessage\",\n    \"senderName\": \"João Silva\",\n    \"messageTimestamp\": 1642684800,\n    \"content\": {\n      \"mimetype\": \"image/jpeg\",\n      \"caption\": \"Veja esta imagem\",\n      \"url\": \"https://example.com/image.jpg\"\n    }\n  },\n  \"owner\": \"554796772041\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/uazapi",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"uazapi"
+							]
+						},
+						"description": "Webhook UAZAPI para mensagem com mídia (imagem)"
+					},
+					"response": []
+				},
+				{
+					"name": "UAZAPI - Status Update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"{{uazapi_token}}\",\n  \"EventType\": \"status\",\n  \"status\": {\n    \"chatid\": \"554791662434@s.whatsapp.net\",\n    \"status\": \"delivered\",\n    \"messageId\": \"3EB0C767F26D1\"\n  },\n  \"owner\": \"554796772041\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/uazapi",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"uazapi"
+							]
+						},
+						"description": "Webhook UAZAPI para atualização de status de mensagem"
+					},
+					"response": []
+				},
+				{
+					"name": "UAZAPI - Com Assinatura (X-Signature)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 401\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-Signature",
+								"value": "sha256=abc123...",
+								"type": "text",
+								"description": "Assinatura HMAC-SHA256 do body (opcional)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"{{uazapi_token}}\",\n  \"EventType\": \"messages\",\n  \"message\": {\n    \"chatid\": \"554791662434@s.whatsapp.net\",\n    \"text\": \"Mensagem com validação de assinatura\",\n    \"fromMe\": false,\n    \"isGroup\": false,\n    \"messageType\": \"ExtendedTextMessage\"\n  },\n  \"owner\": \"554796772041\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/uazapi",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"uazapi"
+							]
+						},
+						"description": "Webhook UAZAPI com validação de assinatura (se webhook_secret configurado)"
+					},
+					"response": []
+				}
+			],
+			"description": "Webhooks globais que identificam conta por token no body"
+		},
+		{
+			"name": "Webhook por Conta - Gupshup",
+			"item": [
+				{
+					"name": "Gupshup - Mensagem de Texto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is empty\", function () {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": {\n    \"from\": \"5511999999999\",\n    \"text\": \"Olá! Preciso de ajuda.\",\n    \"timestamp\": 1642684800,\n    \"type\": \"text\"\n  },\n  \"source\": {\n    \"type\": \"user\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/gupshup/{{account_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"gupshup",
+								"{{account_id}}"
+							]
+						},
+						"description": "Webhook Gupshup para mensagem de texto\n\n**Características:**\n- Identifica conta pelo UUID na URL\n- Valida formato UUID e broker type\n- Processa mensagem e cria/atualiza contato\n- Retorna resposta vazia 2xx"
+					},
+					"response": []
+				},
+				{
+					"name": "Gupshup - Com Assinatura (X-Webhook-Signature)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 401\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-Webhook-Signature",
+								"value": "sha256=abc123...",
+								"type": "text",
+								"description": "Assinatura HMAC-SHA256 do body (opcional)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": {\n    \"from\": \"5511999999999\",\n    \"text\": \"Mensagem com validação de assinatura\",\n    \"timestamp\": 1642684800,\n    \"type\": \"text\"\n  },\n  \"source\": {\n    \"type\": \"user\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/gupshup/{{account_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"gupshup",
+								"{{account_id}}"
+							]
+						},
+						"description": "Webhook Gupshup com validação de assinatura"
+					},
+					"response": []
+				}
+			],
+			"description": "Webhooks por conta que identificam conta por UUID na URL"
+		},
+		{
+			"name": "Webhook por Conta - WhatsApp Business API",
+			"item": [
+				{
+					"name": "Official WhatsApp - Mensagem de Texto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is empty\", function () {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "sha256=abc123...",
+								"type": "text",
+								"description": "Assinatura HMAC-SHA256 do body (recomendado)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [{\n    \"id\": \"WHATSAPP_BUSINESS_ACCOUNT_ID\",\n    \"changes\": [{\n      \"value\": {\n        \"messaging_product\": \"whatsapp\",\n        \"metadata\": {\n          \"display_phone_number\": \"5511999999999\",\n          \"phone_number_id\": \"PHONE_NUMBER_ID\"\n        },\n        \"messages\": [{\n          \"from\": \"5511999999999\",\n          \"id\": \"wamid.xxx\",\n          \"timestamp\": \"1642684800\",\n          \"text\": {\n            \"body\": \"Olá! Preciso de ajuda.\"\n          },\n          \"type\": \"text\"\n        }]\n      },\n      \"field\": \"messages\"\n    }]\n  }]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/official_whatsapp/{{account_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"official_whatsapp",
+								"{{account_id}}"
+							]
+						},
+						"description": "Webhook WhatsApp Business API oficial\n\n**Características:**\n- Identifica conta pelo UUID na URL\n- Valida assinatura via X-Hub-Signature-256 (se webhook_secret configurado)\n- Processa mensagem e cria/atualiza contato\n- Retorna resposta vazia 2xx"
+					},
+					"response": []
+				},
+				{
+					"name": "Official WhatsApp - Status Update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "sha256=abc123...",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [{\n    \"id\": \"WHATSAPP_BUSINESS_ACCOUNT_ID\",\n    \"changes\": [{\n      \"value\": {\n        \"statuses\": [{\n          \"id\": \"wamid.xxx\",\n          \"status\": \"delivered\",\n          \"timestamp\": \"1642684800\",\n          \"recipient_id\": \"5511999999999\"\n        }]\n      },\n      \"field\": \"messages\"\n    }]\n  }]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/official_whatsapp/{{account_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"official_whatsapp",
+								"{{account_id}}"
+							]
+						},
+						"description": "Webhook WhatsApp Business API para atualização de status"
+					},
+					"response": []
+				}
+			],
+			"description": "Webhooks do WhatsApp Business API oficial (Meta)"
+		},
+		{
+			"name": "Webhook Global - Evolution API",
+			"item": [
+				{
+					"name": "Evolution - Mensagem de Texto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is empty\", function () {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"event\": \"messages.upsert\",\n  \"instance\": \"instance-name\",\n  \"data\": {\n    \"key\": {\n      \"remoteJid\": \"5511999999999@s.whatsapp.net\"\n    },\n    \"message\": {\n      \"conversation\": \"Olá! Como posso ajudar?\"\n    },\n    \"messageTimestamp\": 1642684800\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/evolution",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"evolution"
+							]
+						},
+						"description": "Webhook Evolution API para mensagem de texto\n\n**Características:**\n- Identifica conta pelo token no body\n- Processa mensagem e cria/atualiza contato\n- Retorna resposta vazia 2xx"
+					},
+					"response": []
+				}
+			],
+			"description": "Webhooks globais da Evolution API"
+		},
+		{
+			"name": "Cenários de Erro",
+			"item": [
+				{
+					"name": "Erro 400 - UUID Inválido",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error message about UUID format\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.include(\"UUID\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": {\n    \"from\": \"5511999999999\",\n    \"text\": \"Teste\",\n    \"timestamp\": 1642684800\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/gupshup/invalid-uuid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"gupshup",
+								"invalid-uuid"
+							]
+						},
+						"description": "Teste de validação de UUID inválido"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro 400 - Broker Type Inválido",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error message about broker\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.include(\"Broker\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/invalid_broker",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"invalid_broker"
+							]
+						},
+						"description": "Teste de validação de broker type inválido"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro 400 - Body Vazio",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/uazapi",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"uazapi"
+							]
+						},
+						"description": "Teste de validação de body vazio"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro 404 - Conta Não Encontrada (Global)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Error message about account not found\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.include(\"não encontrada\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"non-existent-token\",\n  \"EventType\": \"messages\",\n  \"message\": {\n    \"chatid\": \"554791662434@s.whatsapp.net\",\n    \"text\": \"Teste\",\n    \"fromMe\": false\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/uazapi",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"uazapi"
+							]
+						},
+						"description": "Teste de conta não encontrada (token inválido)"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro 404 - Conta Não Encontrada (Por Conta)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": {\n    \"from\": \"5511999999999\",\n    \"text\": \"Teste\",\n    \"timestamp\": 1642684800\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/gupshup/550e8400-e29b-41d4-a716-446655440000",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"gupshup",
+								"550e8400-e29b-41d4-a716-446655440000"
+							]
+						},
+						"description": "Teste de conta não encontrada (UUID não existe no banco)"
+					},
+					"response": []
+				},
+				{
+					"name": "Erro 401 - Assinatura Inválida",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Error message about signature\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.include(\"signature\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-Hub-Signature-256",
+								"value": "sha256=invalid_signature",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [{\n    \"changes\": [{\n      \"value\": {\n        \"messages\": [{\n          \"from\": \"5511999999999\",\n          \"text\": {\n            \"body\": \"Teste\"\n          }\n        }]\n      }\n    }]\n  }]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/official_whatsapp/{{account_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"official_whatsapp",
+								"{{account_id}}"
+							]
+						},
+						"description": "Teste de validação de assinatura inválida (requer webhook_secret configurado)"
+					},
+					"response": []
+				}
+			],
+			"description": "Cenários de erro para validação e troubleshooting"
+		},
+		{
+			"name": "Rate Limiting",
+			"item": [
+				{
+					"name": "Rate Limit - Verificar Headers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response has rate limit headers\", function () {",
+									"    const limit = pm.response.headers.get('X-RateLimit-Limit');",
+									"    const remaining = pm.response.headers.get('X-RateLimit-Remaining');",
+									"    const reset = pm.response.headers.get('X-RateLimit-Reset');",
+									"    ",
+									"    if (limit) pm.expect(limit).to.not.be.empty;",
+									"    if (remaining !== null) pm.expect(remaining).to.not.be.empty;",
+									"    if (reset) pm.expect(reset).to.not.be.empty;",
+									"});",
+									"",
+									"pm.test(\"Status code is 200 or 429\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 429]);",
+									"});",
+									"",
+									"if (pm.response.code === 429) {",
+									"    pm.test(\"429 response has Retry-After header\", function () {",
+									"        const retryAfter = pm.response.headers.get('Retry-After');",
+									"        pm.expect(retryAfter).to.not.be.null;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"{{uazapi_token}}\",\n  \"EventType\": \"messages\",\n  \"message\": {\n    \"chatid\": \"554791662434@s.whatsapp.net\",\n    \"text\": \"Teste de rate limit\",\n    \"fromMe\": false\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messaging/webhook/uazapi",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook",
+								"uazapi"
+							]
+						},
+						"description": "Verifica headers de rate limiting na resposta\n\n**Limites:**\n- Webhook Global: 200 req/min\n- Webhook por Conta: 100 req/min"
+					},
+					"response": []
+				}
+			],
+			"description": "Testes relacionados a rate limiting"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://projeto.supabase.co/functions/v1",
+			"type": "string",
+			"description": "URL base da API Supabase"
+		},
+		{
+			"key": "account_id",
+			"value": "550e8400-e29b-41d4-a716-446655440000",
+			"type": "string",
+			"description": "UUID da conta para testes de webhook por conta"
+		},
+		{
+			"key": "uazapi_token",
+			"value": "2bb07e81-dfe3-414b-8e43-695030cb1c44",
+			"type": "string",
+			"description": "Token da instância UAZAPI"
+		},
+		{
+			"key": "webhook_secret",
+			"value": "your-webhook-secret-here",
+			"type": "string",
+			"description": "Secret para validação de assinatura de webhook (opcional)"
+		}
+	]
+}

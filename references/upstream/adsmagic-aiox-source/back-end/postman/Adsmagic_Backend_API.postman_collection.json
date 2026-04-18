@@ -1,0 +1,1554 @@
+{
+	"info": {
+		"_postman_id": "adsmagic-backend-api-2025",
+		"name": "Adsmagic Backend API",
+		"description": "Collection completa da API REST do backend Adsmagic First AI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "adsmagic-backend"
+	},
+	"item": [
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Login (Sign In)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.access_token) {",
+									"        pm.environment.set(\"jwt_token\", response.access_token);",
+									"        pm.environment.set(\"refresh_token\", response.refresh_token);",
+									"        pm.environment.set(\"user_id\", response.user.id);",
+									"        console.log(\"✅ Token salvo com sucesso!\");",
+									"        console.log(\"User ID:\", response.user.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "apikey",
+								"value": "{{anon_key}}",
+								"type": "text",
+								"description": "Chave anônima do Supabase (obrigatória para Auth API)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"teste@example.com\",\n  \"password\": \"SenhaSegura123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/v1/token?grant_type=password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"v1",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "password"
+								}
+							]
+						},
+						"description": "Fazer login e obter JWT token\n\n⚠️ IMPORTANTE: A API de autenticação do Supabase requer o header `apikey` com a chave anônima do projeto."
+					},
+					"response": []
+				},
+				{
+					"name": "Sign Up (Criar Usuário)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.access_token) {",
+									"        pm.environment.set(\"jwt_token\", response.access_token);",
+									"        pm.environment.set(\"refresh_token\", response.refresh_token);",
+									"        pm.environment.set(\"user_id\", response.user.id);",
+									"        console.log(\"✅ Usuário criado e token salvo!\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "apikey",
+								"value": "{{anon_key}}",
+								"type": "text",
+								"description": "Chave anônima do Supabase (obrigatória para Auth API)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"teste@example.com\",\n  \"password\": \"SenhaSegura123!\",\n  \"data\": {\n    \"first_name\": \"Teste\",\n    \"last_name\": \"Usuario\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/v1/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"v1",
+								"signup"
+							]
+						},
+						"description": "Criar novo usuário e obter JWT token\n\n⚠️ IMPORTANTE: A API de autenticação do Supabase requer o header `apikey` com a chave anônima do projeto."
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.access_token) {",
+									"        pm.environment.set(\"jwt_token\", response.access_token);",
+									"        pm.environment.set(\"refresh_token\", response.refresh_token);",
+									"        console.log(\"✅ Token renovado com sucesso!\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "apikey",
+								"value": "{{anon_key}}",
+								"type": "text",
+								"description": "Chave anônima do Supabase (obrigatória para Auth API)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/v1/token?grant_type=refresh_token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"v1",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "refresh_token"
+								}
+							]
+						},
+						"description": "Renovar JWT token usando refresh token\n\n⚠️ IMPORTANTE: A API de autenticação do Supabase requer o header `apikey` com a chave anônima do projeto."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de autenticação"
+		},
+		{
+			"name": "🏢 Companies",
+			"item": [
+				{
+					"name": "Create Company",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"if (pm.response.code === 201) {",
+									"    const data = pm.response.json();",
+									"    pm.environment.set(\"company_id\", data.id);",
+									"    console.log(\"✅ Empresa criada:\", data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Empresa Teste LTDA\",\n  \"description\": \"Empresa de teste para validação\",\n  \"country\": \"BR\",\n  \"currency\": \"BRL\",\n  \"timezone\": \"America/Sao_Paulo\",\n  \"industry\": \"Tecnologia\",\n  \"size\": \"small\",\n  \"website\": \"https://empresa-teste.com.br\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/companies",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"companies"
+							]
+						},
+						"description": "Criar nova empresa"
+					},
+					"response": []
+				},
+				{
+					"name": "List Companies",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has data and meta\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData).to.have.property('meta');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/companies?limit=10&offset=0",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"companies"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Listar empresas do usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Company",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has id\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/companies/{{company_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}"
+							]
+						},
+						"description": "Obter empresa específica por ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Company",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Empresa Teste Atualizada\",\n  \"description\": \"Nova descrição\",\n  \"industry\": \"Marketing Digital\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/companies/{{company_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}"
+							]
+						},
+						"description": "Atualizar empresa existente"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Company",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/companies/{{company_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"companies",
+								"{{company_id}}"
+							]
+						},
+						"description": "Deletar empresa (apenas owner/admin)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de empresas"
+		},
+		{
+			"name": "📁 Projects",
+			"item": [
+				{
+					"name": "Create Project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"if (pm.response.code === 201) {",
+									"    const data = pm.response.json();",
+									"    pm.environment.set(\"project_id\", data.id);",
+									"    console.log(\"✅ Projeto criado:\", data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_id\": \"{{company_id}}\",\n  \"created_by\": \"{{user_id}}\",\n  \"name\": \"Projeto Teste\",\n  \"description\": \"Projeto de teste para validação\",\n  \"company_type\": \"individual\",\n  \"country\": \"BR\",\n  \"language\": \"pt\",\n  \"currency\": \"BRL\",\n  \"timezone\": \"America/Sao_Paulo\",\n  \"attribution_model\": \"first_touch\",\n  \"status\": \"draft\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/projects",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Criar novo projeto"
+					},
+					"response": []
+				},
+				{
+					"name": "List Projects",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 500ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/projects?status=draft&limit=10&offset=0",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"projects"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "draft",
+									"description": "draft, active, paused, archived"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Listar projetos com filtros opcionais"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/projects/{{project_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Obter projeto específico por ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Projeto Atualizado\",\n  \"status\": \"active\",\n  \"description\": \"Nova descrição do projeto\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/projects/{{project_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Atualizar projeto existente"
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Wizard",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"wizard_completed_at\": \"2025-01-28T10:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/projects/{{project_id}}/complete",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}",
+								"complete"
+							]
+						},
+						"description": "Completar wizard e ativar projeto"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/projects/{{project_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"projects",
+								"{{project_id}}"
+							]
+						},
+						"description": "Deletar projeto (apenas owner/admin)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de projetos"
+		},
+		{
+			"name": "👥 Contacts",
+			"item": [
+				{
+					"name": "Get Origins (Pré-requisito)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{anon_key}}",
+								"type": "text",
+								"description": "Chave anônima do Supabase (obrigatória para REST API)"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/rest/v1/origins?type=eq.system&select=id,name,type,color,icon",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"origins"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "eq.system"
+								},
+								{
+									"key": "select",
+									"value": "id,name,type,color,icon"
+								}
+							]
+						},
+						"description": "Obter origens do sistema (necessário para criar contatos)\n\n⚠️ IMPORTANTE: A REST API do Supabase (`/rest/v1/*`) também requer o header `apikey`."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Contact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"if (pm.response.code === 201) {",
+									"    const data = pm.response.json();",
+									"    pm.environment.set(\"contact_id\", data.id);",
+									"    console.log(\"✅ Contato criado:\", data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_id\": \"{{project_id}}\",\n  \"name\": \"João Silva\",\n  \"phone\": \"11987654321\",\n  \"country_code\": \"55\",\n  \"email\": \"joao.silva@example.com\",\n  \"company\": \"Empresa ABC\",\n  \"location\": \"São Paulo, SP\",\n  \"notes\": \"Cliente interessado em produto X\",\n  \"is_favorite\": false,\n  \"main_origin_id\": \"{{origin_id}}\",\n  \"current_stage_id\": \"{{stage_id}}\",\n  \"metadata\": {\n    \"source\": \"website\",\n    \"campaign\": \"summer-2025\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/contacts",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"contacts"
+							]
+						},
+						"description": "Criar novo contato"
+					},
+					"response": []
+				},
+				{
+					"name": "List Contacts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has data and meta\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData).to.have.property('meta');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/contacts?project_id={{project_id}}&limit=10&offset=0",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"contacts"
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "{{project_id}}",
+									"description": "UUID do projeto"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Listar contatos com filtros opcionais"
+					},
+					"response": []
+				},
+				{
+					"name": "List Contacts (with search)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/contacts?project_id={{project_id}}&search=joão",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"contacts"
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "{{project_id}}"
+								},
+								{
+									"key": "search",
+									"value": "joão",
+									"description": "Busca full-text (name, email, company, phone)"
+								}
+							]
+						},
+						"description": "Listar contatos com busca full-text"
+					},
+					"response": []
+				},
+				{
+					"name": "List Contacts (with filters)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/contacts?project_id={{project_id}}&origin_id={{origin_id}}&stage_id={{stage_id}}&is_favorite=true",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"contacts"
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "{{project_id}}"
+								},
+								{
+									"key": "origin_id",
+									"value": "{{origin_id}}",
+									"description": "Filtrar por origem"
+								},
+								{
+									"key": "stage_id",
+									"value": "{{stage_id}}",
+									"description": "Filtrar por estágio"
+								},
+								{
+									"key": "is_favorite",
+									"value": "true",
+									"description": "Filtrar favoritos"
+								}
+							]
+						},
+						"description": "Listar contatos com múltiplos filtros"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Contact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/contacts/{{contact_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"contacts",
+								"{{contact_id}}"
+							]
+						},
+						"description": "Obter contato específico por ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Contact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva Atualizado\",\n  \"email\": \"joao.silva.novo@example.com\",\n  \"is_favorite\": true,\n  \"notes\": \"Cliente VIP - atualizado em 2025-01-28\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/contacts/{{contact_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"contacts",
+								"{{contact_id}}"
+							]
+						},
+						"description": "Atualizar contato existente"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Contact Stage",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"current_stage_id\": \"{{stage_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/contacts/{{contact_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"contacts",
+								"{{contact_id}}"
+							]
+						},
+						"description": "Atualizar estágio do contato (histórico automático)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Contact",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/contacts/{{contact_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"contacts",
+								"{{contact_id}}"
+							]
+						},
+						"description": "Deletar contato (apenas owner/admin/manager)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de contatos"
+		},
+		{
+			"name": "🔗 Integrations",
+			"item": [
+				{
+					"name": "List Integrations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/integrations?project_id={{project_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"integrations"
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "{{project_id}}"
+								}
+							]
+						},
+						"description": "Listar integrações do projeto"
+					},
+					"response": []
+				},
+				{
+					"name": "Start OAuth (Meta)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"project_id\": \"{{project_id}}\",\n  \"redirect_uri\": \"https://seu-app.com/oauth/callback\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/integrations/oauth/meta",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"integrations",
+								"oauth",
+								"meta"
+							]
+						},
+						"description": "Iniciar fluxo OAuth do Meta Ads"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de integrações"
+		},
+		{
+			"name": "📊 Dashboard",
+			"item": [
+				{
+					"name": "Get Metrics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/dashboard/metrics?project_id={{project_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"dashboard",
+								"metrics"
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "{{project_id}}"
+								}
+							]
+						},
+						"description": "Obter métricas gerais do dashboard"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Origin Performance",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/dashboard/origin-performance?project_id={{project_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"dashboard",
+								"origin-performance"
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "{{project_id}}"
+								}
+							]
+						},
+						"description": "Obter performance por origem"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Time Series",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/dashboard/time-series?project_id={{project_id}}&start_date=2025-01-01&end_date=2025-01-28",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"dashboard",
+								"time-series"
+							],
+							"query": [
+								{
+									"key": "project_id",
+									"value": "{{project_id}}"
+								},
+								{
+									"key": "start_date",
+									"value": "2025-01-01"
+								},
+								{
+									"key": "end_date",
+									"value": "2025-01-28"
+								}
+							]
+						},
+						"description": "Obter dados de série temporal"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de analytics e dashboard"
+		},
+		{
+			"name": "🧪 Testes de Erros",
+			"item": [
+				{
+					"name": "Test 401 - Missing Auth",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/projects",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Testar erro 401 sem header Authorization"
+					},
+					"response": []
+				},
+				{
+					"name": "Test 401 - Invalid Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "token-invalido-123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/projects",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Testar erro 401 com token inválido"
+					},
+					"response": []
+				},
+				{
+					"name": "Test 400 - Validation Error",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"A\",\n  \"phone\": \"123\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/contacts",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"contacts"
+							]
+						},
+						"description": "Testar erro 400 com validação falhada"
+					},
+					"response": []
+				},
+				{
+					"name": "Test 404 - Not Found",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/projects/00000000-0000-0000-0000-000000000000",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"projects",
+								"00000000-0000-0000-0000-000000000000"
+							]
+						},
+						"description": "Testar erro 404 com UUID inválido"
+					},
+					"response": []
+				}
+			],
+			"description": "Testes de erros e validações"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Verificar se token existe",
+					"const token = pm.environment.get(\"jwt_token\");",
+					"if (!token) {",
+					"    console.log(\"⚠️ Token JWT não encontrado. Execute Login primeiro.\");",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Testes globais",
+					"pm.test(\"Response time is acceptable\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+					"});",
+					"",
+					"pm.test(\"Content-Type is application/json\", function () {",
+					"    if (pm.response.code !== 204) {",
+					"        pm.response.to.have.header(\"Content-Type\");",
+					"        pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+					"    }",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://nitefyufrzytdtxhaocf.supabase.co",
+			"type": "string"
+		},
+		{
+			"key": "functions_url",
+			"value": "https://nitefyufrzytdtxhaocf.supabase.co/functions/v1",
+			"type": "string"
+		}
+	]
+}
+

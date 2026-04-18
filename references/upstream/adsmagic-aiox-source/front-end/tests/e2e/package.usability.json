@@ -1,0 +1,14 @@
+{
+    "name": "test-usabilidade-contatos",
+    "version": "1.0.0",
+    "description": "Scripts para execução dos testes de usabilidade da página de contatos",
+    "scripts": {
+        "test:usabilidade": "playwright test --config=tests/e2e/playwright.usability.config.ts",
+        "test:usabilidade:ui": "playwright test --config=tests/e2e/playwright.usability.config.ts --ui",
+        "test:usabilidade:debug": "playwright test --config=tests/e2e/playwright.usability.config.ts --debug",
+        "test:usabilidade:headed": "playwright test --config=tests/e2e/playwright.usability.config.ts --headed",
+        "test:usabilidade:report": "playwright show-report usability-report",
+        "test:usabilidade:trace": "playwright show-trace",
+        "test:usabilidade:clean": "rimraf usability-test-results usability-report usability-results.json"
+    }
+}

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="0.8">
+      <stop offset="0%" stop-color="#010543"/>
+      <stop offset="60%" stop-color="#0f1a68"/>
+      <stop offset="100%" stop-color="#010543"/>
+    </linearGradient>
+    <radialGradient id="screenGlow" cx="0.5" cy="0.3" r="0.4">
+      <stop offset="0%" stop-color="#3BB56D" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#010543" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="overlay" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#010543" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#010543" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#010543" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#bg3)"/>
+  <rect width="600" height="400" fill="url(#screenGlow)"/>
+  <!-- Large presentation screen -->
+  <rect x="80" y="30" width="440" height="250" rx="10" fill="#0a0f3a" stroke="#1e2660" stroke-width="1.5"/>
+  <rect x="92" y="42" width="416" height="224" rx="6" fill="#0d1340"/>
+  <!-- Screen content: metrics dashboard -->
+  <text x="115" y="72" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#3BB56D" opacity="0.7" font-weight="600" letter-spacing="0.05em">CAMPAIGN PERFORMANCE</text>
+  <line x1="115" y1="82" x2="480" y2="82" stroke="#1e2660" stroke-width="0.5"/>
+  <!-- KPI row -->
+  <rect x="115" y="95" width="105" height="55" rx="6" fill="#111850" stroke="#1e2660" stroke-width="0.5"/>
+  <text x="125" y="115" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#5B6BC0" opacity="0.6">ROAS</text>
+  <text x="125" y="138" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#3BB56D" opacity="0.9" font-weight="700">4.2x</text>
+  <rect x="235" y="95" width="105" height="55" rx="6" fill="#111850" stroke="#1e2660" stroke-width="0.5"/>
+  <text x="245" y="115" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#5B6BC0" opacity="0.6">CPL</text>
+  <text x="245" y="138" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#3BB56D" opacity="0.9" font-weight="700">R$12</text>
+  <rect x="355" y="95" width="115" height="55" rx="6" fill="#111850" stroke="#1e2660" stroke-width="0.5"/>
+  <text x="365" y="115" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#5B6BC0" opacity="0.6">CONVERSIONS</text>
+  <text x="365" y="138" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#3BB56D" opacity="0.9" font-weight="700">+38%</text>
+  <!-- Chart area -->
+  <rect x="115" y="165" width="355" height="85" rx="4" fill="#0a0f3a"/>
+  <polyline points="125,235 165,225 205,218 245,210 285,195 325,200 365,185 405,178 445,170" fill="none" stroke="#3BB56D" stroke-width="2" stroke-opacity="0.6" stroke-linecap="round"/>
+  <polyline points="125,230 165,228 205,230 245,225 285,220 325,222 365,215 405,210 445,205" fill="none" stroke="#5B6BC0" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="4 2"/>
+  <!-- Screen stand -->
+  <rect x="260" y="280" width="80" height="8" rx="2" fill="#1a2158"/>
+  <rect x="280" y="288" width="40" height="15" rx="4" fill="#151c50"/>
+  <!-- Audience silhouettes (presenting context) -->
+  <circle cx="120" cy="340" r="14" fill="#0d1240" opacity="0.5"/>
+  <rect x="106" y="356" width="28" height="30" rx="6" fill="#0a0f3a" opacity="0.4"/>
+  <circle cx="200" cy="345" r="12" fill="#0d1240" opacity="0.4"/>
+  <rect x="188" y="359" width="24" height="25" rx="5" fill="#0a0f3a" opacity="0.35"/>
+  <circle cx="480" cy="340" r="14" fill="#0d1240" opacity="0.5"/>
+  <rect x="466" y="356" width="28" height="30" rx="6" fill="#0a0f3a" opacity="0.4"/>
+  <circle cx="400" cy="348" r="11" fill="#0d1240" opacity="0.4"/>
+  <rect x="389" y="361" width="22" height="22" rx="5" fill="#0a0f3a" opacity="0.3"/>
+  <!-- Presenter -->
+  <circle cx="300" cy="330" r="16" fill="#111850" opacity="0.6"/>
+  <rect x="282" y="348" width="36" height="38" rx="8" fill="#0d1240" opacity="0.5"/>
+  <!-- Bottom gradient -->
+  <rect x="0" y="350" width="600" height="50" fill="url(#overlay)"/>
+  <!-- Label -->
+  <text x="30" y="388" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#3BB56D" opacity="0.6" letter-spacing="0.08em">MOOD · CONTEXTO OPERACIONAL</text>
+</svg>

@@ -1,75 +1,91 @@
 # Workflow de Protótipos — Adsmagic
 
-## Estrutura de Branches
+## Relação entre os repositórios
 
-| Branch | Propósito | APIs reais? |
-|--------|----------|------------|
-| `main` | Ambiente base — código estável, sem protótipos | ❌ |
-| `prototypes/as-is` | Baseline AS-IS do Adsmagic — como o produto está hoje | ❌ |
-| `prototypes/feature/<nome>` | Protótipos de exploração e UX — dados mockados | ❌ |
-| `prototypes/growth/<nome>` | Experimentos de growth e testes A/B com dados reais | ✅ |
+| Repositório | Papel |
+|--------|----------|
+| `Adsmagic-First-AI` | Fonte de verdade do AS-IS, implementação real e destino dos PRs de melhoria |
+| `Prototipacao-Adsmagic` | Workspace de descoberta, documentação, prototipação mockada e preparação de propostas |
+| `references/upstream/adsmagic-aiox-source/` | Espelho local de leitura do repo upstream, usado para inspeção e comparação |
 
-> A promoção de um protótipo aprovado para canary acontece no **repo de produção**, não neste workspace. Ver seção [Pipeline Completo](#pipeline-completo-workspace--canary--produção) abaixo.
+Regras fixas:
+
+- este workspace **não deve ser usado para modificar diretamente** o repo upstream
+- toda rodada de alinhamento do AS-IS deve registrar **branch e SHA** do upstream
+- o clone em `references/upstream/adsmagic-aiox-source/` deve ser tratado como **somente leitura**
 
 ---
 
-## Como Criar um Novo Protótipo
+## Estrutura de Branches do workspace
 
-### 1. Sempre parta do AS-IS
+| Branch | Propósito |
+|--------|----------|
+| `main` | Base estável do workspace |
+| `prototypes/as-is` | Alinhamento do workspace com o baseline AS-IS adotado do upstream |
+| `prototypes/feature/<nome>` | Protótipos de melhoria e propostas de contribuição |
+
+---
+
+## Ciclo recomendado
+
+### 1. Fixe a referência upstream
+
+Escolha a branch ou o SHA que será usado como baseline da rodada. Atualize o espelho local em `references/upstream/adsmagic-aiox-source/` e registre a referência em `workspace/docs/docs/product/as-is-baseline.md`.
+
+### 2. Atualize o AS-IS do workspace
+
+Revise `workspace/docs/docs/product/as-is.md` e registre divergências em `workspace/docs/docs/product/as-is-gap-register.md`.
+
+### 3. Crie a branch do protótipo
 
 ```bash
 git checkout prototypes/as-is
 git pull origin prototypes/as-is
-```
-
-### 2. Crie a branch do protótipo
-
-```bash
 git checkout -b prototypes/feature/nome-da-feature
 ```
 
 Exemplos de nomes:
+
 - `prototypes/feature/novo-dashboard-atribuicao`
-- `prototypes/feature/kanban-melhorado`
 - `prototypes/feature/onboarding-integracoes`
+- `prototypes/feature/campanhas-unificadas`
 
-### 3. Desenvolva o protótipo
+### 4. Desenvolva com dados mockados
 
-Edite os arquivos em `Plataforma/src/`. Rode localmente com:
+Edite os arquivos em `Plataforma/src/` ou `landing-pages/` sem conectar APIs reais.
 
 ```bash
 npm run dev
 ```
 
-Acesse em: **http://localhost:3000** ou na próxima porta livre até **http://localhost:3006**
-
-Se o prototipo for uma landing page exportavel, trabalhe no app dedicado em `landing-pages/` e valide com:
+Para landing pages exportáveis:
 
 ```bash
 npm run lps:dev
 ```
 
-O preview dedicado roda em **http://localhost:4173** e o manifesto central fica em `marketing/lps.manifest.json`. Na Plataforma, os atalhos legados `/lp/home` e `/lp/agencias` devem ser tratados apenas como redirects de compatibilidade para esse app dedicado.
+### 5. Valide localmente
 
-### 4. Faça commits com a convenção correta
+Garanta que o fluxo navegável esteja claro, que a hipótese esteja documentada em `workspace/docs/docs/product/to-be.md` quando necessário e que o protótipo consiga demonstrar o ganho proposto.
 
-```bash
-git add .
-git commit -m "proto: descrição do que foi mudado"
-```
+### 6. Empacote a proposta de PR
 
-Exemplos:
-```
-proto: adiciona gráfico de funil interativo no dashboard
-proto: refatora kanban com drag and drop visual
-proto: novo layout de cards de integração
-```
+Use `templates/upstream-pr-proposal.md` para preparar o handoff. A proposta deve incluir:
 
-### 5. Publique o protótipo
+- problema observado no upstream
+- referência branch/SHA usada no AS-IS
+- hipótese validada neste workspace
+- áreas e arquivos prováveis do repo fonte
+- mapeamento entre mock e implementação real
+- critérios de aceite, riscos e testes sugeridos
 
-```bash
-git push origin prototypes/feature/nome-da-feature
-```
+### 7. Porte a melhoria no repo fonte
+
+A implementação final e o PR acontecem no `Adsmagic-First-AI`, não neste workspace.
+
+### 8. Atualize a documentação após merge
+
+Quando a melhoria for aceita no repo fonte, atualize o baseline, o `product/as-is.md` e o registro de gaps.
 
 ---
 
@@ -77,6 +93,7 @@ git push origin prototypes/feature/nome-da-feature
 
 | Prefixo | Uso |
 |---------|-----|
+| `docs:` | Atualizações de baseline, gaps, briefs e governança |
 | `proto:` | Mudanças de prototipação (UI, UX, novos fluxos) |
 | `data:` | Ajustes nos dados mockados |
 | `fix:` | Correção de bugs no ambiente |
@@ -94,77 +111,38 @@ git push origin prototypes/feature/nome-da-feature
 
 ---
 
-## Comparando Protótipos
-
-Para comparar o AS-IS com uma feature branch:
+## Comparando um protótipo com o baseline local
 
 ```bash
-# Ver diferenças entre as-is e seu protótipo
 git diff prototypes/as-is...prototypes/feature/nome-da-feature -- Plataforma/src/
-
-# Ver lista de arquivos alterados
 git diff --name-only prototypes/as-is...prototypes/feature/nome-da-feature
 ```
 
 ---
 
-## Regras Gerais
+## Artefatos obrigatórios por proposta
 
-- ❌ **Nunca faça merge** de protótipos para `main` sem discussão
-- ✅ Cada protótipo deve ser **independente** — parta sempre do `as-is`
-- ✅ Branches `feature/*` usam **dados sempre mockados** — sem conexões a APIs reais
-- ✅ Branches `growth/*` podem usar APIs reais com `.env.local` (nunca commitado)
-- ✅ Documente o objetivo do protótipo no PR/commit inicial
+- `workspace/docs/docs/product/as-is-baseline.md`
+- `workspace/docs/docs/product/as-is-gap-register.md`
+- `workspace/docs/docs/product/to-be.md` quando houver hipótese nova
+- `templates/upstream-pr-proposal.md`
 
 ---
 
-## Pipeline Completo: Workspace → Canary → Produção
+## Regras Gerais
 
-Este workspace cobre as fases 1 e 2. As fases 3-5 acontecem no repo de produção.
+- ❌ **Não conecte APIs reais** neste workspace
+- ❌ **Não use este repo para abrir PR ou modificar diretamente** o upstream
+- ❌ **Não edite `references/upstream/adsmagic-aiox-source/`** como se fosse código do workspace
+- ✅ Cada protótipo deve ser **independente** e partir de `prototypes/as-is`
+- ✅ Toda proposta deve citar a **referência do upstream** usada no alinhamento
+- ✅ Atualize o AS-IS e o registro de gaps sempre que o repo fonte incorporar uma melhoria nascida aqui
 
-```
-FASE 1 — Exploração (este workspace)
-  branch: prototypes/feature/<nome>
-  dados: mockados
-  objetivo: testar UX, fluxos e hipóteses sem dependência de infra
-        ↓ protótipo aprovado por produto
+---
 
-FASE 2 — Validação com dados reais (este workspace)
-  branch: prototypes/growth/<nome>
-  dados: APIs reais (.env.local)
-  objetivo: confirmar que o fluxo funciona com dados reais antes de portar
-        ↓ validação OK
+## Handoff específico para LPs exportáveis
 
-FASE 3 — Canary (repo de produção — @devops)
-  infra: Cloudflare Pages (preview por branch, URL automática)
-  split de tráfego: feature flag ou Cloudflare Workers routing
-  responsaveis: @devops (infra) + @architect (estratégia de rollout)
-        ↓ métricas OK no canary
-
-FASE 4 — Produção (repo de produção — @devops)
-  merge para main, deploy Cloudflare Pages
-  atualizar product/as-is.md neste workspace
-        ↓
-
-FASE 5 — Growth Analysis
-  ferramentas: Meta Ads API, Google Analytics, Supabase
-  responsavel: squad de GTM + produto
-  resultado: alimenta nova rodada de hipóteses → Fase 1
-```
-
-### Handoff: como o código sai do workspace e entra em produção
-
-Por serem a mesma stack (Vue 3 + Vite + Tailwind), o código de um protótipo aprovado pode ser portado diretamente — não reescrito. O processo recomendado:
-
-1. Abrir PR no repo de produção referenciando a branch `prototypes/feature/<nome>` deste workspace
-2. O @architect revisa a aderência à arquitetura de produção (APIs reais, auth, RLS)
-3. O @devops configura o deploy de canary via Cloudflare Pages
-4. Testes A/B com tráfego real na URL de preview
-5. Merge para `main` após validação das métricas
-
-### Handoff especifico para LPs exportaveis
-
-Quando a entrega for uma landing page publicada fora do workspace principal, gere um pacote estatico por superficie antes do handoff:
+Quando a entrega for uma landing page publicada fora do workspace principal, gere um pacote estático por superfície antes do handoff:
 
 ```bash
 npm run lps:build
@@ -172,18 +150,7 @@ npm run lps:package
 ```
 
 Resultado esperado:
-- manifesto central atualizado em `marketing/lps.manifest.json`
+
+- manifesto central atualizado em `workspace/marketing/lps.manifest.json`
 - preview validado no app `landing-pages/`
-- pacote final em `deliverables/lps/<slug>/` com `index.html`, `assets/`, `img/`, `manifest.json` e `README-handoff.md`
-
-### O que @devops e @architect precisam decidir
-
-| Decisão | Responsável | Status |
-|---|---|---|
-| Ferramenta de feature flags | @architect | ✅ PostHog (já instalado) |
-| Split de tráfego por segmento / % | @architect | ✅ PostHog cohorts + user properties |
-| Growth analysis pós-canary | GTM + Produto | ✅ PostHog funnels + session replay |
-| Secrets de produção para branches de canary no Cloudflare | @devops | ⬜ Em aberto |
-| Naming convention para branches de canary no repo de produção | @devops | ⬜ Em aberto |
-
-> **PostHog já resolve 3 das 5 decisões.** O split A/B é feito com `useFeatureEnabled('nome-do-experimento')` no componente Vue — controle de rollout pelo painel, sem redeployar.
+- pacote final em `outputs/deliverables/lps/<slug>/` com `index.html`, `assets/`, `img/`, `manifest.json` e `README-handoff.md`

@@ -6,6 +6,15 @@ Leia a 📋 **[Constituição do repositório](./CONSTITUTION.md)** para entende
 
 ---
 
+## Fonte de verdade do AS-IS
+
+- **Repo upstream:** `https://github.com/kennedyselect/Adsmagic-First-AI`
+- **Papel deste workspace:** documentar o AS-IS, explorar o TO-BE com dados mockados e preparar contribuições que depois viram PRs no repo original
+- **Regra operacional:** este repositório não substitui o produto real e não deve ser usado para modificar diretamente o repo upstream
+- **Rastreabilidade:** toda rodada de alinhamento do AS-IS deve apontar para uma referência explícita em `workspace/docs/docs/product/as-is-baseline.md`
+
+---
+
 ## Para qual time você é?
 
 ### 🎯 Time de Produto
@@ -71,7 +80,7 @@ Leia a 📋 **[Constituição do repositório](./CONSTITUTION.md)** para entende
 npm install
 
 # No Plataforma
-npm install --prefix Plataforma
+npm install --prefix apps/plataforma
 
 # No app dedicado de LPs
 npm run lps:install
@@ -115,17 +124,17 @@ npm run lps:build
 npm run lps:package
 ```
 
-Os pacotes ficam em `deliverables/lps/<slug>/`.
+Os pacotes ficam em `outputs/deliverables/lps/<slug>/`.
 
 ### Documentação das Landing Pages
 
 | Doc | Descrição |
 |-----|-----------|
-| [Assets e Campanhas](./docs/docs/marketing/assets-e-campanhas.md) | Índice de LPs, status de SEO, canônicos, copies vinculadas |
-| [Handoff Cloudflare Pages](./docs/docs/workflow/cloudflare-pages-lps.md) | Deploy, domínios, checklist pós-deploy com verificação SEO |
-| [Copies Google Ads](./docs/docs/marketing/copies-google-ads.md) | Copies de anúncios Google vinculadas às LPs |
-| [Copies Meta Ads](./docs/docs/marketing/copies-meta-ads.md) | Copies de anúncios Meta vinculadas às LPs |
-| [Oferta para Agências](./docs/docs/marketing/oferta-para-agencias.md) | Proposta de valor e oferta da LP para agências |
+| [Assets e Campanhas](./workspace/docs/docs/marketing/assets-e-campanhas.md) | Índice de LPs, status de SEO, canônicos, copies vinculadas |
+| [Handoff Cloudflare Pages](./workspace/docs/docs/workflow/cloudflare-pages-lps.md) | Deploy, domínios, checklist pós-deploy com verificação SEO |
+| [Copies Google Ads](./workspace/docs/docs/marketing/copies-google-ads.md) | Copies de anúncios Google vinculadas às LPs |
+| [Copies Meta Ads](./workspace/docs/docs/marketing/copies-meta-ads.md) | Copies de anúncios Meta vinculadas às LPs |
+| [Oferta para Agências](./workspace/docs/docs/marketing/oferta-para-agencias.md) | Proposta de valor e oferta da LP para agências |
 
 ---
 
@@ -133,20 +142,30 @@ Os pacotes ficam em `deliverables/lps/<slug>/`.
 
 ```
 Prototipacao-Adsmagic/
-├── docs/                   # Wiki de produto
-├── Plataforma/             # App Vue 3
-├── landing-pages/          # App dedicado para LPs exportaveis
-├── marketing/              # Manifestos e insumos editoriais das LPs
-│   ├── src/
-│   │   ├── components/
-│   │   │   └── layout/      # AppLayout, AppHeader, SidebarNav
-│   │   ├── views/           # Uma pasta por módulo
-│   │   ├── stores/          # Pinia stores (dados mockados)
-│   │   ├── data/            # Mock data (contacts, sales, etc.)
-│   │   └── router/          # Vue Router
-│   ├── tailwind.config.js
-│   └── package.json
-├── vite.config.js           # Config raiz (root: ./Plataforma)
+├── workspace/              # Materiais editoriais, squads, templates, wiki
+│   ├── docs/               # Wiki de produto (Docusaurus)
+│   ├── marketing/          # Assets e campanhas de marketing
+│   ├── squads/             # Squads de trabalho
+│   ├── templates/          # Templates reutilizáveis
+│   └── wiki/               # Wiki técnica
+├── design-system/          # Tokens, brand assets e componentes compartilhados
+│   ├── brand/              # Logos, ícones e ilustrações canônicas
+│   ├── tokens/             # Paleta de cores e tokens (source of truth)
+│   ├── components/         # Componentes Vue compartilhados (pós-Fase 4)
+│   └── docs/               # Documentação do design system
+├── apps/                   # Aplicações
+│   ├── plataforma/         # App Vue 3
+│   │   ├── src/
+│   │   │   ├── components/
+│   │   │   │   └── layout/      # AppLayout, AppHeader, SidebarNav
+│   │   │   ├── views/           # Uma pasta por módulo
+│   │   │   ├── stores/          # Pinia stores (dados mockados)
+│   │   │   ├── data/            # Mock data (contacts, sales, etc.)
+│   │   │   └── router/          # Vue Router
+│   │   ├── tailwind.config.js
+│   │   └── package.json
+│   └── landing-pages/      # App dedicado para LPs exportaveis
+├── vite.config.js           # Config raiz (root: ./apps/plataforma)
 ├── package.json             # Scripts raiz
 ├── PROTOTYPES-WORKFLOW.md   # Guia de branches e commits
 └── README.md
@@ -156,7 +175,7 @@ Prototipacao-Adsmagic/
 
 ## Documentacao
 
-O projeto agora possui uma wiki de produto isolada em `docs/` para organizar setup, arquitetura, jornadas e fluxo de prototipacao.
+O projeto agora possui uma wiki de produto isolada em `workspace/docs/` para organizar setup, arquitetura, jornadas e fluxo de prototipacao.
 
 ```bash
 # build do portal
@@ -166,7 +185,7 @@ npm run docs:build
 npm run docs:serve
 ```
 
-Use a wiki de produto para registrar mudancas estruturais do Adsmagic. Em desenvolvimento, `Plataforma/.env.development` fixa `VITE_DOCS_PORTAL_URL` em `http://localhost:3001` e `VITE_LANDING_PAGES_PREVIEW_URL` em `http://localhost:4173`. Se o portal nao responder, a rota `/wiki` mostra um estado local estavel em vez de recarregar infinitamente; o catalogo de LPs usa a URL de preview para abrir as superficies standalone. Os atalhos legados `/lp/home` e `/lp/agencias` agora funcionam como redirects de compatibilidade para essas superficies, preservando query string e hash.
+Use a wiki de produto para registrar mudancas estruturais do Adsmagic. Em desenvolvimento, `apps/plataforma/.env.development` fixa `VITE_DOCS_PORTAL_URL` em `http://localhost:3001` e `VITE_LANDING_PAGES_PREVIEW_URL` em `http://localhost:4173`. Se o portal nao responder, a rota `/wiki` mostra um estado local estavel em vez de recarregar infinitamente; o catalogo de LPs usa a URL de preview para abrir as superficies standalone. Os atalhos legados `/lp/home` e `/lp/agencias` agora funcionam como redirects de compatibilidade para essas superficies, preservando query string e hash.
 
 ---
 
@@ -187,9 +206,9 @@ Ver **[PROTOTYPES-WORKFLOW.md](./PROTOTYPES-WORKFLOW.md)** para o guia completo.
 
 ### Branches principais
 
-- `main` — base estável
-- `prototypes/as-is` — baseline AS-IS (como está hoje)
-- `prototypes/feature/<nome>` — protótipos de melhorias
+- `main` — base estável do workspace
+- `prototypes/as-is` — branch de alinhamento do workspace com o baseline AS-IS adotado do repo upstream
+- `prototypes/feature/<nome>` — protótipos de melhoria e propostas de contribuição
 
 ### Criar um novo protótipo
 
@@ -200,6 +219,15 @@ git checkout -b prototypes/feature/minha-feature
 git commit -m "proto: descrição da mudança"
 git push origin prototypes/feature/minha-feature
 ```
+
+Fluxo recomendado:
+
+1. atualizar a referência do AS-IS no clone local do upstream
+2. registrar branch/SHA em `docs/docs/product/as-is-baseline.md`
+3. atualizar `docs/docs/product/as-is.md` e `docs/docs/product/as-is-gap-register.md` se houver divergências novas
+4. prototipar a melhoria com mocks neste workspace
+5. empacotar a proposta em `workspace/templates/upstream-pr-proposal.md`
+6. portar a melhoria para o repo original em um PR aberto lá
 
 ---
 

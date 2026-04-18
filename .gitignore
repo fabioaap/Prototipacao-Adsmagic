@@ -21,7 +21,7 @@ node_modules/
 # Build & Logs (AIOX)
 dist/
 build/
-deliverables/
+outputs/deliverables/
 *.log
 logs/
 
@@ -38,3 +38,6 @@ Thumbs.db
 
 # Playwright MCP auto-generated logs
 .playwright-mcp/
+
+# Residual empty dir locked by VS Code file watcher
+_reference/
