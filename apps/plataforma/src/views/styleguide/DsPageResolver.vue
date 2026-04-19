@@ -64,6 +64,8 @@ const customPageComponents: Record<string, ReturnType<typeof defineAsyncComponen
   'brand-cover': defineAsyncComponent(() => import('./pages/BrandCoverPage.vue')),
   'brand-instagram-carousels': defineAsyncComponent(() => import('./pages/BrandInstagramCarouselsPage.vue')),
   'brand-carousel-post1': defineAsyncComponent(() => import('./pages/BrandCarouselPost1Page.vue')),
+  'brand-ads-top5': defineAsyncComponent(() => import('./pages/BrandAdsTop5Page.vue')),
+  'brand-ads-top5-svg': defineAsyncComponent(() => import('./pages/BrandAdsTop5SvgPage.vue')),
 }
 
 const customPage = computed(() => {

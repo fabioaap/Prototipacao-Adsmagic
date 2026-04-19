@@ -23,7 +23,8 @@
     "build:workspace": "vite build",
     "build:pages": "node ./build-pages.mjs",
     "build": "npm run build:pages",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:ads": "node scripts/generate-ads-top5.mjs"
   },
   "dependencies": {
     "vue": "^3.5.22",

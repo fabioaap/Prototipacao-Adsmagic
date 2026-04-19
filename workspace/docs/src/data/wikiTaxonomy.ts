@@ -121,6 +121,7 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
       {label: 'Canvas de conteúdo', docId: 'marketing/canvas-de-conteudo-instagram', to: marketingDoc('canvas-de-conteudo-instagram')},
       {label: 'Arquitetura editorial StoryBrand', docId: 'marketing/arquitetura-editorial-instagram-storybrand', to: marketingDoc('arquitetura-editorial-instagram-storybrand')},
       {label: 'Copies dos 9 carrosséis StoryBrand', docId: 'marketing/copies-carrosseis-instagram-storybrand', to: marketingDoc('copies-carrosseis-instagram-storybrand')},
+      {label: 'Anúncios — Top 5 modelados do Tintim', docId: 'marketing/anuncios-meta-top5-tintim', to: marketingDoc('anuncios-meta-top5-tintim')},
       {label: 'Roteiros para reels e carrosséis', docId: 'marketing/roteiros-reels-carrosseis', to: marketingDoc('roteiros-reels-carrosseis')},
       {label: 'Sequência de email outbound', docId: 'marketing/sequencia-email-outbound', to: marketingDoc('sequencia-email-outbound')},
     ],

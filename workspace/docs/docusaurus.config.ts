@@ -39,6 +39,19 @@ const config: Config = {
     },
   },
   themes: ['@docusaurus/theme-mermaid'],
+  plugins: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        docsRouteBasePath: '/',
+        indexDocs: true,
+        indexBlog: false,
+        indexPages: false,
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
   i18n: {
     defaultLocale: 'pt-BR',
     locales: ['pt-BR'],
@@ -81,6 +94,10 @@ const config: Config = {
           sidebarId: 'docsSidebar',
           position: 'left',
           label: 'Documentacao',
+        },
+        {
+          type: 'search',
+          position: 'right',
         },
         {
           href: workspaceUrl,
