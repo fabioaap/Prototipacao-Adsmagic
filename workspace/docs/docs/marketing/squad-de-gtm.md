@@ -1,6 +1,6 @@
 ---
 title: Squad de GTM
-slug: /wiki/marketing/squad-de-gtm
+slug: /marketing/squad-de-gtm
 ---
 
 # Squad de GTM
@@ -137,7 +137,7 @@ Se o squad nao tiver definicao comum de estagio, origem, dono e SLA, ele nao est
 
 ## Gaps abertos
 
-As duvidas, lacunas e decisoes que ainda impedem um GTM totalmente consistente foram consolidadas em [Gaps e Decisoes Abertas do GTM](/wiki/marketing/gaps-e-decisoes-abertas-do-gtm).
+As duvidas, lacunas e decisoes que ainda impedem um GTM totalmente consistente foram consolidadas em [Gaps e Decisoes Abertas do GTM](/marketing/gaps-e-decisoes-abertas-do-gtm).
 
 ## Invocacao operacional
 

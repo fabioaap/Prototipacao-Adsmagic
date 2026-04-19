@@ -1,6 +1,6 @@
 ---
 title: "Kit de Copies — Meta Ads"
-slug: /wiki/marketing/copies-meta-ads
+slug: /marketing/copies-meta-ads
 ---
 
 # Kit de Copies — Meta Ads
@@ -11,7 +11,7 @@ Kit operacional de copies para campanhas de criacao de demanda no Meta Ads (Face
 
 ## Proposito e regras de uso
 
-Este kit fornece variacoes prontas para teste em campanhas de Meta Ads. Cada variacao segue um angulo de midia paga documentado em [Mensagens-Chave](/wiki/marketing/mensagens-chave) e respeita os claims aprovados em [Provas e Objecoes](/wiki/marketing/provas-e-objecoes).
+Este kit fornece variacoes prontas para teste em campanhas de Meta Ads. Cada variacao segue um angulo de midia paga documentado em [Mensagens-Chave](/marketing/mensagens-chave) e respeita os claims aprovados em [Provas e Objecoes](/marketing/provas-e-objecoes).
 
 **Publico-alvo dos anuncios:** donos de agencia e gestores de trafego que ja investem em midia paga e vendem via WhatsApp.
 
@@ -342,17 +342,18 @@ Direcoes de formato para acompanhar cada angulo. Nao sao pecas finais — sao or
 
 ## Referencias cruzadas
 
-- [Mensagens-Chave](/wiki/marketing/mensagens-chave) — mensagem-mae, copies por publico e canal, CTAs recomendados
-- [Oferta para Agencias](/wiki/marketing/oferta-para-agencias) — blueprint de LP, hero, blocos de valor, diferenciacao
-- [Provas e Objecoes](/wiki/marketing/provas-e-objecoes) — claims aprovados, niveis de confianca e tratamento de objecoes
-- [Posicionamento](/wiki/marketing/posicionamento) — categoria, problema central, proposta de valor, diferenciais
-- [Base de Inteligencia de Conteudo](/wiki/marketing/base-de-inteligencia-de-conteudo) — tese central, Golden Core, 5 problemas, transformacao prometida
-- [Canvas de Conteudo Instagram](/wiki/marketing/canvas-de-conteudo-instagram) — pilares editoriais para conteudo organico (complementar a midia paga)
-- [Assets e Campanhas](/wiki/marketing/assets-e-campanhas) — catalogo de assets e status de producao
-- [ICP e Segmentos](/wiki/marketing/icp-e-segmentos) — perfis detalhados de ICP para refinar segmentacao
+- [Mensagens-Chave](/marketing/mensagens-chave) — mensagem-mae, copies por publico e canal, CTAs recomendados
+- [Oferta para Agencias](/marketing/oferta-para-agencias) — blueprint de LP, hero, blocos de valor, diferenciacao
+- [Provas e Objecoes](/marketing/provas-e-objecoes) — claims aprovados, niveis de confianca e tratamento de objecoes
+- [Posicionamento](/marketing/posicionamento) — categoria, problema central, proposta de valor, diferenciais
+- [Base de Inteligencia de Conteudo](/marketing/base-de-inteligencia-de-conteudo) — tese central, Golden Core, 5 problemas, transformacao prometida
+- [Canvas de Conteudo Instagram](/marketing/canvas-de-conteudo-instagram) — pilares editoriais para conteudo organico (complementar a midia paga)
+- [Assets e Campanhas](/marketing/assets-e-campanhas) — catalogo de assets e status de producao
+- [ICP e Segmentos](/marketing/icp-e-segmentos) — perfis detalhados de ICP para refinar segmentacao
 
 ---
 
 ## Criterio editorial
 
-Toda copy deste kit deve ser coerente com os claims aprovados em [Provas e Objecoes](/wiki/marketing/provas-e-objecoes). Variacoes experimentais que ainda nao passaram por validacao devem ser marcadas como rascunho. Nenhuma variacao deve prometer resultado numerico (ROI, CAC, percentual de melhoria) sem dado de suporte verificavel.
+Toda copy deste kit deve ser coerente com os claims aprovados em [Provas e Objecoes](/marketing/provas-e-objecoes). Variacoes experimentais que ainda nao passaram por validacao devem ser marcadas como rascunho. Nenhuma variacao deve prometer resultado numerico (ROI, CAC, percentual de melhoria) sem dado de suporte verificavel.
+

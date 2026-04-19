@@ -1,6 +1,6 @@
 ---
 title: Benchmark Competitivo - Tintim
-slug: /wiki/marketing/benchmark-competitivo-tintim
+slug: /marketing/benchmark-competitivo-tintim
 ---
 
 # Benchmark Competitivo - Tintim

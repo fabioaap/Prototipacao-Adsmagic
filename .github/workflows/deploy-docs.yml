@@ -31,39 +31,30 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            docs/package-lock.json
+            apps/plataforma/package-lock.json
+            workspace/docs/package-lock.json
 
       - name: Install root dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install Plataforma dependencies
-        run: npm install --prefix Plataforma
-
-      - name: Build Vue app (workspace)
-        run: npm run build
-        env:
-          CI: true
-
-      - name: Create 404 fallback for SPA routing
-        run: cp Plataforma/dist/index.html Plataforma/dist/404.html
+        run: npm ci --prefix apps/plataforma
 
       - name: Install docs dependencies
-        run: npm ci
-        working-directory: docs
+        run: npm ci --prefix workspace/docs
 
-      - name: Build Docusaurus wiki
+      - name: Build workspace artifact
         run: npm run build
-        working-directory: docs
         env:
-          CI: true
-
-      - name: Merge wiki into app dist
-        run: cp -r docs/build Plataforma/dist/wiki
+          WORKSPACE_BASE_PATH: /Prototipacao-Adsmagic/
+          DOCS_BASE_PATH: /Prototipacao-Adsmagic/wiki/
+          SITE_URL: https://fabioaap.github.io
+          WORKSPACE_URL: https://fabioaap.github.io/Prototipacao-Adsmagic/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: Plataforma/dist
+          path: dist
 
   deploy:
     environment:

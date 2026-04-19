@@ -1,6 +1,6 @@
 ---
 title: Posicionamento
-slug: /wiki/marketing/posicionamento
+slug: /marketing/posicionamento
 ---
 
 # Posicionamento
@@ -15,7 +15,7 @@ Use esta página para alinhar:
 - os diferenciais prioritários
 - as razões para acreditar na promessa
 
-> **Critério editorial:** este documento deve ser curto, estável e decisório. Não liste aqui campanhas, assets, módulos ou detalhes operacionais. Para narrativa expandida, consulte a [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo). Para mensagens prontas para uso, consulte [Mensagens-Chave](/wiki/marketing/mensagens-chave).
+> **Critério editorial:** este documento deve ser curto, estável e decisório. Não liste aqui campanhas, assets, módulos ou detalhes operacionais. Para narrativa expandida, consulte a [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo). Para mensagens prontas para uso, consulte [Mensagens-Chave](/marketing/mensagens-chave).
 
 ---
 
@@ -45,7 +45,7 @@ Essa quebra gera cinco problemas concretos:
 
 Para agências — o ICP inicial do Adsmagic — o problema é ainda mais agudo. Elas precisam defender verba, justificar fee e reter contas. Se o único argumento disponível é lead e CPL, a agência fica vulnerável toda vez que o cliente questiona resultado. Falta visibilidade entre campanha, conversa e fechamento.
 
-> Para mais detalhes sobre o ICP de agências, consulte [Oferta para Agências](/wiki/marketing/oferta-para-agencias).
+> Para mais detalhes sobre o ICP de agências, consulte [Oferta para Agências](/marketing/oferta-para-agencias).
 
 ---
 
@@ -75,7 +75,7 @@ A transformação prometida é direta:
 
 **Versão curta:** sua agência não precisa mais reportar só lead. Com o Adsmagic, ela passa a provar o que gerou proposta, aprovação e venda.
 
-> Para a mensagem-mãe completa e variações por público, consulte [Mensagens-Chave](/wiki/marketing/mensagens-chave).
+> Para a mensagem-mãe completa e variações por público, consulte [Mensagens-Chave](/marketing/mensagens-chave).
 
 ---
 
@@ -103,7 +103,7 @@ Quando o cliente da agência não converte, a agência deixa de operar no escuro
 
 Enquanto outras agências reportam CPL, a agência que usa Adsmagic passa a conversar sobre venda, qualidade de conversão e receita. Isso eleva o nível da conversa com o cliente e fortalece a defesa de verba e fee.
 
-> Para entender como esses diferenciais se posicionam frente ao concorrente direto, consulte o [Benchmark Competitivo — Tintim](/wiki/marketing/benchmark-competitivo-tintim).
+> Para entender como esses diferenciais se posicionam frente ao concorrente direto, consulte o [Benchmark Competitivo — Tintim](/marketing/benchmark-competitivo-tintim).
 
 ---
 
@@ -136,7 +136,7 @@ O produto trabalha com cinco eventos-base que cobrem a jornada comercial complet
 
 O Adsmagic delimita com clareza o que **não** é: não é CRM completo, não é chatbot, não é automação ampla, não é apenas tracker. Essa fronteira reduz leitura errada de categoria e protege o posicionamento contra comparações inadequadas.
 
-> Para detalhes sobre a oferta vigente, consulte [Oferta para Agências](/wiki/marketing/oferta-para-agencias). Para a tese editorial completa, consulte a [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo).
+> Para detalhes sobre a oferta vigente, consulte [Oferta para Agências](/marketing/oferta-para-agencias). Para a tese editorial completa, consulte a [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo).
 
 ### Provas a incorporar quando disponíveis
 

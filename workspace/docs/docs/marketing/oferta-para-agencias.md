@@ -1,6 +1,6 @@
 ---
 title: Oferta para Agencias
-slug: /wiki/marketing/oferta-para-agencias
+slug: /marketing/oferta-para-agencias
 ---
 
 # Oferta para Agencias

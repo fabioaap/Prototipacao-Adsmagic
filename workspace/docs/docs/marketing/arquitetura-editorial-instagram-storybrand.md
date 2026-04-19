@@ -1,6 +1,6 @@
 ---
 title: Arquitetura Editorial — Série Instagram StoryBrand
-slug: /wiki/marketing/arquitetura-editorial-instagram-storybrand
+slug: /marketing/arquitetura-editorial-instagram-storybrand
 ---
 
 # Arquitetura Editorial — Série Instagram StoryBrand
@@ -13,11 +13,11 @@ Ela foi pensada para revisão editorial na wiki antes da etapa de design.
 
 Use esta página como ponte entre:
 
-- a tese do Adsmagic documentada em [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo)
-- o posicionamento oficial em [Posicionamento](/wiki/marketing/posicionamento)
-- o ICP vigente em [ICP e Segmentos](/wiki/marketing/icp-e-segmentos)
-- a camada de linguagem em [Mensagens-Chave](/wiki/marketing/mensagens-chave)
-- o sistema editorial em [Canvas de Conteúdo para Instagram](/wiki/marketing/canvas-de-conteudo-instagram)
+- a tese do Adsmagic documentada em [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo)
+- o posicionamento oficial em [Posicionamento](/marketing/posicionamento)
+- o ICP vigente em [ICP e Segmentos](/marketing/icp-e-segmentos)
+- a camada de linguagem em [Mensagens-Chave](/marketing/mensagens-chave)
+- o sistema editorial em [Canvas de Conteúdo para Instagram](/marketing/canvas-de-conteudo-instagram)
 
 ## Decisão estrutural
 

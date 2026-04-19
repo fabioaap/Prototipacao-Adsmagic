@@ -1,6 +1,6 @@
 ---
 title: Gaps e Decisões Abertas do GTM
-slug: /wiki/marketing/gaps-e-decisoes-abertas-do-gtm
+slug: /marketing/gaps-e-decisoes-abertas-do-gtm
 ---
 
 # Gaps e Decisões Abertas do GTM
@@ -9,7 +9,7 @@ Esta pagina consolida as duvidas, lacunas e riscos que a squad de GTM ainda enxe
 
 Ela nao substitui o operating model do squad nem o plano de 90 dias. O papel aqui e explicitar o que ainda precisa ser resolvido para que a operacao deixe de depender de interpretacao local e passe a operar com uma unica leitura de oferta, mensagem e pipeline.
 
-O benchmark competitivo que embasa parte dessas lacunas foi consolidado em [Benchmark Competitivo: Tintim](/wiki/marketing/benchmark-competitivo-tintim).
+O benchmark competitivo que embasa parte dessas lacunas foi consolidado em [Benchmark Competitivo: Tintim](/marketing/benchmark-competitivo-tintim).
 
 ## Como usar
 

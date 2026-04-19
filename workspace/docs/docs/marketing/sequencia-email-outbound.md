@@ -1,6 +1,6 @@
 ---
 title: Sequência de E-mail Outbound
-slug: /wiki/marketing/sequencia-email-outbound
+slug: /marketing/sequencia-email-outbound
 ---
 
 # Sequência de E-mail Outbound
@@ -11,7 +11,7 @@ Sequência operacional de 5 e-mails para reengajar leads frios, nutrir contatos 
 
 ### Objetivo
 
-Ativar a motion de recuperação de demanda do [Plano de 90 dias](/wiki/marketing/plano-90-dias) (fase 31-60), convertendo contatos existentes em demos diagnósticas.
+Ativar a motion de recuperação de demanda do [Plano de 90 dias](/marketing/plano-90-dias) (fase 31-60), convertendo contatos existentes em demos diagnósticas.
 
 ### Quando usar
 
@@ -30,7 +30,7 @@ Remetente deve ser pessoa real do time comercial ou de parcerias — nunca um en
 ### Tom e linguagem
 
 - **Tom:** direto, par-a-par, consultivo. Pense em um colega de mercado compartilhando uma leitura, não em cold spam.
-- **Linguagem:** português conversacional, sem jargão excessivo. Evitar superlativo e promessa grandiosa sem dado de suporte — conforme [Provas e Objeções](/wiki/marketing/provas-e-objecoes).
+- **Linguagem:** português conversacional, sem jargão excessivo. Evitar superlativo e promessa grandiosa sem dado de suporte — conforme [Provas e Objeções](/marketing/provas-e-objecoes).
 
 ### Frequência
 
@@ -39,8 +39,8 @@ Espaçamento progressivo: Dia 0 → Dia 3 → Dia 7 → Dia 12 → Dia 18. Respe
 ### O que evitar
 
 - Guerra de preço como eixo principal
-- Promessa de CRM completo, chatbot ou automação genérica — o Adsmagic [não é nenhum desses](/wiki/marketing/posicionamento)
-- Promessa de ROI ou CAC como fato — usar linguagem "projetado para", "desenhado para" ([Provas e Objeções](/wiki/marketing/provas-e-objecoes))
+- Promessa de CRM completo, chatbot ou automação genérica — o Adsmagic [não é nenhum desses](/marketing/posicionamento)
+- Promessa de ROI ou CAC como fato — usar linguagem "projetado para", "desenhado para" ([Provas e Objeções](/marketing/provas-e-objecoes))
 - Apresentação genérica como CTA — preferir conversa diagnóstica
 
 ### Personalização
@@ -87,7 +87,7 @@ Tokens opcionais (quando disponíveis):
 > Abraço,
 > `{{assinatura}}`
 
-**Fonte:** [5 problemas — Falta de atribuição e Funil opaco](/wiki/marketing/base-de-inteligencia-de-conteudo) · [Mensagens-Chave — E-mail e outbound](/wiki/marketing/mensagens-chave)
+**Fonte:** [5 problemas — Falta de atribuição e Funil opaco](/marketing/base-de-inteligencia-de-conteudo) · [Mensagens-Chave — E-mail e outbound](/marketing/mensagens-chave)
 
 ---
 
@@ -114,7 +114,7 @@ Tokens opcionais (quando disponíveis):
 >
 > `{{assinatura}}`
 
-**Fonte:** [Problemas 1, 2 e 3 — Otimização cega, CPL enganoso, Escala travada](/wiki/marketing/base-de-inteligencia-de-conteudo) · [Objeção 2 — "Já acompanhamos CPL"](/wiki/marketing/provas-e-objecoes)
+**Fonte:** [Problemas 1, 2 e 3 — Otimização cega, CPL enganoso, Escala travada](/marketing/base-de-inteligencia-de-conteudo) · [Objeção 2 — "Já acompanhamos CPL"](/marketing/provas-e-objecoes)
 
 ---
 
@@ -146,7 +146,7 @@ Tokens opcionais (quando disponíveis):
 >
 > `{{assinatura}}`
 
-**Fonte:** [Golden Core e Como o Adsmagic funciona](/wiki/marketing/base-de-inteligencia-de-conteudo) · [Mensagem-mãe](/wiki/marketing/mensagens-chave)
+**Fonte:** [Golden Core e Como o Adsmagic funciona](/marketing/base-de-inteligencia-de-conteudo) · [Mensagem-mãe](/marketing/mensagens-chave)
 
 ---
 
@@ -173,7 +173,7 @@ Tokens opcionais (quando disponíveis):
 >
 > `{{assinatura}}`
 
-**Fonte:** [Objeções 1, 2 e 3](/wiki/marketing/provas-e-objecoes) · [Anti-categoria](/wiki/marketing/posicionamento)
+**Fonte:** [Objeções 1, 2 e 3](/marketing/provas-e-objecoes) · [Anti-categoria](/marketing/posicionamento)
 
 ---
 
@@ -202,7 +202,7 @@ Tokens opcionais (quando disponíveis):
 >
 > `{{assinatura}}`
 
-**Fonte:** [Claim 5 — Diferenciação comercial](/wiki/marketing/provas-e-objecoes) · [Claim 6 — Pricing com linguagem "projetado"](/wiki/marketing/provas-e-objecoes) · [CTAs recomendados](/wiki/marketing/mensagens-chave)
+**Fonte:** [Claim 5 — Diferenciação comercial](/marketing/provas-e-objecoes) · [Claim 6 — Pricing com linguagem "projetado"](/marketing/provas-e-objecoes) · [CTAs recomendados](/marketing/mensagens-chave)
 
 ---
 
@@ -260,7 +260,7 @@ A sequência é a mesma para ambos os perfis, mas o ângulo de abertura e o tom 
 
 - **Ângulo principal:** retenção de conta, defesa de verba, diferenciação comercial
 - **Dor central:** perder cliente por não provar resultado além de lead
-- **Linguagem:** "pare de defender sua agência com lead barato; comece a defender com prova de receita" ([Mensagens-Chave](/wiki/marketing/mensagens-chave))
+- **Linguagem:** "pare de defender sua agência com lead barato; comece a defender com prova de receita" ([Mensagens-Chave](/marketing/mensagens-chave))
 - **CTA preferido:** "agende uma demo diagnóstica para sua operação"
 - **Ajuste prático:** usar subject lines que mencionem `{{agencia}}` e foquem em resultado de negócio
 
@@ -268,7 +268,7 @@ A sequência é a mesma para ambos os perfis, mas o ângulo de abertura e o tom 
 
 - **Ângulo principal:** otimização com sinal real, visibilidade de funil, dados melhores para campanha
 - **Dor central:** otimizar no escuro, não saber qual campanha realmente converte
-- **Linguagem:** "descubra qual campanha trouxe conversa, proposta, aprovação e venda" ([Mensagens-Chave](/wiki/marketing/mensagens-chave))
+- **Linguagem:** "descubra qual campanha trouxe conversa, proposta, aprovação e venda" ([Mensagens-Chave](/marketing/mensagens-chave))
 - **CTA preferido:** "veja como sua agência pode provar venda e não só lead"
 - **Ajuste prático:** usar subject lines com foco técnico (CPL, algoritmo, otimização) e exemplos numéricos
 
@@ -302,16 +302,17 @@ Todo o conteúdo desta sequência é derivado das seguintes fontes canônicas da
 
 | Fonte | O que foi usado |
 |-------|----------------|
-| [Mensagens-Chave](/wiki/marketing/mensagens-chave) | Mensagem-mãe, mensagens por canal (seção e-mail/outbound), CTAs recomendados, tom editorial |
-| [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo) | Golden Core, 5 problemas, mecanismo de funcionamento, transformação prometida |
-| [Provas e Objeções](/wiki/marketing/provas-e-objecoes) | Claims aprovados (1-6), objeções e respostas recomendadas (1-3), regra de linguagem para projeções |
-| [Posicionamento](/wiki/marketing/posicionamento) | Anti-categoria (não é CRM, chatbot, automação genérica) |
-| [ICP e Segmentos](/wiki/marketing/icp-e-segmentos) | Perfis de dono de agência e gestor de tráfego, segmentos prioritários |
-| [Oferta para Agências](/wiki/marketing/oferta-para-agencias) | Preço de entrada (R$ 147/mês), proposta de valor para agências |
-| [Assets e Campanhas](/wiki/marketing/assets-e-campanhas) | Contexto da motion de recuperação de demanda (campanha #3) |
+| [Mensagens-Chave](/marketing/mensagens-chave) | Mensagem-mãe, mensagens por canal (seção e-mail/outbound), CTAs recomendados, tom editorial |
+| [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo) | Golden Core, 5 problemas, mecanismo de funcionamento, transformação prometida |
+| [Provas e Objeções](/marketing/provas-e-objecoes) | Claims aprovados (1-6), objeções e respostas recomendadas (1-3), regra de linguagem para projeções |
+| [Posicionamento](/marketing/posicionamento) | Anti-categoria (não é CRM, chatbot, automação genérica) |
+| [ICP e Segmentos](/marketing/icp-e-segmentos) | Perfis de dono de agência e gestor de tráfego, segmentos prioritários |
+| [Oferta para Agências](/marketing/oferta-para-agencias) | Preço de entrada (R$ 147/mês), proposta de valor para agências |
+| [Assets e Campanhas](/marketing/assets-e-campanhas) | Contexto da motion de recuperação de demanda (campanha #3) |
 
 ---
 
 ## Critério editorial
 
-Nenhuma afirmação nesta sequência deve existir sem rastreabilidade para um artefato da wiki. Claims com confiança "parcialmente sustentado" ou "precisa de prova adicional" utilizam linguagem condicional ("projetado para", "desenhado para") conforme as regras de [Provas e Objeções](/wiki/marketing/provas-e-objecoes). Quando provas sociais forem consolidadas, os e-mails 3 e 5 devem ser atualizados para incluir dado concreto.
+Nenhuma afirmação nesta sequência deve existir sem rastreabilidade para um artefato da wiki. Claims com confiança "parcialmente sustentado" ou "precisa de prova adicional" utilizam linguagem condicional ("projetado para", "desenhado para") conforme as regras de [Provas e Objeções](/marketing/provas-e-objecoes). Quando provas sociais forem consolidadas, os e-mails 3 e 5 devem ser atualizados para incluir dado concreto.
+

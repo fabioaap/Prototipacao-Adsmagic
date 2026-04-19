@@ -156,4 +156,4 @@ Validar em cada projeto:
 
 Este handoff cobre apenas as LPs standalone.
 
-O app principal em `Plataforma/` e o portal Docusaurus em `docs/` ainda exigem revisão específica de base path para publicação no Cloudflare Pages, porque hoje possuem comportamento condicionado a `process.env.CI`.
+O workspace principal agora pode ser publicado em um projeto separado do Cloudflare Pages com `npm run build` na raiz e `dist` como output directory. Ainda assim, esse fluxo continua independente das LPs standalone documentadas aqui.

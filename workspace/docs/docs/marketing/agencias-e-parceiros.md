@@ -1,6 +1,6 @@
 ---
 title: Agencias e Parceiros
-slug: /wiki/marketing/agencias-e-parceiros
+slug: /marketing/agencias-e-parceiros
 ---
 
 # Agencias e Parceiros
@@ -101,7 +101,7 @@ Para vender bem para agencias, o Adsmagic precisa consolidar no minimo:
 - roteiro de demo diagnostica
 - fluxo de onboarding com marco claro de primeiro valor
 
-O blueprint inicial dessa peca foi consolidado em [Oferta para Agencias](/wiki/marketing/oferta-para-agencias).
+O blueprint inicial dessa peca foi consolidado em [Oferta para Agencias](/marketing/oferta-para-agencias).
 
 ## Oferta de entrada
 
@@ -111,7 +111,7 @@ O que ja esta claro:
 
 - o modelo de entrada precisa ter baixo atrito de entendimento
 - trial, CTA e onboarding devem ser coerentes entre LP, vendas e wiki
-- a leitura publica de preco deve obedecer [Pricing e Unit Economics](/wiki/marketing/pricing-e-unit-economics)
+- a leitura publica de preco deve obedecer [Pricing e Unit Economics](/marketing/pricing-e-unit-economics)
 
 O que ainda precisa ser decidido:
 

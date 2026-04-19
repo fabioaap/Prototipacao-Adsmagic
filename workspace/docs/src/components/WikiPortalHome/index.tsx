@@ -1,5 +1,7 @@
 import type {ReactNode} from 'react';
 import Link from '@docusaurus/Link';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import {wikiTaxonomySections} from '@site/src/data/wikiTaxonomy';
 
 type GuideColumn = {
@@ -12,6 +14,31 @@ type SupportColumn = {
   description: string;
   actions: Array<{label: string; to: string; external?: boolean}>;
 };
+
+const marketingDoc = (slug: string) => `/marketing/${slug}`;
+
+function getSupportColumns(workspaceUrl: string): SupportColumn[] {
+  return [
+    {
+      title: 'Voce encontrou o que precisava?',
+      description:
+        'Use a wiki como camada de decisao. Quando houver conflito entre discurso, prototipo e operacao, priorize as paginas de governanca e alinhamento.',
+      actions: [
+        {label: 'Abrir governanca', to: marketingDoc('governanca')},
+        {label: 'Ver alinhamento de fontes', to: marketingDoc('alinhamento-de-fontes')},
+      ],
+    },
+    {
+      title: 'Ainda precisa de ajuda?',
+      description:
+        'Se a duvida for sobre comportamento do produto, volte para o workspace. Se for sobre direcao, narrativa ou operacao, permaneca na wiki.',
+      actions: [
+        {label: 'Abrir workspace', to: workspaceUrl, external: true},
+        {label: 'Revisar jornadas', to: '/jornadas'},
+      ],
+    },
+  ];
+}
 
 const guideColumns: GuideColumn[] = [
   {
@@ -39,7 +66,7 @@ const guideColumns: GuideColumn[] = [
         title: 'Ler o posicionamento base',
         description:
           'Comece pela tese de mercado e pela proposta de valor antes de revisar campanhas, LPs ou materiais comerciais.',
-        to: '/wiki/marketing/posicionamento',
+        to: marketingDoc('posicionamento'),
       },
     ],
   },
@@ -50,7 +77,7 @@ const guideColumns: GuideColumn[] = [
         title: 'Oferta para agencias',
         description:
           'Blueprint de narrativa e proposta comercial para a frente de aquisicao de agencias.',
-        to: '/wiki/marketing/oferta-para-agencias',
+        to: marketingDoc('oferta-para-agencias'),
       },
       {
         title: 'Workflow de prototipacao',
@@ -62,7 +89,7 @@ const guideColumns: GuideColumn[] = [
         title: 'Mensagens-chave',
         description:
           'Mensagem-mae, versoes por publico e CTAs que organizam LP, vendas e campanhas.',
-        to: '/wiki/marketing/mensagens-chave',
+        to: marketingDoc('mensagens-chave'),
       },
       {
         title: 'Estrutura do prototipo',
@@ -74,34 +101,18 @@ const guideColumns: GuideColumn[] = [
   },
 ];
 
-const supportColumns: SupportColumn[] = [
-  {
-    title: 'Voce encontrou o que precisava?',
-    description:
-      'Use a wiki como camada de decisao. Quando houver conflito entre discurso, prototipo e operacao, priorize as paginas de governanca e alinhamento.',
-    actions: [
-      {label: 'Abrir governanca', to: '/wiki/marketing/governanca'},
-      {label: 'Ver alinhamento de fontes', to: '/wiki/marketing/alinhamento-de-fontes'},
-    ],
-  },
-  {
-    title: 'Ainda precisa de ajuda?',
-    description:
-      'Se a duvida for sobre comportamento do produto, volte para o workspace. Se for sobre direcao, narrativa ou operacao, permaneca na wiki.',
-    actions: [
-      {label: 'Abrir workspace', to: 'http://localhost:3000/', external: true},
-      {label: 'Revisar jornadas', to: '/jornadas'},
-    ],
-  },
-];
-
 export default function WikiPortalHome(): ReactNode {
+  const {siteConfig} = useDocusaurusContext();
+  const logoUrl = useBaseUrl('/img/logo.svg');
+  const workspaceUrl = String(siteConfig.customFields?.workspaceUrl || 'http://localhost:3000').replace(/\/$/, '');
+  const supportColumns = getSupportColumns(workspaceUrl);
+
   return (
     <div className="wiki-portal-home">
       <section className="wiki-portal-home__cover">
         <div className="wiki-portal-home__cover-art" aria-hidden="true" />
         <div className="wiki-portal-home__cover-copy">
-          <img className="wiki-portal-home__cover-logo" src="/img/logo.svg" alt="Adsmagic" />
+          <img className="wiki-portal-home__cover-logo" src={logoUrl} alt="Adsmagic" />
           <h1>Documentacao do Adsmagic</h1>
           <p>Obtenha contexto, direcao e material operacional em qualquer ponto da jornada do produto.</p>
         </div>
@@ -144,8 +155,12 @@ export default function WikiPortalHome(): ReactNode {
               <h3>{column.title}</h3>
               <p>{column.description}</p>
               <div className="wiki-portal-home__support-actions">
-                {column.actions.map((action) => (
-                  <Link key={action.to} to={action.to} {...(action.external ? {target: '_blank', rel: 'noreferrer'} : {})}>
+                {column.actions.map((action) => action.external ? (
+                  <a key={action.to} href={action.to} target="_blank" rel="noreferrer">
+                    {action.label}
+                  </a>
+                ) : (
+                  <Link key={action.to} to={action.to}>
                     {action.label}
                   </Link>
                 ))}

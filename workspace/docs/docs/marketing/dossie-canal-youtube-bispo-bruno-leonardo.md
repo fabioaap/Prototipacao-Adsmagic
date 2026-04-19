@@ -1,6 +1,6 @@
 ---
 title: Dossie de Canal - Bispo Bruno Leonardo
-slug: /wiki/marketing/dossie-canal-youtube-bispo-bruno-leonardo
+slug: /marketing/dossie-canal-youtube-bispo-bruno-leonardo
 ---
 
 # Dossie de Canal - Bispo Bruno Leonardo

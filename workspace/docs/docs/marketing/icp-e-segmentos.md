@@ -1,6 +1,6 @@
 ---
 title: ICP e Segmentos
-slug: /wiki/marketing/icp-e-segmentos
+slug: /marketing/icp-e-segmentos
 ---
 
 # ICP e Segmentos

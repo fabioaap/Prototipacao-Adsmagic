@@ -26,6 +26,14 @@ function gitInfo() {
 
 const { branch, sha } = gitInfo()
 
+function normalizeBasePath(pathValue, fallback = '/') {
+  const value = pathValue?.trim() || fallback
+  const withLeadingSlash = value.startsWith('/') ? value : `/${value}`
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`
+}
+
+const workspaceBasePath = normalizeBasePath(process.env.WORKSPACE_BASE_PATH, '/')
+
 export default defineConfig(async ({ command }) => {
   const server = command === 'serve'
     ? {
@@ -35,28 +43,32 @@ export default defineConfig(async ({ command }) => {
     : undefined
 
   return {
-  root: './apps/plataforma',
-  base: (command === 'build' && process.env.CI) ? '/Prototipacao-Adsmagic/' : '/',
-  plugins: [vue()],
-  css: {
-    postcss: {
-      plugins: [
-        tailwindcss({ config: fileURLToPath(new URL('./apps/plataforma/tailwind.config.js', import.meta.url)) }),
-        autoprefixer(),
-      ]
-    }
-  },
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./apps/plataforma/src', import.meta.url))
-    }
-  },
-  define: {
-    __GIT_BRANCH__: JSON.stringify(branch),
-    __GIT_SHA__: JSON.stringify(sha),
-    __APP_VERSION__: JSON.stringify(pkg.version),
-    __LANDING_PAGES_MANIFEST__: JSON.stringify(landingPagesManifest),
-  },
-  server,
-}
+    root: './apps/plataforma',
+    base: workspaceBasePath,
+    build: {
+      outDir: '../../dist',
+      emptyOutDir: true,
+    },
+    plugins: [vue()],
+    css: {
+      postcss: {
+        plugins: [
+          tailwindcss({ config: fileURLToPath(new URL('./apps/plataforma/tailwind.config.js', import.meta.url)) }),
+          autoprefixer(),
+        ]
+      }
+    },
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./apps/plataforma/src', import.meta.url))
+      }
+    },
+    define: {
+      __GIT_BRANCH__: JSON.stringify(branch),
+      __GIT_SHA__: JSON.stringify(sha),
+      __APP_VERSION__: JSON.stringify(pkg.version),
+      __LANDING_PAGES_MANIFEST__: JSON.stringify(landingPagesManifest),
+    },
+    server,
+  }
 })

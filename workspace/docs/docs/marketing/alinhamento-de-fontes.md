@@ -1,6 +1,6 @@
 ---
 title: Alinhamento de Fontes
-slug: /wiki/marketing/alinhamento-de-fontes
+slug: /marketing/alinhamento-de-fontes
 ---
 
 # Alinhamento de Fontes

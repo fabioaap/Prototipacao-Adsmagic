@@ -1,6 +1,6 @@
 ---
 title: Plano de Organização — Campanhas de GTM
-slug: /wiki/marketing/plano-organizacao-campanhas-gtm
+slug: /marketing/plano-organizacao-campanhas-gtm
 ---
 
 # Plano de Organização — Campanhas de GTM
@@ -56,7 +56,7 @@ Fazer Campanhas de GTM deixar de ser apenas uma lista e virar uma frente organiz
 
 **Arquivos principais**
 
-- [Marketing](/wiki/marketing)
+- [Marketing](/marketing)
 - `workspace/docs/src/data/wikiTaxonomy.ts`
 - nova página índice de Campanhas de GTM
 
@@ -74,9 +74,9 @@ Criar a ponte entre narrativa e arte, para que a copy não precise carregar sozi
 
 **Arquivos principais**
 
-- [Arquitetura Editorial — Série Instagram StoryBrand](/wiki/marketing/arquitetura-editorial-instagram-storybrand)
+- [Arquitetura Editorial — Série Instagram StoryBrand](/marketing/arquitetura-editorial-instagram-storybrand)
 - novo brief visual da série StoryBrand
-- [Assets e Campanhas](/wiki/marketing/assets-e-campanhas)
+- [Assets e Campanhas](/marketing/assets-e-campanhas)
 
 **Saída desejada**
 
@@ -92,9 +92,9 @@ Transformar a página de copies em material de produção, sem misturar copy fin
 
 **Arquivos principais**
 
-- [Copies — Série de 9 Carrosséis Instagram StoryBrand](/wiki/marketing/copies-carrosseis-instagram-storybrand)
-- [Governança](/wiki/marketing/governanca)
-- [Assets e Campanhas](/wiki/marketing/assets-e-campanhas)
+- [Copies — Série de 9 Carrosséis Instagram StoryBrand](/marketing/copies-carrosseis-instagram-storybrand)
+- [Governança](/marketing/governanca)
+- [Assets e Campanhas](/marketing/assets-e-campanhas)
 
 **Saída desejada**
 
@@ -216,3 +216,4 @@ A frente estará pronta quando:
 - os 9 posts tiverem prompt visual por slide
 - os prompts mencionarem assets, grafismos, composição e restrições da marca
 - o portal de docs buildar e renderizar sem ruído de navegação
+
