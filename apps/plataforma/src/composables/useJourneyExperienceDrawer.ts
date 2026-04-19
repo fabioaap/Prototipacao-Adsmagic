@@ -25,8 +25,16 @@ export function useJourneyExperienceDrawer({ router }: { router: Router }) {
     triggerEl.value = triggerElement
 
     if (journey.experience) {
-      validationResult.value = { valid: true }
-      iframeSrc.value = journey.experience.target
+      if (journey.experience.embedMode === 'external-only') {
+        validationResult.value = {
+          valid: false,
+          reason: 'Este destino abre fora do workspace para evitar duplicacao de backlog e bloqueios de embed.',
+        }
+        iframeSrc.value = ''
+      } else {
+        validationResult.value = { valid: true }
+        iframeSrc.value = journey.experience.target
+      }
     } else {
       validationResult.value = { valid: false, reason: 'Jornada sem experiência configurada.' }
       iframeSrc.value = ''

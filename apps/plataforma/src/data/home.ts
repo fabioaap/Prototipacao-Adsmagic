@@ -21,6 +21,7 @@ export interface HomeJourneyContext {
 export interface HomeJourneyExperience {
   target: string
   targetType: 'internal' | 'external'
+  embedMode?: 'iframe' | 'external-only'
   openInNewTabLabel: string
   intro: string
   perspective: string
@@ -79,6 +80,7 @@ export interface HomeStat {
 }
 
 const AIOX_EMBED_BASE_URL = 'http://127.0.0.1:5181'
+const GITHUB_ISSUES_URL = 'https://github.com/fabioaap/Prototipacao-Adsmagic/issues'
 
 function createAioxJourneyTarget(path: string) {
   const separator = path.includes('?') ? '&' : '?'
@@ -150,18 +152,18 @@ export const mockHomeJourneys: HomeJourney[] = [
     status: 'active',
     statusLabel: 'Ativo',
     summary: 'Conecta a leitura das entradas do produto com a triagem inicial do que pode virar oportunidade operacional.',
-    focus: 'Cruza pontos de entrada mapeados em Rotas com a necessidade de priorizacao e passagem para o quadro comercial.',
-    stage: 'Passagem para operacao definida',
+    focus: 'Cruza pontos de entrada mapeados em Rotas com a necessidade de priorizacao e abertura de issues quando algo vira trabalho real.',
+    stage: 'Critérios de triagem definidos',
     completed: 3,
     total: 4,
     iconKey: 'compass',
     tone: 'cyan',
     outcomes: ['Entradas priorizadas', 'Fluxos de passagem definidos', 'Responsaveis por leitura inicial'],
     context: {
-      jtbd: 'Qualificar entradas e direcionar oportunidades para o quadro operacional.',
+      jtbd: 'Qualificar entradas e transformar sinais relevantes em trabalho rastreavel.',
       owner: 'CRM e operacao',
       lastUpdate: '2026-03-25',
-      nextStep: 'Conectar filtros avancados com a passagem para o kanban.',
+      nextStep: 'Conectar filtros avancados com criterios de abertura e priorizacao em issues.',
       checklist: ['Entradas priorizadas', 'Fluxos de passagem definidos', 'Filtros aplicados'],
       completionPercent: 75,
     },
@@ -181,12 +183,12 @@ export const mockHomeJourneys: HomeJourney[] = [
           highlights: ['Filtros ativos', 'Origem rastreada', 'Status por etapa'],
         },
         {
-          id: 'kanban-passagem',
-          title: 'Passagem para kanban',
+          id: 'issues-passagem',
+          title: 'Abertura de issue',
           route: '/kanban',
-          surface: 'Kanban',
-          summary: 'Quadro operacional que recebe os leads qualificados.',
-          highlights: ['Etapas definidas', 'Densidade por coluna', 'Valor em aberto'],
+          surface: 'Issues',
+          summary: 'Ponto em que sinais qualificados viram itens rastreaveis no backlog do GitHub.',
+          highlights: ['Template de issue', 'Prioridade definida', 'Responsavel atribuido'],
         },
       ],
       metrics: [
@@ -197,64 +199,65 @@ export const mockHomeJourneys: HomeJourney[] = [
     },
     destinations: [
       { label: 'Mapear entradas', to: '/rotas' },
-      { label: 'Abrir Kanban', to: '/kanban' },
+      { label: 'Abrir Issues', to: '/kanban' },
     ],
   },
   {
     id: 'conducao-oportunidades',
-    name: 'Conducao de oportunidades',
+    name: 'Backlog e priorizacao',
     version: 'v2.1',
     status: 'active',
     statusLabel: 'Ativo',
-    summary: 'Transforma sinais e oportunidades em acompanhamento continuo, com leitura por etapa e valor em aberto.',
-    focus: 'Kanban concentra a conducao operacional para revisar densidade por etapa, contextos e proximos movimentos.',
-    stage: 'Quadro operacional em uso',
+    summary: 'Transforma sinais e demandas em acompanhamento continuo no backlog central, sem duplicar a camada operacional dentro do workspace.',
+    focus: 'GitHub Issues concentra triagem, priorizacao e acompanhamento do que realmente entra em execucao.',
+    stage: 'Backlog central definido',
     completed: 5,
     total: 6,
     iconKey: 'briefcaseBusiness',
     tone: 'emerald',
-    outcomes: ['Etapas visiveis', 'Valor aberto destacado', 'Leitura por origem preservada'],
+    outcomes: ['Prioridades visiveis', 'Issues rastreaveis', 'Proximos movimentos alinhados'],
     context: {
-      jtbd: 'Acompanhar oportunidades por etapa, valor e contexto no pipeline.',
-      owner: 'Comercial',
+      jtbd: 'Centralizar demandas operacionais em issues rastreaveis e reduzir superficies paralelas.',
+      owner: 'Produto e operacao',
       lastUpdate: '2026-03-25',
-      nextStep: 'Aprofundar leitura de valor em aberto e eventos de conversao.',
-      checklist: ['Pipeline consolidado', 'Valor em aberto visivel', 'Conversoes destacadas'],
+      nextStep: 'Conectar templates de issue e criterios de prioridade com a wiki e o BrandOS.',
+      checklist: ['Backlog central definido', 'Criterios de prioridade claros', 'Owners visiveis'],
       completionPercent: 83,
     },
     experience: {
-      target: createAioxJourneyTarget('/pt/projects/2/sales'),
+      target: GITHUB_ISSUES_URL,
       targetType: 'external',
-      openInNewTabLabel: 'Abrir jornada completa',
-      intro: 'A jornada de conducao mostra como o pipeline opera no dia a dia do workspace.',
-      perspective: 'O iframe apresenta o kanban de vendas do AIOX com etapas e valores.',
+      embedMode: 'external-only',
+      openInNewTabLabel: 'Abrir backlog no GitHub',
+      intro: 'A jornada de backlog mostra como o repositório concentra priorizacao e andamento do trabalho sem espelhar isso em um quadro paralelo.',
+      perspective: 'O drawer abre a fila de issues do repositório como backlog central de acompanhamento.',
       screens: [
         {
-          id: 'pipeline-kanban',
-          title: 'Pipeline operacional',
+          id: 'backlog-issues',
+          title: 'Backlog no GitHub',
           route: '/kanban',
-          surface: 'Kanban',
-          summary: 'Quadro com negociacoes, etapas e valor em aberto.',
-          highlights: ['Quadro comercial', 'Valor em aberto', 'Etapas ativas'],
+          surface: 'Issues',
+          summary: 'Fila central de trabalho com rastreabilidade, prioridade e historico de decisao.',
+          highlights: ['Backlog unico', 'Historico rastreavel', 'Sem duplicacao de quadro'],
         },
         {
-          id: 'contatos-vinculados',
-          title: 'Contatos vinculados',
-          route: '/contacts',
-          surface: 'Contatos',
-          summary: 'Base de leads que alimenta o pipeline.',
-          highlights: ['Lead vinculado', 'Origem preservada', 'Historico do contato'],
+          id: 'brandos-operacional',
+          title: 'BrandOS operacional',
+          route: '/styleguide',
+          surface: 'BrandOS',
+          summary: 'Assets, componentes e referencias que sustentam a execucao das entregas priorizadas.',
+          highlights: ['Templates ativos', 'Assets centralizados', 'Biblioteca operacional'],
         },
       ],
       metrics: [
-        { label: 'Blocos', value: '2', helper: 'pipeline e contatos' },
-        { label: 'Estado', value: '83%', helper: 'pipeline funcional' },
-        { label: 'Recorte', value: 'Comercial', helper: 'conducao e valor' },
+        { label: 'Blocos', value: '2', helper: 'issues e BrandOS' },
+        { label: 'Estado', value: '83%', helper: 'backlog central adotado' },
+        { label: 'Recorte', value: 'Execucao', helper: 'prioridade e ativos' },
       ],
     },
     destinations: [
-      { label: 'Ir para Kanban', to: '/kanban' },
-      { label: 'Consultar Rotas', to: '/rotas' },
+      { label: 'Abrir Issues', to: '/kanban' },
+      { label: 'Abrir BrandOS', to: '/styleguide' },
     ],
   },
   {
@@ -327,22 +330,13 @@ export const mockHomeQuickAccess: HomeQuickAccess[] = [
     cta: 'Abrir Rotas',
   },
   {
-    to: '/kanban',
-    title: 'Kanban operacional',
-    description: 'Entre direto no quadro para acompanhar etapas, valor em aberto e distribuicao das oportunidades.',
-    area: 'Operacao comercial',
-    iconKey: 'briefcaseBusiness',
-    tone: 'emerald',
-    cta: 'Abrir Kanban',
-  },
-  {
-    to: '/lps',
-    title: 'Catalogo de LPs',
-    description: 'Revise as superficies de aquisicao, as versoes catalogadas e os destinos ligados a cada landing.',
-    area: 'Marketing e aquisicao',
+    to: '/styleguide',
+    title: 'BrandOS',
+    description: 'Acesse o hub de assets, templates, componentes e referencias operacionais da marca em uma unica navegacao.',
+    area: 'Sistema de marca',
     iconKey: 'network',
     tone: 'primary',
-    cta: 'Ver LPs',
+    cta: 'Abrir BrandOS',
   },
   {
     to: '/wiki',
@@ -367,6 +361,6 @@ export const mockHomeQuickAccess: HomeQuickAccess[] = [
 export const mockHomeStats: HomeStat[] = [
   { value: '4', total: '', label: 'Jornadas Ativas', helper: 'Fluxos ponta a ponta priorizados' },
   { value: '17', total: '', label: 'Entregaveis Mapeados', helper: 'Sinais, etapas e referencias por jornada' },
-  { value: '4', total: '', label: 'Superficies Ativas', helper: 'Rotas, Kanban, Wiki e LPs como apoio operacional' },
-  { value: '5', total: '', label: 'Atalhos Prontos', helper: 'Entradas diretas para leitura e execucao' },
+  { value: '3', total: '', label: 'Superficies Ativas', helper: 'Rotas, Wiki e BrandOS como apoio operacional' },
+  { value: '4', total: '', label: 'Atalhos Prontos', helper: 'Entradas diretas para leitura e execucao' },
 ]

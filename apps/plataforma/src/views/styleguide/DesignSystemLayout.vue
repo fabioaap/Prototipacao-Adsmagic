@@ -299,7 +299,7 @@ const filteredTree = computed(() => filterNodes(dsNavTree, searchQuery.value))
 
             <nav v-else class="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
               <RouterLink to="/styleguide" class="font-medium text-foreground/80 hover:text-foreground">
-                Styleguide
+                BrandOS
               </RouterLink>
               <template v-for="crumb in currentTrail" :key="crumb.id">
                 <Separator orientation="vertical" class="h-4 bg-border" />

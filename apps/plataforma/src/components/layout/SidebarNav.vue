@@ -6,7 +6,6 @@ import { mockHomeJourneys, type HomeTone } from '@/data/home'
 
 const route = useRoute()
 const router = useRouter()
-const isDev = import.meta.env.DEV
 
 const isHome = () => route.path === '/'
 const isJourneyContext = () => route.path === '/'
@@ -135,34 +134,20 @@ function toggleSidebar() {
         <span class="material-symbols-outlined">route</span>
         <span v-if="!showCompactMode">Rotas</span>
       </RouterLink>
-      <RouterLink class="nav-link" :class="[{ active: isRouteActive('/kanban') }, { 'nav-link--compact': showCompactMode }]" :title="showCompactMode ? 'Kanban' : undefined" to="/kanban" @click="clearJourneySelection">
-        <span class="material-symbols-outlined">view_kanban</span>
-        <span v-if="!showCompactMode">Kanban</span>
-      </RouterLink>
-      <RouterLink class="nav-link" :class="[{ active: isRouteActive('/lps') }, { 'nav-link--compact': showCompactMode }]" :title="showCompactMode ? 'LPs' : undefined" to="/lps" @click="clearJourneySelection">
-        <span class="material-symbols-outlined">web</span>
-        <span v-if="!showCompactMode">LPs</span>
-      </RouterLink>
       <RouterLink class="nav-link" :class="[{ active: isRouteActive('/wiki') }, { 'nav-link--compact': showCompactMode }]" :title="showCompactMode ? 'Wiki' : undefined" to="/wiki" @click="clearJourneySelection">
         <span class="material-symbols-outlined">menu_book</span>
         <span v-if="!showCompactMode">Wiki</span>
       </RouterLink>
       <RouterLink
-        v-if="isDev"
         class="nav-link"
         :class="[{ active: $route.path.startsWith('/styleguide') }, { 'nav-link--compact': showCompactMode }]"
-        :title="showCompactMode ? 'Design System' : undefined"
+        :title="showCompactMode ? 'BrandOS' : undefined"
         to="/styleguide"
         @click="clearJourneySelection"
       >
         <span class="material-symbols-outlined">design_services</span>
-        <span v-if="!showCompactMode">Design System</span>
+        <span v-if="!showCompactMode">BrandOS</span>
       </RouterLink>
-      <span v-else class="nav-link nav-link--disabled" :class="{ 'nav-link--compact': showCompactMode }">
-        <span class="material-symbols-outlined">design_services</span>
-        <span v-if="!showCompactMode">Design System</span>
-        <span v-if="!showCompactMode" class="nav-soon">Em breve</span>
-      </span>
     </nav>
 
     <!-- Footer -->

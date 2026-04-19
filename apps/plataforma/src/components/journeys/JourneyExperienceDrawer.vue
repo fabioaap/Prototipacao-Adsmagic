@@ -44,7 +44,7 @@
               @click="$emit('open-full-page')"
             >
               <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
-              Abrir em nova aba
+              {{ journey?.experience?.openInNewTabLabel || 'Abrir em nova aba' }}
             </button>
           </footer>
         </div>

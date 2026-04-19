@@ -3,6 +3,7 @@ import AppLayout from '@/components/layout/AppLayout.vue'
 
 const landingPagesManifest = __LANDING_PAGES_MANIFEST__
 const landingPagesPreviewBaseUrl = (import.meta.env.VITE_LANDING_PAGES_PREVIEW_URL || '').replace(/\/$/, '')
+const githubIssuesUrl = 'https://github.com/fabioaap/Prototipacao-Adsmagic/issues'
 
 function getManifestPage(manifestId: string) {
   return landingPagesManifest.pages.find((page) => page.id === manifestId) ?? null
@@ -29,6 +30,11 @@ function buildLegacyLandingTarget(manifestId: string, fallbackPath: string, to: 
 
 function redirectLegacyLanding(manifestId: string, fallbackPath: string, to: RouteLocationNormalized) {
   window.location.replace(buildLegacyLandingTarget(manifestId, fallbackPath, to))
+  return false
+}
+
+function redirectToExternal(url: string) {
+  window.location.replace(url)
   return false
 }
 
@@ -61,10 +67,10 @@ const router = createRouter({
       component: () => import('@/views/deck/DeckAgenciasView.vue'),
       meta: { title: 'Adsmagic — One-Pager Comercial' }
     },
-    ...(import.meta.env.DEV ? [{
+    {
       path: '/styleguide',
       component: () => import('@/views/styleguide/DesignSystemLayout.vue'),
-      meta: { title: 'Design System' },
+      meta: { title: 'BrandOS' },
       children: [
         {
           path: '',
@@ -81,10 +87,10 @@ const router = createRouter({
           path: ':slug+',
           name: 'ds-page',
           component: () => import('@/views/styleguide/DsPageResolver.vue'),
-          meta: { title: 'Design System' },
+          meta: { title: 'BrandOS' },
         },
       ],
-    }] : []),
+    },
     {
       path: '/',
       component: AppLayout,
@@ -108,14 +114,14 @@ const router = createRouter({
         {
           path: 'kanban',
           name: 'kanban',
-          component: () => import('@/views/experiments/ExperimentsKanbanView.vue'),
-          meta: { title: 'Kanban de Experimentos' }
+          beforeEnter: () => redirectToExternal(githubIssuesUrl),
+          component: { render: () => null },
+          meta: { title: 'GitHub Issues' }
         },
         {
           path: 'lps',
           name: 'landing-pages',
-          component: () => import('@/views/lps/LandingPagesCatalogView.vue'),
-          meta: { title: 'Catalogo de LPs' }
+          redirect: '/styleguide/design-system/lp-components'
         },
         {
           path: 'sales',
