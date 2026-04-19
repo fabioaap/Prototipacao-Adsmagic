@@ -1,44 +1,6 @@
 # Guia de Uso dos Componentes de Projetos
 
-## 1. TrialBanner
-
-Banner de aviso de trial expirando com botão de ação.
-
-### Props
-- `daysRemaining: number` - Dias restantes (required)
-- `onChoosePlan?: () => void` - Callback do botão de plano
-- `onDismiss?: () => void` - Callback do botão fechar
-- `dismissible?: boolean` - Se pode ser fechado (default: false)
-
-### Exemplo
-```vue
-<template>
-  <TrialBanner
-    :days-remaining="3"
-    @choose-plan="handleChoosePlan"
-    dismissible
-  />
-</template>
-
-<script setup lang="ts">
-import TrialBanner from '@/components/ui/TrialBanner.vue'
-
-function handleChoosePlan() {
-  // Navegar para página de planos
-  router.push('/planos')
-}
-</script>
-```
-
-### Níveis de Urgência
-- **critical** (0-1 dias): Vermelho
-- **high** (2-3 dias): Amarelo
-- **medium** (4-7 dias): Azul
-- **low** (8+ dias): Cinza
-
----
-
-## 2. SearchBar
+## 1. SearchBar
 
 Campo de busca com ícone e botão de limpar.
 

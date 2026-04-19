@@ -5,10 +5,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectsStore } from '@/stores/projects'
 import { setCurrentProjectId } from '@/composables/useCurrentProjectId'
-import { 
-  LayoutDashboard, 
-  Users, 
-  Briefcase, 
+import {
+  LayoutDashboard,
+  Users,
+  Briefcase,
   Calendar,
   Link,
   Plug,
@@ -19,9 +19,15 @@ import {
   LayoutGrid,
   Menu,
   X,
-  MessageSquare,
-  BarChart3
+  CreditCard,
+  LifeBuoy,
+  BookOpen,
+  Lightbulb
 } from 'lucide-vue-next'
+import {
+  openFeaturebaseMessenger,
+  openFeaturebaseSuggestions,
+} from '@/lib/featurebase'
 import logoUrl from '@/assets/saas-logo.svg'
 import GoogleAdsLogoIcon from '@/components/icons/GoogleAdsLogoIcon.vue'
 import MetaAdsLogoIcon from '@/components/icons/MetaAdsLogoIcon.vue'
@@ -31,13 +37,17 @@ import NotificationCenter from '@/components/ui/NotificationCenter.vue'
 import LanguageSelector from '@/components/ui/LanguageSelector.vue'
 import SidebarNav from '@/components/layout/SidebarNav.vue'
 import type { NavSection } from '@/components/layout/SidebarNav.vue'
+import UsageSummary from '@/components/common/UsageSummary.vue'
+import FeaturebaseMessenger from '@/components/layout/FeaturebaseMessenger.vue'
 import { useSessionKeepAlive } from '@/composables/useSessionKeepAlive'
+import { useBillingStore } from '@/stores/billing'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
+const billingStore = useBillingStore()
 const sidebarCollapsed = ref(false)
 const isSidebarOpenMobile = ref(false)
 
@@ -199,20 +209,41 @@ onBeforeUnmount(() => {
 })
 
 const baseProjectPath = computed(() => {
-  const locale = (route.params.locale as string | undefined) || 'pt'
-  // Prefere o projectId da URL; usa o projeto ativo da store como fallback
-  const projectId =
-    (route.params.projectId as string | undefined) ||
-    projectsStore.currentProject?.id ||
-    null
-  if (!projectId) return null
+  const locale = route.params.locale as string | undefined
+  const projectId = route.params.projectId as string | undefined
+  if (!locale || !projectId) return null
   return `/${locale}/projects/${projectId}`
 })
+
+const outrosSection = computed<NavSection>(() => ({
+  id: 'outros',
+  title: 'OUTROS',
+  defaultOpen: true,
+  links: [
+    {
+      label: 'Suporte',
+      icon: LifeBuoy,
+      onClick: () => openFeaturebaseMessenger(),
+    },
+    {
+      label: 'Central de ajuda',
+      icon: BookOpen,
+      onClick: () => openFeaturebaseMessenger('help'),
+    },
+    {
+      label: 'Sugestão de melhorias',
+      icon: Lightbulb,
+      onClick: () => {
+        void openFeaturebaseSuggestions()
+      },
+    },
+  ],
+}))
 
 const defaultSections = computed<NavSection[]>(() => {
   const base = baseProjectPath.value
   const locale = route.params.locale as string || 'pt'
-  
+
   // Se não houver projeto selecionado, mostrar menu de nível superior
   if (!base) {
     return [
@@ -222,8 +253,10 @@ const defaultSections = computed<NavSection[]>(() => {
         defaultOpen: true,
         links: [
           { label: 'Meus Projetos', icon: LayoutGrid, href: `/${locale}/projects` },
+          { label: t('pricing.title'), icon: CreditCard, href: `/${locale}/pricing` },
         ],
       },
+      outrosSection.value,
     ]
   }
 
@@ -236,10 +269,8 @@ const defaultSections = computed<NavSection[]>(() => {
         { label: 'Visão geral', icon: LayoutDashboard, href: `${base}/dashboard` },
         { label: 'Contatos', icon: Users, href: `${base}/contacts` },
         { label: 'Vendas', icon: Briefcase, href: `${base}/sales` },
-        { label: 'Mensagens', icon: MessageSquare, href: `${base}/messages` },
         { label: 'Links', icon: Link, href: `${base}/tracking` },
         { label: 'Eventos', icon: Calendar, href: `${base}/events` },
-        { label: 'Analytics', icon: BarChart3, href: `${base}/analytics` },
       ],
     },
     {
@@ -258,8 +289,10 @@ const defaultSections = computed<NavSection[]>(() => {
       links: [
         { label: 'Integrações', icon: Plug, href: `${base}/integrations` },
         { label: 'Configurações', icon: Settings, href: `${base}/settings` },
+        { label: t('pricing.title'), icon: CreditCard, href: `/${locale}/pricing` },
       ],
     },
+    outrosSection.value,
   ]
 })
 
@@ -269,6 +302,35 @@ const handleLogout = async () => {
   await authStore.logout()
   const locale = route.params.locale || 'pt'
   router.push(`/${locale}/login`)
+}
+
+// Plan badge in header
+const planBadgeLabel = computed(() => {
+  if (!billingStore.limits) return null
+  const { status, planName, daysRemaining } = billingStore.limits.subscription
+  if (status === 'trialing') {
+    return `${planName} · ${t('usage.trialDays', { days: daysRemaining })}`
+  }
+  if (status === 'active') return planName
+  if (status === 'expired') return t('usage.expired')
+  return null
+})
+
+const planBadgeVariant = computed(() => {
+  const status = billingStore.limits?.subscription.status
+  if (status === 'expired') return 'destructive'
+  if (status === 'trialing') return 'trial'
+  return 'active'
+})
+
+const pricingHref = computed(() => {
+  const locale = route.params.locale as string || 'pt'
+  return `/${locale}/pricing`
+})
+
+// Fetch limits once when layout mounts (non-blocking)
+if (authStore.isAuthenticated) {
+  billingStore.fetchLimits().catch(() => {})
 }
 </script>
 
@@ -326,6 +388,14 @@ const handleLogout = async () => {
           :sections="computedSections" 
           :collapsed="isSidebarCollapsed"
         />
+
+        <!-- Usage Summary (workspace context, sidebar expanded) -->
+        <div
+          v-if="!hasProjectContext && !isSidebarCollapsed"
+          class="app-sidebar-usage"
+        >
+          <UsageSummary />
+        </div>
 
         <!-- Conta Section (sempre visível) -->
         <div class="app-sidebar-footer">
@@ -391,7 +461,18 @@ const handleLogout = async () => {
             <WhatsAppStatus v-if="hasProjectContext" compact-on-mobile />
             <LanguageSelector />
             <NotificationCenter />
-            
+
+            <!-- Plan badge -->
+            <router-link
+              v-if="planBadgeLabel"
+              :to="pricingHref"
+              class="plan-badge"
+              :class="`plan-badge--${planBadgeVariant}`"
+            >
+              <CreditCard :size="14" />
+              <span class="hidden sm:inline">{{ planBadgeLabel }}</span>
+            </router-link>
+
             <!-- Menu do usuário (mantido do original) -->
             <div class="app-user-card">
               <div class="app-user-info">
@@ -409,6 +490,8 @@ const handleLogout = async () => {
         <slot />
       </main>
     </div>
+
+    <FeaturebaseMessenger />
   </div>
 </template>
 
@@ -420,5 +503,47 @@ const handleLogout = async () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.plan-badge:hover {
+  opacity: 0.85;
+}
+
+.plan-badge--active {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+.plan-badge--trial {
+  background: hsl(var(--warning, 45 93% 47%) / 0.12);
+  color: hsl(var(--warning, 45 93% 47%));
+}
+
+.plan-badge--destructive {
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+}
+
+.app-sidebar-usage {
+  margin-top: auto;
+  padding: 0 1rem;
+}
+
+.app-sidebar-usage + .app-sidebar-footer {
+  margin-top: 0.75rem;
 }
 </style>

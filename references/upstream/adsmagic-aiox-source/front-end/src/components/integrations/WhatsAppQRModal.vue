@@ -108,33 +108,45 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center justify-between">
-          <Button
-            v-if="!qrCode && !isConnecting"
-            @click="handleGenerateQR"
-            :disabled="isConnecting"
-          >
-            <QrCode class="h-4 w-4 mr-2" />
-            Conectar com WhatsApp
-          </Button>
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <div class="flex items-center gap-2">
+            <Button
+              v-if="!qrCode && !isConnecting"
+              @click="handleGenerateQR"
+              :disabled="isConnecting"
+            >
+              <QrCode class="h-4 w-4 mr-2" />
+              Conectar com WhatsApp
+            </Button>
 
-          <Button
-            v-else-if="qrCode && connectionStatus !== 'success'"
-            variant="outline"
-            @click="handleRegenerateQR"
-            :disabled="isConnecting"
-          >
-            <RefreshCw class="h-4 w-4 mr-2" />
-            Regenerar QR
-          </Button>
+            <Button
+              v-else-if="qrCode && connectionStatus !== 'success'"
+              variant="outline"
+              @click="handleRegenerateQR"
+              :disabled="isConnecting"
+            >
+              <RefreshCw class="h-4 w-4 mr-2" />
+              Regenerar QR
+            </Button>
 
-          <Button
-            v-if="connectionStatus === 'success'"
-            @click="handleClose"
-          >
-            <CheckCircle class="h-4 w-4 mr-2" />
-            Concluir
-          </Button>
+            <Button
+              v-if="qrCode && connectionStatus !== 'success'"
+              variant="outline"
+              @click="emit('share-qr')"
+              :disabled="isConnecting"
+            >
+              <Share class="h-4 w-4 mr-2" />
+              Compartilhar
+            </Button>
+
+            <Button
+              v-if="connectionStatus === 'success'"
+              @click="handleClose"
+            >
+              <CheckCircle class="h-4 w-4 mr-2" />
+              Concluir
+            </Button>
+          </div>
 
           <Button
             variant="outline"
@@ -151,14 +163,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { 
-  MessageSquare, 
-  QrCode, 
-  RefreshCw, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle 
+import {
+  MessageSquare,
+  QrCode,
+  RefreshCw,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Share
 } from 'lucide-vue-next'
 import Modal from '@/components/ui/Modal.vue'
 import Button from '@/components/ui/Button.vue'
@@ -198,7 +211,8 @@ const emit = defineEmits([
   'generate-qr',
   'generateQr',
   'check-connection',
-  'checkConnection'
+  'checkConnection',
+  'share-qr',
 ])
 
 // ============================================================================

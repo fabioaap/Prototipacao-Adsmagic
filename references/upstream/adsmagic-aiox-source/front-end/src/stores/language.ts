@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { getI18n } from '@/i18n'
 
 export type Locale = 'pt' | 'en' | 'es'
@@ -86,11 +86,6 @@ export const useLanguageStore = defineStore('language', () => {
     const i18n = getI18n()
     i18n.locale.value = locale
   }
-
-  // Watchers
-  watch(currentLocale, (newLocale) => {
-    console.log(`Language changed to: ${newLocale}`)
-  })
 
   // Inicialização
   document.documentElement.setAttribute('lang', currentLocale.value)

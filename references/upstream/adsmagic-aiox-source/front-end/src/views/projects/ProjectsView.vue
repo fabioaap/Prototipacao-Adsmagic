@@ -10,6 +10,8 @@ import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import type { ProjectSortType, Project, CreateProjectData } from '@/types/project'
 import { watchDebounced } from '@vueuse/core'
 import { useCompaniesStore } from '@/stores/companies'
+import { useBillingStore } from '@/stores/billing'
+import { useToast } from '@/components/ui/toast/use-toast'
 
 // ============================================================================
 // I18N
@@ -23,7 +25,6 @@ import Button from '@/components/ui/Button.vue'
 import SearchInput from '@/components/ui/SearchInput.vue'
 import Select from '@/components/ui/Select.vue'
 import Input from '@/components/ui/Input.vue'
-import TrialBanner from '@/components/ui/TrialBanner.vue'
 import ProjectsTable from '@/components/projects/ProjectsTable.vue'
 import ProjectsMetrics from '@/components/projects/ProjectsMetrics.vue'
 import ProjectsFilters from '@/components/projects/ProjectsFilters.vue'
@@ -34,11 +35,11 @@ import DashboardSection from '@/components/ui/DashboardSection.vue'
 
 const projectsStore = useProjectsStore()
 const companiesStore = useCompaniesStore()
+const billingStore = useBillingStore()
+const { toast } = useToast()
 const confirmDialog = useConfirmDialog()
 
 // State
-const trialDaysRemaining = ref(3) // Mock: Em produção, viria do backend
-const showTrialBanner = ref(true) // Controla visibilidade do banner
 const showDeleteModal = ref(false)
 const projectToDelete = ref<Project | null>(null)
 const isDeleting = ref(false)
@@ -122,12 +123,14 @@ onMounted(async () => {
   try {
     // Verificar empresa primeiro
     await checkCompanyAndRedirect()
-    
-    // Inicializar projetos (já aguarda empresa estar carregada)
-    await projectsStore.initialize()
+
+    // Inicializar projetos e billing em paralelo
+    await Promise.allSettled([
+      projectsStore.initialize(),
+      billingStore.fetchLimits(),
+    ])
   } catch (error) {
     console.error('[Projects] ❌ Error during initialization:', error)
-    // Garantir que o erro seja visível no console
     if (error instanceof Error) {
       console.error('[Projects] ❌ Error details:', {
         message: error.message,
@@ -293,6 +296,21 @@ async function handleCreateProject() {
     return
   }
 
+  // Check project limit from billing
+  if (!billingStore.limits) {
+    await billingStore.fetchLimits()
+  }
+  if (!billingStore.canCreateProject) {
+    const locale = route.params.locale as string || 'pt'
+    toast({
+      title: t('trial.limits.projectsReached'),
+      description: t('trial.limits.upgradeCta'),
+      variant: 'destructive',
+    })
+    await router.push(`/${locale}/pricing`)
+    return
+  }
+
   createProjectName.value = ''
   createProjectSegment.value = ''
   createProjectFormError.value = null
@@ -367,17 +385,6 @@ async function handleProjectClick(project: Project) {
   }
 }
 
-function handleChoosePlan() {
-  const locale = route.params.locale as string || 'pt'
-  router.push(`/${locale}/pricing`)
-}
-
-function handleDismissBanner() {
-  showTrialBanner.value = false
-  // TODO: Persistir preferência no localStorage ou backend
-  // localStorage.setItem('trial-banner-dismissed', 'true')
-}
-
 // ============================================================================
 // HANDLERS: EDIT E DELETE PROJETOS
 // ============================================================================
@@ -410,7 +417,7 @@ async function handleArchiveProject(project: Project) {
     await projectsStore.fetchProjects(true)
   } catch (error) {
     console.error('[Projects] ❌ Erro ao arquivar projeto:', error)
-    // TODO: Mostrar toast de erro
+    toast({ title: t('projects.errors.operationFailed'), variant: 'destructive' })
   }
 }
 
@@ -435,6 +442,7 @@ async function handleBulkDeleteProjects(projectIds: string[]) {
     await projectsStore.fetchProjects(true)
   } catch (error) {
     console.error('[Projects] ❌ Erro ao excluir projetos:', error)
+    toast({ title: t('projects.errors.operationFailed'), variant: 'destructive' })
   }
 }
 
@@ -449,6 +457,7 @@ async function handleBulkArchiveProjects(projectIds: string[]) {
     await projectsStore.fetchProjects(true)
   } catch (error) {
     console.error('[Projects] ❌ Erro ao arquivar projetos:', error)
+    toast({ title: t('projects.errors.operationFailed'), variant: 'destructive' })
   }
 }
 
@@ -498,7 +507,7 @@ async function confirmDeleteProject() {
     projectToDelete.value = null
   } catch (error) {
     console.error('[Projects] ❌ Erro ao excluir projeto:', error)
-    // TODO: Mostrar toast de erro
+    toast({ title: t('projects.errors.operationFailed'), variant: 'destructive' })
   } finally {
     isDeleting.value = false
   }
@@ -531,7 +540,7 @@ async function handleDuplicateProject(project: Project) {
     })
   } catch (error) {
     console.error('[Projects] ❌ Erro ao duplicar projeto:', error)
-    // TODO: Mostrar toast de erro
+    toast({ title: t('projects.errors.operationFailed'), variant: 'destructive' })
   }
 }
 
@@ -540,15 +549,6 @@ async function handleDuplicateProject(project: Project) {
 <template>
   <AppLayout>
     <div class="page-shell section-stack-md">
-    <!-- Trial Banner -->
-    <TrialBanner
-      v-if="showTrialBanner"
-      :days-remaining="trialDaysRemaining"
-      @choose-plan="handleChoosePlan"
-      @dismiss="handleDismissBanner"
-      dismissible
-    />
-
     <!-- Header -->
     <div class="page-header-section">
       <PageHeader

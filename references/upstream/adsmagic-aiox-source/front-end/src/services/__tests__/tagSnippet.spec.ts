@@ -3,9 +3,16 @@ import {
   buildTagSnippet,
   buildDefaultTagScriptUrl,
   buildDefaultTrackingEndpoint,
+  TAG_WORKER_ORIGIN,
+  TAG_SCRIPT_URL,
 } from '@/services/tagSnippet'
 
 describe('tagSnippet', () => {
+  it('exports TAG_SCRIPT_URL pointing to the tag worker', () => {
+    expect(TAG_WORKER_ORIGIN).toBe('https://tag.adsmagic.com.br')
+    expect(TAG_SCRIPT_URL).toBe('https://tag.adsmagic.com.br/v1/adsmagic-tag.js')
+  })
+
   it('builds default URLs from origin', () => {
     expect(buildDefaultTagScriptUrl('https://app.adsmagic.com.br')).toBe(
       'https://app.adsmagic.com.br/adsmagic-tag.js'

@@ -15,6 +15,7 @@ import type {
 } from '@/types'
 import type { OnboardingStatus } from '@/types/onboarding'
 import { resetSessionValidation } from '@/services/sessionValidation'
+import { analytics } from '@/services/analytics'
 
 // ============================================================================
 // CONSTANTES
@@ -171,7 +172,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       await prepareForUserSwitch()
-      console.log('[Auth] Login attempt - supabaseEnabled:', supabaseEnabled, 'VITE_USE_MOCK:', import.meta.env.VITE_USE_MOCK, 'VITE_USE_SUPABASE:', import.meta.env.VITE_USE_SUPABASE)
 
       // Modo mock - simular login bem-sucedido quando Supabase está desligado
       if (!supabaseEnabled) {
@@ -216,13 +216,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { resetSessionStateForUserSwitch } = await import('@/services/api/client')
       resetSessionStateForUserSwitch()
 
-      // Logs detalhados para diagnóstico
-      console.log('[Auth] Login bem-sucedido, verificando perfil...')
-      console.log('[Auth] User ID:', authData.user.id)
-      console.log('[Auth] User metadata:', authData.user.user_metadata)
-
       // Carregar perfil do usuário
-      console.log('[Auth] Buscando user_profile...')
       let { data: profile, error: profileError } = await withTimeout(
         supabase
           .from('user_profiles')
@@ -239,15 +233,6 @@ export const useAuthStore = defineStore('auth', () => {
 
       // Se perfil não existe, criar agora (primeiro login após confirmação)
       if (!profile && !profileError) {
-        console.log('[Auth] Perfil não encontrado, criando...')
-        console.log('[Auth] Dados para criar perfil:', {
-          id: authData.user.id,
-          first_name: authData.user.user_metadata?.first_name || authData.user.email?.split('@')[0],
-          last_name: authData.user.user_metadata?.last_name || '',
-          phone: authData.user.user_metadata?.phone || null,
-          preferred_language: authData.user.user_metadata?.preferred_language || 'pt',
-          timezone: authData.user.user_metadata?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
-        })
 
         const { error: createProfileError } = await withTimeout(
           supabase
@@ -264,8 +249,6 @@ export const useAuthStore = defineStore('auth', () => {
           'create user profile'
         )
 
-        console.log('[Auth] Resultado criação perfil:', { createProfileError })
-
         if (createProfileError) {
           console.error('[Auth] ERRO CRÍTICO ao criar perfil:', createProfileError)
           console.error('[Auth] Código:', createProfileError.code)
@@ -274,7 +257,6 @@ export const useAuthStore = defineStore('auth', () => {
           console.error('[Auth] Message:', createProfileError.message)
           // Não bloqueia login, mas loga erro
         } else {
-          console.log('[Auth] Perfil criado com sucesso! Recarregando...')
           // Recarregar perfil criado
           const { data: newProfile } = await withTimeout(
             supabase
@@ -287,7 +269,6 @@ export const useAuthStore = defineStore('auth', () => {
           )
 
           profile = newProfile
-          console.log('[Auth] Perfil recarregado:', newProfile)
         }
       }
 
@@ -312,6 +293,9 @@ export const useAuthStore = defineStore('auth', () => {
         createdAt: new Date(authData.user.created_at),
         updatedAt: new Date()
       }
+
+      // Identificar usuário no analytics
+      analytics.identify(userData.id, { email: userData.email, name: userData.name })
 
       // Atualizar estado
       token.value = authData.session?.access_token || null
@@ -458,7 +442,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     onboardingStatusInFlightPromise = (async (): Promise<OnboardingStatus> => {
       try {
-        console.log('[Auth] Verificando onboarding_progress...')
 
         const { data, error: fetchError } = await supabase
           .from('onboarding_progress')
@@ -466,13 +449,10 @@ export const useAuthStore = defineStore('auth', () => {
           .eq('user_id', userId)
           .maybeSingle()
 
-        console.log('[Auth] Onboarding result:', { data, fetchError })
-
         // Se não existe, criar registro inicial
         if (!data && !fetchError) {
-          console.log('[Auth] Criando onboarding_progress...')
 
-          const { data: newProgress, error: createError } = await supabase
+          const { error: createError } = await supabase
             .from('onboarding_progress')
             .insert({
               user_id: userId,
@@ -485,8 +465,6 @@ export const useAuthStore = defineStore('auth', () => {
             })
             .select()
             .single()
-
-          console.log('[Auth] Resultado criação onboarding:', { newProgress, createError })
 
           if (createError) {
             console.error('[Auth] ERRO ao criar onboarding_progress:', createError)
@@ -588,6 +566,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const clearAuthData = () => {
     resetSessionValidation()
+    analytics.reset()
     token.value = null
     user.value = null
     onboardingStatus.value = { isCompleted: false }
@@ -724,7 +703,6 @@ export const useAuthStore = defineStore('auth', () => {
   // Listener de mudanças na sessão do Supabase (apenas se Supabase estiver habilitado)
   if (supabaseEnabled) {
     supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event)
 
       if (event === 'SIGNED_IN' && session) {
         // Atualizar token imediatamente (síncrono) para não bloquear signInWithPassword
@@ -816,12 +794,10 @@ export const useAuthStore = defineStore('auth', () => {
 
         if (savedToken && token.value) {
           // Preservar token durante SIGNED_OUT temporário (comum em OAuth)
-          console.log('[Auth] SIGNED_OUT detectado - preservando token para OAuth callback')
 
           // Se OAuth está em progresso, NÃO limpar dados (aguardar callback)
           // Isso previne limpeza prematura durante fluxo OAuth ativo
           if (oauthInProgress) {
-            console.log('[Auth] OAuth em progresso - não limpar dados durante SIGNED_OUT')
             // Não fazer setTimeout, apenas preservar token
             // A flag será limpa após OAuth callback bem-sucedido
             return
@@ -834,11 +810,9 @@ export const useAuthStore = defineStore('auth', () => {
             supabase.auth.getSession().then(({ data: { session } }) => {
               if (!session && token.value === savedToken) {
                 // Se ainda não há sessão e token não mudou, então realmente limpar
-                console.log('[Auth] Sessão não restaurada após 15s, limpando dados')
                 clearAuthData()
               } else if (session) {
                 // Sessão foi restaurada, atualizar token
-                console.log('[Auth] Sessão restaurada, atualizando token')
                 token.value = session.access_token
                 localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, session.access_token)
               }

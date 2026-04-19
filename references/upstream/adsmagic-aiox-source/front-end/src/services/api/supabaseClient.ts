@@ -8,19 +8,6 @@ const useSupabaseEnv = import.meta.env.VITE_USE_SUPABASE === 'true' || import.me
 // Se mocks estão ativos OU Supabase explicitamente desabilitado, desabilita Supabase
 const useSupabase = !useMockEnv && useSupabaseEnv
 
-// Debug log para diagnóstico
-if (import.meta.env.DEV) {
-  console.log('[Supabase Client] Configuração:', {
-    VITE_USE_MOCK: import.meta.env.VITE_USE_MOCK,
-    VITE_USE_SUPABASE: import.meta.env.VITE_USE_SUPABASE,
-    useMockEnv,
-    useSupabaseEnv,
-    useSupabase,
-    hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
-    hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
-  })
-}
-
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 

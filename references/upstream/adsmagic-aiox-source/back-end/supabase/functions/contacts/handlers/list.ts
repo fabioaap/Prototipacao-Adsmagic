@@ -33,7 +33,6 @@ export async function handleList(
       search, 
       origin_id, 
       stage_id, 
-      tag_ids,
       is_favorite, 
       sort = 'created_at', 
       limit = 50, 
@@ -75,38 +74,6 @@ export async function handleList(
     // Aplicar filtro de estágio
     if (stage_id) {
       query = query.eq('current_stage_id', stage_id)
-    }
-
-    // Aplicar filtro por tags (qualquer uma das tags selecionadas)
-    if (tag_ids && tag_ids.length > 0) {
-      const { data: contactTags, error: contactTagsError } = await supabaseClient
-        .from('contact_tags')
-        .select('contact_id')
-        .in('tag_id', tag_ids)
-
-      if (contactTagsError) {
-        console.error('[List Contacts] Error fetching contact tags:', contactTagsError)
-        return errorResponse('Failed to fetch contact tags', 500)
-      }
-
-      const contactIds = Array.from(
-        new Set((contactTags || []).map((item: { contact_id: string }) => item.contact_id))
-      )
-
-      if (contactIds.length === 0) {
-        const emptyResponse: ContactsListResponse = {
-          data: [],
-          meta: {
-            total: 0,
-            limit,
-            offset
-          }
-        }
-
-        return successResponse(emptyResponse, 200)
-      }
-
-      query = query.in('id', contactIds)
     }
 
     // Aplicar filtro de favoritos
@@ -158,7 +125,7 @@ export async function handleList(
     console.log('[List Contacts Success]', { 
       count: contacts?.length || 0, 
       total: count,
-      filters: { project_id, search, origin_id, stage_id, tag_ids, is_favorite, sort, limit, offset }
+      filters: { project_id, search, origin_id, stage_id, is_favorite, sort, limit, offset }
     })
 
     return successResponse(response, 200)

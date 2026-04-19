@@ -6,6 +6,9 @@
 import { successResponse, errorResponse, validationErrorResponse } from '../utils/response.ts'
 import { WhatsAppSender } from '../core/sender.ts'
 import { MessagingAccountRepository } from '../repositories/MessagingAccountRepository.ts'
+import { SupabaseContactRepository } from '../repositories/ContactRepository.ts'
+import { ConversationPersistenceService } from '../services/ConversationPersistenceService.ts'
+import { extractPhoneNumber } from '../utils/identifier-normalizer.ts'
 import type { SendMessageDTO, NormalizedMessage } from '../types.ts'
 import { sendMessageSchema, extractValidationErrors } from '../validators/messaging.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
@@ -82,12 +85,39 @@ export async function handleSendMessage(
     const sender = new WhatsAppSender()
     const result = await sender.sendMessage(account, normalizedMessage)
     
+    // Atualizar o externalMessageId com o ID retornado pelo broker
+    normalizedMessage.externalMessageId = result.messageId || ''
+
+    // Persistir mensagem outbound no histórico de conversas (non-blocking)
+    try {
+      const contactRepo = new SupabaseContactRepository(supabaseClient)
+      const parsedPhone = extractPhoneNumber(data.to)
+      const recipientContact = await contactRepo.findByAnyIdentifier({
+        projectId: account.project_id,
+        phone: parsedPhone.phone,
+        countryCode: parsedPhone.countryCode,
+      })
+
+      if (recipientContact) {
+        const conversationPersistence = new ConversationPersistenceService(supabaseClient)
+        await conversationPersistence.persistMessage({
+          normalizedMessage,
+          direction: 'outbound',
+          projectId: account.project_id,
+          contactId: recipientContact.id,
+          messagingAccountId: account.id,
+        })
+      }
+    } catch (persistError) {
+      console.error('[Send Message Handler] Error persisting message (non-blocking):', persistError)
+    }
+
     // Atualizar estatísticas
     await accountRepo.updateStats(data.accountId, {
       totalMessages: account.total_messages + 1,
       lastMessageAt: new Date().toISOString(),
     })
-    
+
     return successResponse({
       messageId: result.messageId,
       status: result.status,

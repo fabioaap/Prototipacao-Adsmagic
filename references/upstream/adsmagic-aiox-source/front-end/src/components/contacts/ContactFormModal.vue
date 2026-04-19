@@ -288,7 +288,7 @@ const handleClose = () => {
         </div>
       </div>
 
-      <!-- Empresa -->
+      <!-- Empresa (desativado — será via configuração futura)
       <FormField
         label="Empresa"
         :error="errors.company"
@@ -300,6 +300,7 @@ const handleClose = () => {
           :error="!!errors.company"
         />
       </FormField>
+      -->
 
       <!-- Localização -->
       <FormField

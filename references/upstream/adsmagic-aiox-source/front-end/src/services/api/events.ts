@@ -9,6 +9,7 @@
 
 import { apiClient } from './client'
 import type { Event, EventFilters, PaginatedResponse, PaginationInfo } from '@/types'
+import { adaptEvent, adaptEvents } from './adapters/eventsAdapter'
 
 // Mock data para desenvolvimento
 const MOCK_EVENTS: Event[] = [
@@ -460,7 +461,7 @@ function convertBackendResponseToPaginated(
   backendResponse: BackendEventsResponse,
   filters?: EventFilters
 ): PaginatedResponse<Event> {
-  const events = backendResponse.data || []
+  const events = adaptEvents((backendResponse.data || []) as unknown as Record<string, unknown>[])
   
   // Se já tem pagination, usar diretamente
   if (backendResponse.pagination) {
@@ -530,7 +531,7 @@ function normalizePaginatedResponse(
 
   // Se já está no formato correto (com pagination), usar diretamente
   if ('pagination' in data && data.pagination) {
-    const events = data.data || []
+    const events = adaptEvents((data.data || []) as unknown as Record<string, unknown>[])
     const pagination = normalizePagination(data.pagination, events.length, filters)
     
     return {
@@ -544,20 +545,50 @@ function normalizePaginatedResponse(
   
   // Log apenas em desenvolvimento se foi necessário converter
   if ('meta' in data && !('pagination' in data) && import.meta.env.DEV) {
-    console.log(
-      '[EventsService] Convertendo resposta do backend (meta -> pagination)',
-      { 
-        meta: data.meta, 
-        pagination: converted.pagination,
-        eventsCount: converted.data.length 
-      }
-    )
   }
 
   return converted
 }
 
+export interface CreateEventInput {
+  name: string
+  platform: string
+  type: string
+  defaultValue?: number
+  allowMultiplePurchases?: boolean
+}
+
 export const eventsService = {
+  /**
+   * Criar um novo evento de conversão
+   */
+  async create(input: CreateEventInput): Promise<Event> {
+    if (USE_MOCK) {
+      await new Promise(resolve => setTimeout(resolve, 300))
+      const newEvent: Event = {
+        id: `event_${Date.now()}`,
+        projectId: localStorage.getItem('current_project_id') || '',
+        platform: input.platform as Event['platform'],
+        type: input.type as Event['type'],
+        contactId: '',
+        status: 'pending',
+        retryCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        payload: {
+          event_name: input.name,
+          value: input.defaultValue || 0,
+          currency: 'BRL',
+        },
+        metadata: {}
+      }
+      return newEvent
+    }
+
+    const response = await apiClient.post<Record<string, unknown>>('/events', input)
+    return adaptEvent(response.data)
+  },
+
   /**
    * Buscar todos os eventos com filtros
    */
@@ -626,11 +657,23 @@ export const eventsService = {
       }
     }
 
-    // API real
+    // API real: converter page/pageSize (frontend) → limit/offset (backend)
+    const page = filters?.page || 1
+    const pageSize = filters?.pageSize || 10
+    const backendParams: Record<string, unknown> = {
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    }
+    if (filters?.platform) backendParams.platform = filters.platform
+    if (filters?.status) backendParams.status = filters.status
+    if (filters?.eventType || filters?.type) backendParams.event_type = filters.eventType || filters.type
+    if (filters?.contactId) backendParams.contact_id = filters.contactId
+    if (filters?.projectId) backendParams.project_id = filters.projectId
+
     const response = await apiClient.get<PaginatedResponse<Event>>('/events', {
-      params: filters
+      params: backendParams
     })
-    
+
     // Normaliza resposta garantindo estrutura válida (SRP: responsabilidade única)
     return normalizePaginatedResponse(response.data, filters)
   },
@@ -644,8 +687,8 @@ export const eventsService = {
       return MOCK_EVENTS.find(event => event.id === id) || null
     }
 
-    const response = await apiClient.get<Event>(`/events/${id}`)
-    return response.data
+    const response = await apiClient.get<Record<string, unknown>>(`/events/${id}`)
+    return response.data ? adaptEvent(response.data) : null
   },
 
   /**
@@ -675,8 +718,8 @@ export const eventsService = {
       return MOCK_EVENTS[index]!
     }
 
-    const response = await apiClient.post<Event>(`/events/${id}/retry`)
-    return response.data
+    const response = await apiClient.post<Record<string, unknown>>(`/events/${id}/retry`)
+    return adaptEvent(response.data)
   },
 
   /**
@@ -688,8 +731,8 @@ export const eventsService = {
       return MOCK_EVENTS.filter(event => event.contactId === contactId)
     }
 
-    const response = await apiClient.get<Event[]>(`/events/contact/${contactId}`)
-    return response.data
+    const response = await apiClient.get<Record<string, unknown>[]>(`/events/contact/${contactId}`)
+    return adaptEvents(response.data)
   },
 
   /**
@@ -701,8 +744,8 @@ export const eventsService = {
       return MOCK_EVENTS.filter(event => event.saleId === saleId)
     }
 
-    const response = await apiClient.get<Event[]>(`/events/sale/${saleId}`)
-    return response.data
+    const response = await apiClient.get<Record<string, unknown>[]>(`/events/sale/${saleId}`)
+    return adaptEvents(response.data)
   },
 
   /**

@@ -79,21 +79,21 @@ onUnmounted(() => {
 
 const sizeClasses = computed(() => {
   const sizes = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    full: 'max-w-full',
+    sm: 'sm:w-[24rem]',
+    md: 'sm:w-[28rem]',
+    lg: 'sm:w-[32rem]',
+    xl: 'sm:w-[36rem]',
+    full: 'sm:w-full',
   }
   return sizes[props.size]
 })
 
 const drawerClass = cn(
   'fixed right-0 top-0 h-full bg-card text-card-foreground shadow-lg',
-  'transform transition-transform duration-300 ease-in-out',
+  'transform transition-transform duration-200 ease-in-out',
   'flex flex-col',
-  // Fullscreen em mobile, border-l apenas em desktop
-  'w-full sm:w-auto sm:border-l',
+  // Fullscreen em mobile, largura fixa em desktop
+  'w-full sm:border-l',
   sizeClasses.value
 )
 </script>
@@ -101,28 +101,28 @@ const drawerClass = cn(
 <template>
   <Teleport to="body">
     <Transition
-      enter-active-class="transition-opacity duration-300"
+      enter-active-class="transition-opacity duration-200"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition-opacity duration-300"
+      leave-active-class="transition-opacity duration-200"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
       <div
         v-if="open"
-        class="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+        class="fixed inset-0 z-50 bg-black/50"
         @click="handleOverlayClick"
       >
         <Transition
-          enter-active-class="transition-transform duration-300 ease-in-out"
+          appear
+          enter-active-class="transition-transform duration-200 ease-in-out"
           enter-from-class="translate-x-full"
           enter-to-class="translate-x-0"
-          leave-active-class="transition-transform duration-300 ease-in-out"
+          leave-active-class="transition-transform duration-200 ease-in-out"
           leave-from-class="translate-x-0"
           leave-to-class="translate-x-full"
         >
           <div
-            v-if="open"
             :class="drawerClass"
             role="dialog"
             aria-modal="true"

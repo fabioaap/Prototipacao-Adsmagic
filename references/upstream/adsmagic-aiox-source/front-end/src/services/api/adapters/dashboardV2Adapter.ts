@@ -17,7 +17,9 @@ import type {
   NorthStarCustomMetricValue,
   TimeSeriesPoint,
   OriginPerformance,
+  FunnelCountMode,
   FunnelStageStats,
+  FunnelStatsView,
   PipelineStageStats,
   DrillDownEntity
 } from '@/types'
@@ -304,30 +306,44 @@ export interface BackendFunnelStage {
   avgDays: number
 }
 
-/** Resposta do GET /dashboard/funnel-stats */
-export interface BackendFunnelStatsResponse {
+export interface BackendFunnelView {
   stages: BackendFunnelStage[]
-  totalContacts: number
   overallConversionRate: number
 }
 
-/**
- * Mapeia a resposta do GET /dashboard/funnel-stats para FunnelStageStats[].
- * avgDays → avgTimeInStage.
- *
- * @param raw - Resposta do backend (stages, totalContacts, overallConversionRate)
- * @returns stages mapeados para FunnelStageStats[]
- */
-export function mapBackendFunnelStatsToFunnelStageStats(
-  raw: BackendFunnelStatsResponse
-): FunnelStageStats[] {
-  return (raw.stages ?? []).map((stage) => ({
+/** Resposta do GET /dashboard/funnel-stats */
+export interface BackendFunnelStatsResponse {
+  totalContacts: number
+  views?: Record<FunnelCountMode, BackendFunnelView>
+}
+
+function mapBackendFunnelStages(stages: BackendFunnelStage[] | undefined): FunnelStageStats[] {
+  return (stages ?? []).map((stage) => ({
     stageId: stage.stageId,
     stageName: stage.stageName,
     count: stage.count,
     conversionRate: stage.conversionRate,
     avgTimeInStage: stage.avgDays
   }))
+}
+
+function mapBackendFunnelView(view?: BackendFunnelView): FunnelStatsView {
+  return {
+    stages: mapBackendFunnelStages(view?.stages),
+    overallConversionRate: view?.overallConversionRate ?? 0
+  }
+}
+
+/**
+ * Mapeia a resposta do GET /dashboard/funnel-stats para as visões do funil.
+ */
+export function mapBackendFunnelStatsToFunnelViews(
+  raw: BackendFunnelStatsResponse
+): Record<FunnelCountMode, FunnelStatsView> {
+  return {
+    current: mapBackendFunnelView(raw.views?.current),
+    passed: mapBackendFunnelView(raw.views?.passed)
+  }
 }
 
 // ============================================================================

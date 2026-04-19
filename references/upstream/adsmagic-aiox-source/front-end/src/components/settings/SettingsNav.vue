@@ -13,21 +13,21 @@ const activeTriggerClass = "bg-background text-foreground shadow-sm"
 const inactiveTriggerClass = "text-muted-foreground hover:bg-background/50 hover:text-foreground"
 
 const links = [
-  { name: 'settings-general', labelKey: 'settings.links.general', defaultLabel: 'Geral' },
-  { name: 'settings-funnel', labelKey: 'settings.links.funnel', defaultLabel: 'Funil' },
-  { name: 'settings-origins', labelKey: 'settings.links.origins', defaultLabel: 'Origens' }
+  { name: 'settings-general', labelKey: 'settings.links.general' },
+  { name: 'settings-funnel', labelKey: 'settings.links.funnel' },
+  { name: 'settings-origins', labelKey: 'settings.links.origins' }
 ]
 </script>
 
 <template>
-  <nav :class="tabsListClass" aria-label="Navegação de Configurações">
+  <nav :class="tabsListClass" :aria-label="t('settings.navAriaLabel', 'Settings Navigation')">
     <RouterLink
       v-for="link in links"
       :key="link.name"
       :to="{ name: link.name, params: route.params }"
       :class="cn(baseTriggerClass, route.name === link.name ? activeTriggerClass : inactiveTriggerClass)"
     >
-      {{ t(link.labelKey, link.defaultLabel) }}
+      {{ t(link.labelKey) }}
     </RouterLink>
   </nav>
 </template>

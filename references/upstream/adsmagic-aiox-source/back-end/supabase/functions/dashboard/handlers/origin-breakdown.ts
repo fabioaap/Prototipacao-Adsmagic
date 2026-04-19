@@ -53,12 +53,20 @@ export async function handleOriginBreakdown(
     }
     const { start: startDate, end: endDate } = dateRangeResult
 
+    const originId = url.searchParams.get('origin') || null
+
     // Buscar origens do projeto (system + custom)
-    const { data: origins, error: originsError } = await supabaseClient
+    let originsQuery = supabaseClient
       .from('origins')
       .select('id, name, type')
       .or(`project_id.is.null,project_id.eq.${projectId}`)
       .or('is_active.eq.true,is_active.is.null')
+
+    if (originId && originId !== 'all') {
+      originsQuery = originsQuery.eq('id', originId)
+    }
+
+    const { data: origins, error: originsError } = await originsQuery
 
     if (originsError) {
       console.error('[Origin Breakdown] Error fetching origins:', originsError)
@@ -69,38 +77,42 @@ export async function handleOriginBreakdown(
       return successResponse([], 200)
     }
 
-    // Buscar contatos por origem (criados no período)
-    const { data: contacts, error: contactsError } = await supabaseClient
-      .from('contacts')
-      .select('id, main_origin_id, created_at')
-      .eq('project_id', projectId)
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString())
+    // Fetch contacts, sales, and ad metrics in parallel
+    const [contactsResult, salesResult, adMetricsByPlatform] = await Promise.all([
+      supabaseClient
+        .from('contacts')
+        .select('id, main_origin_id, created_at')
+        .eq('project_id', projectId)
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString()),
+      supabaseClient
+        .from('sales')
+        .select(`
+          id,
+          value,
+          origin_id,
+          contact_id,
+          status,
+          contacts(main_origin_id)
+        `)
+        .eq('project_id', projectId)
+        .eq('status', 'completed')
+        .gte('date', startDate.toISOString())
+        .lte('date', endDate.toISOString()),
+      getAdMetricsPerPlatform(supabaseClient, projectId, startDate, endDate),
+    ])
 
-    if (contactsError) {
-      console.error('[Origin Breakdown] Error fetching contacts:', contactsError)
+    if (contactsResult.error) {
+      console.error('[Origin Breakdown] Error fetching contacts:', contactsResult.error)
       return errorResponse('Failed to fetch contacts', 500)
     }
 
-    // Buscar vendas por origem (via contatos ou origin_id direto)
-    const { data: sales, error: salesError } = await supabaseClient
-      .from('sales')
-      .select(`
-        id,
-        value,
-        origin_id,
-        contact_id,
-        status,
-        contacts(main_origin_id)
-      `)
-      .eq('project_id', projectId)
-      .eq('status', 'completed')
-      .gte('date', startDate.toISOString())
-      .lte('date', endDate.toISOString())
-
-    if (salesError) {
-      console.error('[Origin Breakdown] Error fetching sales:', salesError)
+    if (salesResult.error) {
+      console.error('[Origin Breakdown] Error fetching sales:', salesResult.error)
     }
+
+    const contacts = contactsResult.data
+    const sales = salesResult.data
 
     // Agrupar vendas por origem (via contato, com fallback para sale.origin_id)
     const salesByOrigin: Record<string, { count: number; revenue: number }> = {}
@@ -125,9 +137,6 @@ export async function handleOriginBreakdown(
       }
     }
 
-    // Buscar spend real das integrações de ads, agrupado por plataforma→origem
-    const adMetricsByPlatform = await getAdMetricsPerPlatform(supabaseClient, projectId, startDate, endDate)
-
     // Mapear spend por origin ID (usando nome da origem para match)
     const spendByOrigin: Record<string, number> = {}
     for (const origin of origins) {
@@ -146,8 +155,8 @@ export async function handleOriginBreakdown(
       const spend = spendByOrigin[originId] || 0
 
       const conversionRate = contacts > 0 ? (sales / contacts) * 100 : 0
-      const cac = contacts > 0 ? spend / contacts : 0
-      const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : 0
+      const cac = sales > 0 ? spend / sales : 0
+      const roi = spend > 0 ? revenue / spend : 0
 
       breakdown.push({
         originId,

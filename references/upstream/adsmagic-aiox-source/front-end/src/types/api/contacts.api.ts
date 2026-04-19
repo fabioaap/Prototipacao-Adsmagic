@@ -218,9 +218,6 @@ export interface BackendContactsListParams {
   /** Filter by stage ID (UUID) - singular, not array */
   stage_id?: string
 
-  /** Filter by tag IDs (UUIDs separated by comma) */
-  tag_ids?: string
-
   /** Filter by favorite status */
   is_favorite?: boolean
 

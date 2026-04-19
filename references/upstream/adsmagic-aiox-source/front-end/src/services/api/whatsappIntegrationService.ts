@@ -181,7 +181,6 @@ async function withRetry<T>(
     const delay = RETRY_DELAY_BASE * (MAX_RETRIES - retries + 1)
     await new Promise(resolve => setTimeout(resolve, delay))
 
-    console.log(`[WhatsAppService] Retry ${MAX_RETRIES - retries + 1}/${MAX_RETRIES}...`)
     return withRetry(operation, retries - 1)
   }
 }
@@ -204,13 +203,11 @@ export const whatsappIntegrationService = {
    * ```ts
    * const result = await whatsappIntegrationService.listAvailableBrokers()
    * if (result.success) {
-   *   console.log('Brokers:', result.data)
    * }
    * ```
    */
   async listAvailableBrokers(): ServiceResult<WhatsAppBroker[]> {
     try {
-      console.log('[WhatsAppService] Listando brokers disponíveis...')
 
       const response = await apiClient.get<{ brokers: BackendWhatsAppBroker[] }>(
         `${MESSAGING_BASE_PATH}/brokers`,
@@ -219,7 +216,6 @@ export const whatsappIntegrationService = {
 
       const normalizedBrokers = whatsappAdapter.normalizeBrokerList(response.data.brokers)
 
-      console.log('[WhatsAppService] Brokers carregados:', normalizedBrokers.length)
       return { success: true, data: normalizedBrokers }
     } catch (error) {
       console.error('[WhatsAppService] Erro ao listar brokers:', error)
@@ -244,7 +240,6 @@ export const whatsappIntegrationService = {
    */
   async createInstance(params: CreateInstanceParams): ServiceResult<CreateInstanceResponse> {
     try {
-      console.log('[WhatsAppService] Criando instância...', { projectId: params.projectId })
 
       const response = await withRetry(() =>
         apiClient.post<{
@@ -260,14 +255,6 @@ export const whatsappIntegrationService = {
           { timeout: DEFAULT_TIMEOUT }
         )
       )
-
-      // Log da resposta para debug
-      console.log('[WhatsAppService] Resposta recebida:', {
-        hasData: !!response.data,
-        dataKeys: response.data ? Object.keys(response.data) : [],
-        hasInstance: !!response.data?.instance,
-        instanceKeys: response.data?.instance ? Object.keys(response.data.instance) : [],
-      })
 
       // Validação de segurança: verificar se a resposta tem o formato esperado
       if (!response.data?.instance) {
@@ -294,7 +281,6 @@ export const whatsappIntegrationService = {
         accountId: response.data.account_id,
       }
 
-      console.log('[WhatsAppService] Instância criada:', normalizedInstance.instanceId)
       return { success: true, data: result }
     } catch (error) {
       console.error('[WhatsAppService] Erro ao criar instância:', error)
@@ -324,7 +310,6 @@ export const whatsappIntegrationService = {
    */
   async connectInstance(params: ConnectInstanceParams): ServiceResult<ConnectInstanceResponse> {
     try {
-      console.log('[WhatsAppService] Conectando instância...', { accountId: params.accountId })
 
       const body: { phone?: string } = {}
       if (params.phone) {
@@ -363,10 +348,6 @@ export const whatsappIntegrationService = {
           status: 'connected',
         }
         
-        console.log('[WhatsAppService] Instância já conectada:', {
-          phoneNumber: connectionData.phoneNumber,
-          profileName: connectionData.profileName,
-        })
         return { success: true, data: result }
       }
 
@@ -379,10 +360,6 @@ export const whatsappIntegrationService = {
         status: 'connecting',
       }
 
-      console.log('[WhatsAppService] Conexão iniciada:', result.connectionMethod, {
-        hasQrCode: !!result.qrcode,
-        hasPairCode: !!result.pairCode,
-      })
       return { success: true, data: result }
     } catch (error) {
       console.error('[WhatsAppService] Erro ao conectar instância:', error)
@@ -400,7 +377,6 @@ export const whatsappIntegrationService = {
    * ```ts
    * const result = await whatsappIntegrationService.checkConnectionStatus('uuid-da-conta')
    * if (result.success && result.data.status === 'connected') {
-   *   console.log('Conectado!', result.data.phoneNumber)
    * }
    * ```
    */
@@ -467,7 +443,6 @@ export const whatsappIntegrationService = {
    */
   async configureBroker(params: ConfigureBrokerParams): ServiceResult<ConfigureBrokerResponse> {
     try {
-      console.log('[WhatsAppService] Configurando broker...', { brokerId: params.brokerId })
 
       const response = await apiClient.post<{
         valid: boolean
@@ -497,7 +472,6 @@ export const whatsappIntegrationService = {
           : undefined,
       }
 
-      console.log('[WhatsAppService] Configuração:', result.valid ? 'válida' : 'inválida')
       return { success: true, data: result }
     } catch (error) {
       console.error('[WhatsAppService] Erro ao configurar broker:', error)
@@ -527,10 +501,6 @@ export const whatsappIntegrationService = {
     params: SaveConnectedAccountParams
   ): ServiceResult<SaveConnectedAccountResponse> {
     try {
-      console.log('[WhatsAppService] Salvando conta conectada...', {
-        projectId: params.projectId,
-        brokerType: params.brokerType,
-      })
 
       const response = await withRetry(() =>
         apiClient.post<{
@@ -560,11 +530,61 @@ export const whatsappIntegrationService = {
         status: response.data.status,
       }
 
-      console.log('[WhatsAppService] Conta salva:', result.accountId)
       cacheService.invalidatePattern(ACCOUNTS_CACHE_PREFIX)
       return { success: true, data: result }
     } catch (error) {
       console.error('[WhatsAppService] Erro ao salvar conta:', error)
+      return { success: false, error: mapApiError(error) }
+    }
+  },
+
+  /**
+   * Cria conta WhatsApp via webhook (API Oficial Meta)
+   *
+   * @param params - Parâmetros para criação
+   * @returns Dados da conta criada incluindo webhook URL
+   */
+  async createOfficialWebhookAccount(params: {
+    projectId: string
+    phoneNumberId: string
+    accessToken?: string
+    accountName?: string
+  }): ServiceResult<{
+    accountId: string
+    webhookUrl: string
+    phoneNumber?: string
+    accountName?: string
+  }> {
+    try {
+
+      const response = await apiClient.post<{
+        account_id: string
+        webhook_url: string
+        phone_number?: string
+        account_name?: string
+      }>(
+        `${MESSAGING_BASE_PATH}/save-connected-account`,
+        {
+          projectId: params.projectId,
+          brokerType: 'official_whatsapp',
+          phoneNumberId: params.phoneNumberId,
+          accessToken: params.accessToken,
+          accountName: params.accountName,
+        },
+        { timeout: DEFAULT_TIMEOUT }
+      )
+
+      const result = {
+        accountId: response.data.account_id,
+        webhookUrl: response.data.webhook_url,
+        phoneNumber: response.data.phone_number,
+        accountName: response.data.account_name,
+      }
+
+      cacheService.invalidatePattern(ACCOUNTS_CACHE_PREFIX)
+      return { success: true, data: result }
+    } catch (error) {
+      console.error('[WhatsAppService] Erro ao criar conta webhook:', error)
       return { success: false, error: mapApiError(error) }
     }
   },
@@ -577,7 +597,6 @@ export const whatsappIntegrationService = {
    */
   async getConnectedAccount(accountId: string): ServiceResult<ConnectedAccount> {
     try {
-      console.log('[WhatsAppService] Buscando conta...', { accountId })
 
       const response = await apiClient.get<{
         account_id: string
@@ -614,7 +633,6 @@ export const whatsappIntegrationService = {
    */
   async disconnectAccount(accountId: string): ServiceResult<void> {
     try {
-      console.log('[WhatsAppService] Desconectando conta...', { accountId })
 
       await apiClient.post(
         `${MESSAGING_BASE_PATH}/disconnect/${accountId}`,
@@ -622,7 +640,6 @@ export const whatsappIntegrationService = {
         { timeout: DEFAULT_TIMEOUT }
       )
 
-      console.log('[WhatsAppService] Conta desconectada:', accountId)
       cacheService.invalidatePattern(ACCOUNTS_CACHE_PREFIX)
       return { success: true, data: undefined }
     } catch (error) {
@@ -641,7 +658,6 @@ export const whatsappIntegrationService = {
    * ```ts
    * const result = await whatsappIntegrationService.listProjectAccounts('uuid-do-projeto')
    * if (result.success && result.data.length > 0) {
-   *   console.log('Contas:', result.data)
    * }
    * ```
    */
@@ -650,11 +666,8 @@ export const whatsappIntegrationService = {
       const cacheKey = `${ACCOUNTS_CACHE_PREFIX}:${projectId}`
       const cached = cacheService.get<ConnectedAccount[]>(cacheKey)
       if (cached) {
-        console.log('[WhatsAppService] Retornando contas do cache', { projectId })
         return { success: true, data: cached }
       }
-
-      console.log('[WhatsAppService] Listando contas do projeto...', { projectId })
 
       const response = await apiClient.get<{
         accounts: Array<{
@@ -690,7 +703,6 @@ export const whatsappIntegrationService = {
         })
       )
 
-      console.log('[WhatsAppService] Contas encontradas:', accounts.length)
       cacheService.set(cacheKey, accounts, ACCOUNTS_CACHE_TTL)
       return { success: true, data: accounts }
     } catch (error) {
@@ -710,13 +722,39 @@ export const whatsappIntegrationService = {
    * ```ts
    * const result = await whatsappIntegrationService.getExistingAccount('uuid-da-conta')
    * if (result.success && result.data) {
-   *   console.log('Conta encontrada:', result.data)
    * }
    * ```
    */
+  /**
+   * Cria token de compartilhamento para QR Code do WhatsApp
+   *
+   * Gera um link público para que terceiros possam escanear o QR Code
+   * sem precisar de acesso ao sistema.
+   *
+   * @param accountId - ID da conta WhatsApp
+   * @returns URL de compartilhamento e data de expiração
+   */
+  async createShareToken(
+    accountId: string
+  ): ServiceResult<{ shareUrl: string; token: string; expiresAt: string }> {
+    try {
+
+      const response = await apiClient.post(
+        `${MESSAGING_BASE_PATH}/share/${accountId}`,
+        {},
+        { timeout: DEFAULT_TIMEOUT }
+      )
+
+      const { shareUrl, token, expiresAt } = response.data
+      return { success: true, data: { shareUrl, token, expiresAt } }
+    } catch (error) {
+      console.error('[WhatsAppService] Erro ao criar token de compartilhamento:', error)
+      return { success: false, error: mapApiError(error) }
+    }
+  },
+
   async getExistingAccount(accountId: string): ServiceResult<ConnectedAccount | null> {
     try {
-      console.log('[WhatsAppService] Verificando conta existente...', { accountId })
 
       const result = await this.getConnectedAccount(accountId)
       if (result.success) {

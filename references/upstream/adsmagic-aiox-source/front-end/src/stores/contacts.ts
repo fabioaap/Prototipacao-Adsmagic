@@ -62,11 +62,12 @@ export const useContactsStore = defineStore('contacts', () => {
     (newProjectId, oldProjectId) => {
       // Only clear if project actually changed
       if (newProjectId !== oldProjectId) {
-        console.log('[Contacts Store] Project changed, clearing data:', { oldProjectId, newProjectId })
 
         // Clear all data
         contacts.value = []
         kanbanContacts.value = []
+        kanbanCacheKey = ''
+        kanbanCacheTime = 0
         selectedContact.value = null
         error.value = null
 
@@ -84,12 +85,8 @@ export const useContactsStore = defineStore('contacts', () => {
           pageSize: 10
         }
 
-        // Reload data for new project if project exists
-        if (newProjectId) {
-          console.log('[Contacts Store] Loading data for new project:', newProjectId)
-          fetchContacts()
-          fetchKanbanContacts()
-        }
+        // Data will be fetched on demand when the view mounts
+        // No auto-fetch here to avoid duplicate calls
       }
     },
     { immediate: false }
@@ -107,6 +104,11 @@ export const useContactsStore = defineStore('contacts', () => {
   const isFetchingKanban = ref(false)
   let fetchContactsRequestId = 0
   let fetchKanbanContactsRequestId = 0
+
+  // Kanban cache (5 min TTL)
+  let kanbanCacheKey = ''
+  let kanbanCacheTime = 0
+  const KANBAN_CACHE_TTL = 5 * 60 * 1000
 
   /**
    * Indica mutações em andamento (create/update/delete/move)
@@ -213,7 +215,6 @@ export const useContactsStore = defineStore('contacts', () => {
       filters.value.search ||
       (filters.value.origins && filters.value.origins.length > 0) ||
       (filters.value.stages && filters.value.stages.length > 0) ||
-      (filters.value.tags && filters.value.tags.length > 0) ||
       filters.value.dateFrom ||
       filters.value.dateTo ||
       filters.value.hasSales !== undefined
@@ -274,15 +275,6 @@ export const useContactsStore = defineStore('contacts', () => {
         contacts.value = result.value.data
         pagination.value = result.value.pagination
 
-        console.log(
-          '[Contacts Store] Fetched',
-          result.value.data.length,
-          'contacts (page',
-          result.value.pagination.page,
-          'of',
-          result.value.pagination.totalPages,
-          ')'
-        )
       } else {
         throw result.error
       }
@@ -307,12 +299,19 @@ export const useContactsStore = defineStore('contacts', () => {
    * @param newFilters - Filtros opcionais (usa state.filters se não informado)
    */
   const fetchKanbanContacts = async (newFilters?: ContactFilters): Promise<void> => {
+    const sourceFilters = newFilters ? { ...filters.value, ...newFilters } : { ...filters.value }
+
+    // Check cache - skip fetch if same filters and cache is fresh
+    const cacheKey = JSON.stringify(sourceFilters)
+    if (cacheKey === kanbanCacheKey && kanbanContacts.value.length > 0 && Date.now() - kanbanCacheTime < KANBAN_CACHE_TTL) {
+      return
+    }
+
     const requestId = ++fetchKanbanContactsRequestId
     isFetchingKanban.value = true
     error.value = null
 
     try {
-      const sourceFilters = newFilters ? { ...filters.value, ...newFilters } : { ...filters.value }
       const batchSize = 100
       const baseFilters: ContactFilters = {
         ...sourceFilters,
@@ -350,14 +349,9 @@ export const useContactsStore = defineStore('contacts', () => {
         return
       }
       kanbanContacts.value = allContacts
+      kanbanCacheKey = cacheKey
+      kanbanCacheTime = Date.now()
 
-      console.log(
-        '[Contacts Store] Fetched',
-        allContacts.length,
-        'contacts for kanban (across',
-        totalPages,
-        'pages)'
-      )
     } catch (err) {
       if (requestId !== fetchKanbanContactsRequestId) {
         return
@@ -397,7 +391,6 @@ export const useContactsStore = defineStore('contacts', () => {
 
       if (result.ok) {
         selectedContact.value = result.value
-        console.log('[Contacts Store] Selected contact:', result.value?.name)
       } else {
         throw result.error
       }
@@ -434,7 +427,6 @@ export const useContactsStore = defineStore('contacts', () => {
         // Atualiza contador total
         pagination.value.total += 1
 
-        console.log('[Contacts Store] Created contact:', result.value.name)
         return result.value
       } else {
         throw result.error
@@ -476,7 +468,6 @@ export const useContactsStore = defineStore('contacts', () => {
           selectedContact.value = result.value
         }
 
-        console.log('[Contacts Store] Updated contact:', result.value.name)
         return result.value
       } else {
         throw result.error
@@ -516,7 +507,6 @@ export const useContactsStore = defineStore('contacts', () => {
         // Atualiza contador total
         pagination.value.total -= 1
 
-        console.log('[Contacts Store] Deleted contact:', id)
       } else {
         throw result.error
       }
@@ -557,7 +547,6 @@ export const useContactsStore = defineStore('contacts', () => {
           selectedContact.value = result.value
         }
 
-        console.log('[Contacts Store] Moved contact to stage:', stageId)
         return result.value
       } else {
         throw result.error
@@ -600,7 +589,6 @@ export const useContactsStore = defineStore('contacts', () => {
           kanbanContacts.value = upsertContactInCollection(kanbanContacts.value, updated)
         })
 
-        console.log('[Contacts Store] Batch updated', result.value.length, 'contacts')
         return result.value
       } else {
         throw result.error
@@ -620,14 +608,16 @@ export const useContactsStore = defineStore('contacts', () => {
    *
    * @param newFilters - Novos filtros a aplicar
    */
-  const setFilters = async (newFilters: ContactFilters): Promise<void> => {
+  const setFilters = async (newFilters: ContactFilters, options?: { skipFetch?: boolean }): Promise<void> => {
     // Reset para primeira página ao mudar filtros
     filters.value = {
       ...newFilters,
       page: 1
     }
 
-    await fetchContacts()
+    if (!options?.skipFetch) {
+      await fetchContacts()
+    }
   }
 
   /**
@@ -714,7 +704,6 @@ export const useContactsStore = defineStore('contacts', () => {
         return contactDate === targetDate
       })
 
-      console.log(`[Contacts Store] Found ${filtered.length} contacts for date ${targetDate}`)
       return filtered
     } catch (err) {
       console.error('[Contacts Store] Error filtering contacts by date:', err)

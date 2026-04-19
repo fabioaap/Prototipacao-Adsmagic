@@ -13,6 +13,7 @@ import Input from '@/components/ui/Input.vue'
 import Textarea from '@/components/ui/Textarea.vue'
 import { HelpCircle, Link } from '@/composables/useIcons'
 import { useToast } from '@/components/ui/toast/use-toast'
+import { createTrackableLink } from '@/services/api/trackableLinks'
 import {
   Tooltip,
   TooltipContent,
@@ -25,7 +26,7 @@ import {
 // ============================================================================
 
 const { t } = useI18n()
-const { success: showSuccessToast } = useToast()
+const { success: showSuccessToast, error: showErrorToast } = useToast()
 
 // ============================================================================
 // STORE
@@ -72,14 +73,23 @@ const createLink = async () => {
   isCreatingLink.value = true
 
   try {
-    // TODO: Implementar criação de link na API
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const linkId = `link_${Date.now()}`
-    const newLink = {
-      id: linkId,
+    const projectId = wizardStore.currentProjectId || localStorage.getItem('current_project_id') || ''
+    const whatsappNumber = wizardStore.projectData.whatsapp?.phoneNumber || ''
+    const result = await createTrackableLink(projectId, {
       name: newLinkName.value,
-      url: `https://track.adsmagic.app/${linkId}`,
+      initialMessage: newLinkMessage.value,
+      whatsappNumber,
+    })
+
+    if (!result.ok) {
+      showErrorToast(result.error.message)
+      return
+    }
+
+    const newLink = {
+      id: result.value.id,
+      name: result.value.name,
+      url: result.value.url || result.value.shortUrl || `https://track.adsmagic.app/${result.value.id}`,
       message: newLinkMessage.value,
     }
 

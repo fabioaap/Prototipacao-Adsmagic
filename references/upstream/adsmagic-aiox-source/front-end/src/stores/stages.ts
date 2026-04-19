@@ -10,7 +10,6 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed, readonly, watch } from 'vue'
-import { MOCK_STAGES } from '@/mocks/stages'
 import type { Stage, CreateStageDTO, UpdateStageDTO } from '@/types'
 import {
   getStages as getStagesService,
@@ -64,7 +63,6 @@ export const useStagesStore = defineStore('stages', () => {
     (newProjectId, oldProjectId) => {
       // Only clear if project actually changed
       if (newProjectId !== oldProjectId) {
-        console.log('[Stages Store] Project changed, clearing data:', { oldProjectId, newProjectId })
 
         // Clear all data
         stages.value = []
@@ -72,7 +70,6 @@ export const useStagesStore = defineStore('stages', () => {
 
         // Reload data for new project if project exists
         if (newProjectId) {
-          console.log('[Stages Store] Loading data for new project:', newProjectId)
           fetchStages()
         }
       }
@@ -202,9 +199,6 @@ export const useStagesStore = defineStore('stages', () => {
 
         // Evita sobrescrever estado quando o usuário trocou de projeto durante o request.
         if (getActiveProjectId() !== projectId) {
-          if (import.meta.env.DEV) {
-            console.log('[Stages Store] Discarding stale fetch result due to project switch:', { projectId })
-          }
           return
         }
 
@@ -212,25 +206,19 @@ export const useStagesStore = defineStore('stages', () => {
           stages.value = result.value
           lastFetchedProjectId = projectId
           lastFetchedAt = Date.now()
-          console.log('[Stages Store] Fetched', stages.value.length, 'stages')
         } else {
           throw result.error
         }
       } catch (err) {
         // Se trocou de projeto, não aplicar erro/fallback de projeto antigo.
         if (getActiveProjectId() !== projectId) {
-          if (import.meta.env.DEV) {
-            console.log('[Stages Store] Ignoring stale fetch error due to project switch:', { projectId })
-          }
           return
         }
 
         const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar etapas'
         error.value = errorMessage
         console.error('[Stages Store] Error fetching stages:', err)
-        // Fallback to mocks on error
-        stages.value = [...MOCK_STAGES]
-        console.warn('[Stages Store] Using mock data as fallback')
+        stages.value = []
       } finally {
         if (inFlightProjectId === projectId) {
           isLoading.value = false
@@ -289,7 +277,7 @@ export const useStagesStore = defineStore('stages', () => {
 
       if (result.ok) {
         stages.value.push(result.value)
-        console.log('[Stages Store] Created stage:', result.value.name)
+        lastFetchedAt = 0
         return result.value
       } else {
         throw result.error
@@ -336,7 +324,7 @@ export const useStagesStore = defineStore('stages', () => {
 
       if (result.ok) {
         stages.value[index] = result.value
-        console.log('[Stages Store] Updated stage:', result.value.name)
+        lastFetchedAt = 0
         return result.value
       } else {
         throw result.error
@@ -383,7 +371,6 @@ export const useStagesStore = defineStore('stages', () => {
 
       if (result.ok) {
         stages.value = stages.value.filter((s) => s.id !== id)
-        console.log('[Stages Store] Deleted stage:', stage.name)
       } else {
         throw result.error
       }
@@ -406,13 +393,13 @@ export const useStagesStore = defineStore('stages', () => {
   const reorderStages = async (newOrder: string[]): Promise<void> => {
     if (newOrder.length === 0) return
 
-    isLoading.value = true
     error.value = null
 
     try {
       const result = await reorderStagesService(newOrder)
       if (result.ok) {
-        // Atualiza a lista completa para refletir a nova ordem (inclui etapas sistema)
+        // Invalida cache para forçar fetch real (evita que o watcher não dispare)
+        lastFetchedAt = 0
         await fetchStages()
       } else {
         throw result.error
@@ -422,8 +409,6 @@ export const useStagesStore = defineStore('stages', () => {
       error.value = errorMessage
       console.error('[Stages Store] Error reordering stages:', err)
       throw err
-    } finally {
-      isLoading.value = false
     }
   }
 

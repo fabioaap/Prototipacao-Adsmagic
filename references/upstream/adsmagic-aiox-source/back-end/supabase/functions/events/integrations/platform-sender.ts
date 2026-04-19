@@ -10,6 +10,11 @@
 import { sendToMeta } from './meta.ts'
 import { sendToGoogle } from './google.ts'
 import { sendToTikTok } from './tiktok.ts'
+import { refreshGoogleAccessTokenOnDemand } from './google-token-refresh.ts'
+import {
+  resolveEnhancedConversionsForLeadsEnabled,
+  fetchEnhancedConversionsForLeadsSetting,
+} from './google-conversion-policy.ts'
 import type { ConversionEvent } from '../types.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
 
@@ -17,6 +22,7 @@ export interface SendEventResult {
   success: boolean
   nonRetryable?: boolean
   errorCode?: string
+  httpStatus?: number
   response?: Record<string, unknown>
   error?: string
 }
@@ -28,6 +34,8 @@ interface IntegrationAccountRow {
   account_metadata: Record<string, unknown>
   status: string
   is_primary?: boolean
+  pixel_id?: string | null
+  pixel_access_token?: string | null
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -101,7 +109,9 @@ export async function sendEventToPlatform(
           access_token,
           account_metadata,
           status,
-          is_primary
+          is_primary,
+          pixel_id,
+          pixel_access_token
         )
       `)
       .eq('project_id', event.project_id)
@@ -126,6 +136,8 @@ export async function sendEventToPlatform(
           account_metadata: isRecord(account.account_metadata) ? account.account_metadata : {},
           status: account.status,
           is_primary: account.is_primary || false,
+          pixel_id: account.pixel_id || null,
+          pixel_access_token: account.pixel_access_token || null,
         }))
       : []
     const preferredAccountId = getPreferredIntegrationAccountId(event)
@@ -151,9 +163,19 @@ export async function sendEventToPlatform(
       }
     }
 
+    // Descriptografar pixel_access_token se existir (usado pela Meta CAPI)
+    let decryptedPixelAccessToken: string | null = null
+    if (selectedAccount.pixel_access_token) {
+      decryptedPixelAccessToken = await decryptAccessToken(
+        supabaseClient,
+        selectedAccount.pixel_access_token
+      )
+    }
+
     const accountForSend = {
       ...selectedAccount,
       access_token: decryptedAccessToken,
+      pixel_access_token: decryptedPixelAccessToken,
     }
     const integrationForSend = {
       ...integration,
@@ -165,8 +187,32 @@ export async function sendEventToPlatform(
       case 'meta':
         return await sendToMeta(event, integrationForSend, accountForSend)
       
-      case 'google':
-        return await sendToGoogle(event, integrationForSend, accountForSend)
+      case 'google': {
+        await ensureGoogleEnhancedLeadsSetting(
+          accountForSend,
+          supabaseClient,
+          integration.id,
+          integrationForSend.platform_config
+        )
+        let googleResult = await sendToGoogle(event, integrationForSend, accountForSend)
+
+        if (!googleResult.success && googleResult.httpStatus === 401) {
+          console.log('[Send Event To Platform] Google 401 received, attempting on-demand token refresh...')
+          const refreshedToken = await refreshGoogleAccessTokenOnDemand(
+            supabaseClient,
+            integration.id,
+            integrationForSend.platform_config
+          )
+          if (refreshedToken) {
+            googleResult = await sendToGoogle(event, integrationForSend, {
+              ...accountForSend,
+              access_token: refreshedToken,
+            })
+          }
+        }
+
+        return googleResult
+      }
       
       case 'tiktok':
         return await sendToTikTok(event, integrationForSend, accountForSend)
@@ -184,6 +230,82 @@ export async function sendEventToPlatform(
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
     }
+  }
+}
+
+async function ensureGoogleEnhancedLeadsSetting(
+  account: IntegrationAccountRow,
+  supabaseClient: SupabaseDbClient,
+  integrationId: string,
+  platformConfig: Record<string, unknown>
+): Promise<void> {
+  const resolved = resolveEnhancedConversionsForLeadsEnabled(account.account_metadata)
+  if (resolved !== undefined) {
+    return
+  }
+
+  if (!account.access_token) {
+    return
+  }
+
+  const customerId = account.external_account_id
+  const loginCustomerId = typeof account.account_metadata.parentMccId === 'string'
+    ? account.account_metadata.parentMccId
+    : undefined
+
+  console.log('[Platform Sender] enhanced_conversions_for_leads_enabled not cached, fetching from Google API...')
+
+  let result = await fetchEnhancedConversionsForLeadsSetting(
+    account.access_token,
+    customerId,
+    loginCustomerId
+  )
+
+  if (result.httpStatus === 401) {
+    console.log('[Platform Sender] Enhanced leads check got 401, refreshing token...')
+    const refreshedToken = await refreshGoogleAccessTokenOnDemand(
+      supabaseClient,
+      integrationId,
+      platformConfig
+    )
+    if (refreshedToken) {
+      account.access_token = refreshedToken
+      result = await fetchEnhancedConversionsForLeadsSetting(
+        refreshedToken,
+        customerId,
+        loginCustomerId
+      )
+    }
+  }
+
+  if (typeof result.value !== 'boolean') {
+    return
+  }
+
+  const existingGoogleAds = isRecord(account.account_metadata.google_ads)
+    ? account.account_metadata.google_ads as Record<string, unknown>
+    : {}
+
+  const updatedMetadata = {
+    ...account.account_metadata,
+    google_ads: {
+      ...existingGoogleAds,
+      enhanced_conversions_for_leads_enabled: result.value,
+      enhanced_conversions_for_leads_checked_at: new Date().toISOString(),
+    },
+  }
+
+  account.account_metadata = updatedMetadata
+
+  const { error: updateError } = await supabaseClient
+    .from('integration_accounts')
+    .update({ account_metadata: updatedMetadata, updated_at: new Date().toISOString() })
+    .eq('id', account.id)
+
+  if (updateError) {
+    console.warn('[Platform Sender] Failed to cache enhanced leads setting:', updateError)
+  } else {
+    console.log('[Platform Sender] Cached enhanced_conversions_for_leads_enabled =', result.value)
   }
 }
 

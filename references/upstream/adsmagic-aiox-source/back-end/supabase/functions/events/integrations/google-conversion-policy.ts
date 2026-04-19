@@ -14,6 +14,7 @@ export interface GooglePreparedIdentifiers extends GoogleIdentifierDiagnostics {
 export type GooglePreparationErrorCode =
   | 'GOOGLE_MISSING_IDENTIFIERS'
   | 'GOOGLE_ENHANCED_LEADS_REQUIRED'
+  | 'GOOGLE_AUTH_EXPIRED'
 
 export type GooglePreparationResult =
   | {
@@ -67,13 +68,85 @@ function extractClickId(
   return undefined
 }
 
-export function resolveEnhancedConversionsForLeadsEnabled(accountMetadata: Record<string, unknown>): boolean {
+export function resolveEnhancedConversionsForLeadsEnabled(accountMetadata: Record<string, unknown>): boolean | undefined {
   const googleAdsRaw = accountMetadata.google_ads
   if (!isRecord(googleAdsRaw)) {
-    return false
+    return undefined
   }
 
-  return googleAdsRaw.enhanced_conversions_for_leads_enabled === true
+  const raw = googleAdsRaw.enhanced_conversions_for_leads_enabled
+  if (typeof raw !== 'boolean') {
+    return undefined
+  }
+
+  return raw
+}
+
+interface GoogleAdsCustomerSettingRow {
+  customer?: {
+    conversionTrackingSetting?: {
+      enhancedConversionsForLeadsEnabled?: boolean
+    }
+  }
+}
+
+export interface EnhancedLeadsFetchResult {
+  value: boolean | undefined
+  httpStatus?: number
+}
+
+export async function fetchEnhancedConversionsForLeadsSetting(
+  accessToken: string,
+  customerId: string,
+  loginCustomerId?: string
+): Promise<EnhancedLeadsFetchResult> {
+  const developerToken = Deno.env.get('GOOGLE_ADS_DEVELOPER_TOKEN')
+  if (!developerToken) {
+    return { value: undefined }
+  }
+
+  const normalizedCustomerId = customerId.replace(/-/g, '').trim()
+  const query = `
+    SELECT conversion_tracking_setting.enhanced_conversions_for_leads_enabled
+    FROM customer
+    LIMIT 1
+  `
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${accessToken}`,
+    'developer-token': developerToken,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  }
+
+  if (loginCustomerId) {
+    headers['login-customer-id'] = loginCustomerId.replace(/-/g, '').trim()
+  }
+
+  try {
+    const response = await fetch(
+      `https://googleads.googleapis.com/v23/customers/${normalizedCustomerId}/googleAds:search`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ query }),
+      }
+    )
+
+    if (!response.ok) {
+      console.warn('[Enhanced Leads Check] Google API returned', response.status)
+      return { value: undefined, httpStatus: response.status }
+    }
+
+    const data = await response.json().catch(() => ({})) as { results?: GoogleAdsCustomerSettingRow[] }
+    const rows = Array.isArray(data.results) ? data.results : []
+    const setting = rows[0]?.customer?.conversionTrackingSetting?.enhancedConversionsForLeadsEnabled
+
+    return { value: typeof setting === 'boolean' ? setting : undefined, httpStatus: 200 }
+  } catch (error) {
+    console.warn('[Enhanced Leads Check] Failed to fetch setting:', error)
+    return { value: undefined }
+  }
 }
 
 export async function prepareGoogleIdentifiers(
@@ -198,6 +271,10 @@ export function classifyGoogleApiFailure(params: {
 
   if (typeof status === 'number' && status >= 500) {
     return { nonRetryable: false }
+  }
+
+  if (status === 401) {
+    return { nonRetryable: true, errorCode: 'GOOGLE_AUTH_EXPIRED' }
   }
 
   if (typeof status === 'number' && status >= 400 && status < 500) {

@@ -15,7 +15,7 @@
 import { successResponse, errorResponse } from '../utils/response.ts'
 import { getDashboardCache, setDashboardCache } from '../utils/cache.ts'
 import { getDateRangeFromRequest, toEndOfDay } from '../utils/dateRange.ts'
-import { getAdMetricsForDashboard } from '../services/ad-metrics.ts'
+import { getAdMetricsForDashboard, getAdMetricsPerPlatform } from '../services/ad-metrics.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
 
 interface SummaryMetrics {
@@ -247,21 +247,30 @@ async function buildStageReachMap(
   projectId: string,
   stageIds: string[],
   startDate: Date,
-  endDate: Date
+  endDate: Date,
+  originId: string | null = null
 ): Promise<StageReachMap> {
   if (stageIds.length === 0) return emptyStageReachMap()
 
-  const { data, error } = await supabaseClient
+  const filterByOrigin = originId && originId !== 'all'
+
+  let query = supabaseClient
     .from('contact_stage_history')
     .select(`
       contact_id,
       stage_id,
-      contacts!inner(project_id)
+      contacts!inner(project_id, main_origin_id)
     `)
     .eq('contacts.project_id', projectId)
     .in('stage_id', stageIds)
     .gte('moved_at', startDate.toISOString())
     .lte('moved_at', endDate.toISOString())
+
+  if (filterByOrigin) {
+    query = query.eq('contacts.main_origin_id', originId!)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error('[Summary] Error fetching stage history for custom metrics:', error)
@@ -306,7 +315,8 @@ async function calculateCurrentPeriod(
   supabaseClient: SupabaseDbClient,
   projectId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
+  originId: string | null = null
 ): Promise<{
   revenue: number
   sales: number
@@ -315,65 +325,99 @@ async function calculateCurrentPeriod(
 }> {
   const startISO = startDate.toISOString()
   const endISO = endDate.toISOString()
+  const filterByOrigin = originId && originId !== 'all'
 
-  // Revenue e Sales (apenas vendas completed)
-  const { data: salesData, error: salesError } = await supabaseClient
+  // When filtering by origin, pre-fetch contact IDs for that origin
+  // so we can filter sales at DB level instead of in memory
+  let originContactIds: string[] | null = null
+  if (filterByOrigin) {
+    const { data: originContacts } = await supabaseClient
+      .from('contacts')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('main_origin_id', originId!)
+    originContactIds = (originContacts ?? []).map(c => c.id)
+  }
+
+  // Revenue/Sales + Contacts + Cycle data — fetch in parallel
+  const salesQueryBuilder = supabaseClient
     .from('sales')
-    .select('value, date')
+    .select('value, date, origin_id, contact_id')
     .eq('project_id', projectId)
     .eq('status', 'completed')
     .gte('date', startISO)
     .lte('date', endISO)
 
-  if (salesError) {
-    console.error('[Summary] Error fetching sales:', salesError)
-    throw salesError
+  // Apply origin filter at DB level when possible
+  if (filterByOrigin && originContactIds) {
+    salesQueryBuilder.or(`origin_id.eq.${originId},contact_id.in.(${originContactIds.join(',')})`)
   }
 
-  const revenue = salesData?.reduce((sum, sale) => sum + Number(sale.value || 0), 0) || 0
-  const sales = salesData?.length || 0
-  const avgTicket = sales > 0 ? revenue / sales : 0
-
-  // Contacts criados no período
-  const { data: contactsData, error: contactsError } = await supabaseClient
+  let contactsQueryBuilder = supabaseClient
     .from('contacts')
     .select('id, created_at')
     .eq('project_id', projectId)
     .gte('created_at', startISO)
     .lte('created_at', endISO)
 
-  if (contactsError) {
-    console.error('[Summary] Error fetching contacts:', contactsError)
-    throw contactsError
+  if (filterByOrigin) {
+    contactsQueryBuilder = contactsQueryBuilder.eq('main_origin_id', originId!)
   }
 
-  const contacts = contactsData?.length || 0
-
-  // Cálculo do tempo médio do ciclo (dias entre criação do contato e venda)
-  // Buscar vendas com seus contatos para calcular tempo médio
-  const { data: salesWithContacts, error: cycleError } = await supabaseClient
+  const cycleQueryBuilder = supabaseClient
     .from('sales')
     .select(`
       id,
       date,
       contact_id,
-      contacts!inner(created_at)
+      origin_id,
+      contacts!inner(created_at, main_origin_id)
     `)
     .eq('project_id', projectId)
     .eq('status', 'completed')
     .gte('date', startISO)
     .lte('date', endISO)
 
-  if (cycleError) {
-    console.error('[Summary] Error calculating cycle days:', cycleError)
+  if (filterByOrigin && originContactIds) {
+    cycleQueryBuilder.or(`origin_id.eq.${originId},contact_id.in.(${originContactIds.join(',')})`)
+  }
+
+  // Execute all 3 queries in parallel
+  const [salesResult, contactsResult, cycleResult] = await Promise.all([
+    salesQueryBuilder,
+    contactsQueryBuilder,
+    cycleQueryBuilder,
+  ])
+
+  if (salesResult.error) {
+    console.error('[Summary] Error fetching sales:', salesResult.error)
+    throw salesResult.error
+  }
+
+  if (contactsResult.error) {
+    console.error('[Summary] Error fetching contacts:', contactsResult.error)
+    throw contactsResult.error
+  }
+
+  const filteredSales = salesResult.data ?? []
+  const revenue = filteredSales.reduce((sum, sale) => sum + Number(sale.value || 0), 0)
+  const sales = filteredSales.length
+  const avgTicket = sales > 0 ? revenue / sales : 0
+
+  const contacts = contactsResult.data?.length || 0
+
+  // Cycle days calculation
+  if (cycleResult.error) {
+    console.error('[Summary] Error calculating cycle days:', cycleResult.error)
   }
 
   let totalCycleDays = 0
   let cycleCount = 0
 
-  if (salesWithContacts) {
-    for (const sale of salesWithContacts) {
+  if (cycleResult.data) {
+    for (const sale of cycleResult.data) {
       const contact = Array.isArray(sale.contacts) ? sale.contacts[0] : sale.contacts
+
       if (contact?.created_at && sale.date) {
         const contactDate = new Date(contact.created_at)
         const saleDate = new Date(sale.date)
@@ -401,7 +445,8 @@ async function calculatePreviousPeriod(
   supabaseClient: SupabaseDbClient,
   projectId: string,
   periodStart: Date,
-  periodEnd: Date
+  periodEnd: Date,
+  originId: string | null = null
 ): Promise<{
   revenue: number
   sales: number
@@ -409,10 +454,11 @@ async function calculatePreviousPeriod(
 }> {
   const startISO = periodStart.toISOString()
   const endISO = periodEnd.toISOString()
+  const filterByOrigin = originId && originId !== 'all'
 
   const { data: salesData, error: salesError } = await supabaseClient
     .from('sales')
-    .select('value')
+    .select('value, origin_id, contact_id, contacts(main_origin_id)')
     .eq('project_id', projectId)
     .eq('status', 'completed')
     .gte('date', startISO)
@@ -422,15 +468,29 @@ async function calculatePreviousPeriod(
     console.error('[Summary] Error fetching previous period sales:', salesError)
   }
 
-  const revenue = salesData?.reduce((sum, sale) => sum + Number(sale.value || 0), 0) || 0
-  const sales = salesData?.length || 0
+  const filteredSales = filterByOrigin
+    ? (salesData ?? []).filter((sale) => {
+        const contact = Array.isArray(sale.contacts) ? sale.contacts[0] : sale.contacts
+        const saleOriginId = contact?.main_origin_id || sale.origin_id
+        return saleOriginId === originId
+      })
+    : (salesData ?? [])
 
-  const { data: contactsData, error: contactsError } = await supabaseClient
+  const revenue = filteredSales.reduce((sum, sale) => sum + Number(sale.value || 0), 0)
+  const sales = filteredSales.length
+
+  let contactsQuery = supabaseClient
     .from('contacts')
     .select('id')
     .eq('project_id', projectId)
     .gte('created_at', startISO)
     .lte('created_at', endISO)
+
+  if (filterByOrigin) {
+    contactsQuery = contactsQuery.eq('main_origin_id', originId!)
+  }
+
+  const { data: contactsData, error: contactsError } = await contactsQuery
 
   if (contactsError) {
     console.error('[Summary] Error fetching previous period contacts:', contactsError)
@@ -464,16 +524,17 @@ async function calculateCustomMetrics(
   previousRange: { start: Date; end: Date },
   compareEnabled: boolean,
   spendCurrent: number,
-  spendPrevious: number
+  spendPrevious: number,
+  originId: string | null = null
 ): Promise<CustomMetricValue[]> {
   const metrics = config.customMetrics ?? []
   if (metrics.length === 0) return []
 
   const stageIds = collectCustomMetricStageIds(metrics)
   const [currentStageMap, previousStageMap] = await Promise.all([
-    buildStageReachMap(supabaseClient, projectId, stageIds, currentRange.start, currentRange.end),
+    buildStageReachMap(supabaseClient, projectId, stageIds, currentRange.start, currentRange.end, originId),
     compareEnabled
-      ? buildStageReachMap(supabaseClient, projectId, stageIds, previousRange.start, previousRange.end)
+      ? buildStageReachMap(supabaseClient, projectId, stageIds, previousRange.start, previousRange.end, originId)
       : Promise.resolve(emptyStageReachMap()),
   ])
 
@@ -566,6 +627,7 @@ export async function handleSummary(
     const previousStart = new Date(previousEnd.getTime() - durationMs)
 
     const compareEnabled = url.searchParams.get('compare') === 'true'
+    const originId = url.searchParams.get('origin') || null
 
     const cacheParams: Record<string, string> = { period: periodParam }
     const startDateParam = url.searchParams.get('start_date')
@@ -575,6 +637,7 @@ export async function handleSummary(
       cacheParams.end_date = endDateParam
     }
     if (compareEnabled) cacheParams.compare = 'true'
+    if (originId && originId !== 'all') cacheParams.origin = originId
 
     const cachedData = await getDashboardCache(
       supabaseClient,
@@ -593,10 +656,14 @@ export async function handleSummary(
 
     console.log('[Dashboard Summary] Cache miss, calculating...', { projectId, period: periodParam })
 
-    const current = await calculateCurrentPeriod(supabaseClient, projectId, start, end)
-    const previous = compareEnabled
-      ? await calculatePreviousPeriod(supabaseClient, projectId, previousStart, previousEnd)
-      : { revenue: 0, sales: 0, contacts: 0, avgCycleDays: 0 }
+    // Paralelizar: current period + previous period + north star config (independentes)
+    const [current, previous, northStarConfig] = await Promise.all([
+      calculateCurrentPeriod(supabaseClient, projectId, start, end, originId),
+      compareEnabled
+        ? calculatePreviousPeriod(supabaseClient, projectId, previousStart, previousEnd, originId)
+        : Promise.resolve({ revenue: 0, sales: 0, contacts: 0, avgCycleDays: 0 }),
+      getNorthStarConfig(supabaseClient, projectId),
+    ])
 
     // Cálculo de métricas derivadas
     const avgTicket = current.sales > 0 ? current.revenue / current.sales : 0
@@ -606,50 +673,125 @@ export async function handleSummary(
     const salesRate = current.contacts > 0 ? (current.sales / current.contacts) * 100 : 0
     const salesRatePrevious = previous.contacts > 0 ? (previous.sales / previous.contacts) * 100 : 0
 
-    // Active Customers (contatos que compraram pelo menos uma vez no período)
-    const { data: activeCustomersData, error: activeCustomersError } = await supabaseClient
+    // Iniciar activeCustomers query em paralelo (será await'ada depois)
+    const activeCustomersPromise = supabaseClient
       .from('sales')
-      .select('contact_id', { count: 'exact', head: false })
+      .select('contact_id, origin_id, contacts(main_origin_id)', { count: 'exact', head: false })
       .eq('project_id', projectId)
       .eq('status', 'completed')
       .gte('date', start.toISOString())
       .lte('date', end.toISOString())
 
+    // Buscar metricas de ads em paralelo com activeCustomers
+    let adMetrics = { spend: 0, impressions: 0, clicks: 0 }
+    let previousAdMetrics = { spend: 0, impressions: 0, clicks: 0 }
+
+    if (originId && originId !== 'all') {
+      const { data: originData, error: originError } = await supabaseClient
+        .from('origins')
+        .select('name')
+        .eq('id', originId)
+        .or(`project_id.is.null,project_id.eq.${projectId}`)
+        .maybeSingle()
+
+      if (originError) {
+        console.error('[Summary] Error fetching origin name:', originError)
+      }
+
+      const originName = originData?.name || ''
+
+      console.log('[Summary] Origin filter for ad metrics:', {
+        originId,
+        originName: originName || '(empty - origin not found)',
+        startISO: start.toISOString(),
+        endISO: end.toISOString()
+      })
+
+      if (originName) {
+        try {
+          // Paralelizar current + previous ad metrics por plataforma
+          const [adMetricsByPlatform, prevAdMetricsByPlatform] = await Promise.all([
+            getAdMetricsPerPlatform(supabaseClient, projectId, start, end),
+            compareEnabled
+              ? getAdMetricsPerPlatform(supabaseClient, projectId, previousStart, previousEnd)
+              : Promise.resolve({} as Record<string, { spend: number; impressions: number; clicks: number }>),
+          ])
+
+          console.log('[Summary] Ad metrics by platform:', JSON.stringify(
+            Object.fromEntries(
+              Object.entries(adMetricsByPlatform).map(([k, v]) => [k, { spend: v.spend, impressions: v.impressions, clicks: v.clicks }])
+            )
+          ))
+
+          adMetrics = adMetricsByPlatform[originName] || { spend: 0, impressions: 0, clicks: 0 }
+          previousAdMetrics = prevAdMetricsByPlatform[originName] || { spend: 0, impressions: 0, clicks: 0 }
+        } catch (adError) {
+          console.error('[Summary] Error in getAdMetricsPerPlatform, falling back to aggregated:', adError)
+          const [currentAd, prevAd] = await Promise.all([
+            getAdMetricsForDashboard(supabaseClient, projectId, start, end),
+            compareEnabled
+              ? getAdMetricsForDashboard(supabaseClient, projectId, previousStart, previousEnd)
+              : Promise.resolve({ spend: 0, impressions: 0, clicks: 0 }),
+          ])
+          adMetrics = currentAd
+          previousAdMetrics = prevAd
+        }
+      } else {
+        console.warn('[Summary] Origin name not found for ID:', originId, '— using aggregated ad metrics')
+        const [currentAd, prevAd] = await Promise.all([
+          getAdMetricsForDashboard(supabaseClient, projectId, start, end),
+          compareEnabled
+            ? getAdMetricsForDashboard(supabaseClient, projectId, previousStart, previousEnd)
+            : Promise.resolve({ spend: 0, impressions: 0, clicks: 0 }),
+        ])
+        adMetrics = currentAd
+        previousAdMetrics = prevAd
+      }
+    } else {
+      const [currentAd, prevAd] = await Promise.all([
+        getAdMetricsForDashboard(supabaseClient, projectId, start, end),
+        compareEnabled
+          ? getAdMetricsForDashboard(supabaseClient, projectId, previousStart, previousEnd)
+          : Promise.resolve({ spend: 0, impressions: 0, clicks: 0 }),
+      ])
+      adMetrics = currentAd
+      previousAdMetrics = prevAd
+    }
+
+    // Aguardar activeCustomers (já estava rodando em paralelo)
+    const { data: activeCustomersData, error: activeCustomersError } = await activeCustomersPromise
+
     if (activeCustomersError) {
       console.error('[Summary] Error fetching active customers:', activeCustomersError)
     }
 
-    const activeCustomers = activeCustomersData?.length || 0
+    const filterByOrigin = originId && originId !== 'all'
+    const filteredActiveCustomers = filterByOrigin
+      ? (activeCustomersData ?? []).filter((sale) => {
+          const contact = Array.isArray(sale.contacts) ? sale.contacts[0] : sale.contacts
+          const saleOriginId = contact?.main_origin_id || sale.origin_id
+          return saleOriginId === originId
+        })
+      : (activeCustomersData ?? [])
+    const activeCustomers = filteredActiveCustomers.length
 
-    // Buscar metricas de ads das integracoes conectadas
-    const adMetrics = await getAdMetricsForDashboard(
-      supabaseClient,
-      projectId,
-      start,
-      end
-    )
     const { spend, impressions, clicks } = adMetrics
-
-    // Buscar metricas de ads do período anterior (somente quando compare ativo)
-    const previousAdMetrics = compareEnabled
-      ? await getAdMetricsForDashboard(supabaseClient, projectId, previousStart, previousEnd)
-      : { spend: 0, impressions: 0, clicks: 0 }
 
     // Metricas derivadas de ads
     const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0
     const cpc = clicks > 0 ? spend / clicks : 0
-    const cac = current.contacts > 0 ? spend / current.contacts : 0
-    const roi = spend > 0 ? ((current.revenue - spend) / spend) * 100 : 0
+    const cac = current.sales > 0 ? spend / current.sales : 0
+    const roi = spend > 0 ? current.revenue / spend : 0
 
     // Metricas derivadas de ads do período anterior
     const previousCtr = previousAdMetrics.impressions > 0
       ? (previousAdMetrics.clicks / previousAdMetrics.impressions) * 100 : 0
     const previousCpc = previousAdMetrics.clicks > 0
       ? previousAdMetrics.spend / previousAdMetrics.clicks : 0
-    const previousCac = previous.contacts > 0
-      ? previousAdMetrics.spend / previous.contacts : 0
+    const previousCac = previous.sales > 0
+      ? previousAdMetrics.spend / previous.sales : 0
     const previousRoi = previousAdMetrics.spend > 0
-      ? ((previous.revenue - previousAdMetrics.spend) / previousAdMetrics.spend) * 100 : 0
+      ? previous.revenue / previousAdMetrics.spend : 0
 
     // Goal Percentage (assumir meta de 100% = 1000 vendas ou 100k de receita)
     // TODO: Implementar sistema de metas por projeto
@@ -721,7 +863,7 @@ export async function handleSummary(
       }
     }
 
-    const northStarConfig = await getNorthStarConfig(supabaseClient, projectId)
+    // northStarConfig já foi buscado em paralelo acima
     const customMetrics = await calculateCustomMetrics(
       supabaseClient,
       projectId,
@@ -730,7 +872,8 @@ export async function handleSummary(
       { start: previousStart, end: previousEnd },
       compareEnabled,
       spend,
-      previousAdMetrics.spend
+      previousAdMetrics.spend,
+      originId
     )
 
     const summary: SummaryResponse = {

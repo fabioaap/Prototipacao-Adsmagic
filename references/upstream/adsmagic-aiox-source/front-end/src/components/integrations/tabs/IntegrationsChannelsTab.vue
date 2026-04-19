@@ -118,66 +118,6 @@
             </div>
           </div>
 
-          <div
-            v-if="integration.platform === 'whatsapp'"
-            class="border-t border-border bg-muted/20 px-5 py-4"
-          >
-            <div class="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <h5 class="text-sm font-medium text-foreground">Instâncias WhatsApp</h5>
-                <p class="text-xs text-muted-foreground">
-                  Instâncias conectadas e disponíveis para este projeto.
-                </p>
-              </div>
-              <span class="text-xs text-muted-foreground">
-                <template v-if="whatsappAccountsLoading">Carregando...</template>
-                <template v-else>{{ whatsappAccounts.length }} encontrada(s)</template>
-              </span>
-            </div>
-
-            <div
-              v-if="!whatsappAccountsLoading && whatsappAccounts.length === 0"
-              class="rounded-surface border border-dashed border-border bg-background px-4 py-3 text-sm text-muted-foreground"
-            >
-              Nenhuma instância criada para este projeto.
-            </div>
-
-            <div v-else class="space-y-2">
-              <div
-                v-for="account in whatsappAccounts"
-                :key="account.accountId"
-                class="flex items-center justify-between gap-3 rounded-surface border border-border bg-background px-4 py-3"
-              >
-                <div class="min-w-0">
-                  <p class="flex items-center gap-2 truncate text-sm font-medium text-foreground">
-                    {{ account.profileName || account.phoneNumber || account.accountId }}
-                    <span
-                      v-if="isPrimaryConnectedInstance(account)"
-                      class="rounded-full border border-green-300 bg-green-50 px-1.5 py-0.5 text-[10px] text-green-700"
-                    >
-                      Em uso
-                    </span>
-                  </p>
-                  <p class="truncate text-xs text-muted-foreground">
-                    {{ account.phoneNumber || 'Sem número' }}
-                  </p>
-                  <p
-                    v-if="account.instanceId"
-                    class="truncate text-[11px] text-muted-foreground"
-                  >
-                    Instância: {{ account.instanceName || account.instanceId }}
-                  </p>
-                </div>
-
-                <span
-                  class="rounded-full border px-2 py-1 text-xs"
-                  :class="getWhatsappStatusClass(account.status)"
-                >
-                  {{ getWhatsappStatusLabel(account.status) }}
-                </span>
-              </div>
-            </div>
-          </div>
         </article>
       </div>
     </section>
@@ -265,7 +205,10 @@
         <article
           v-for="integration in availableIntegrations"
           :key="integration.id"
-          class="flex h-full flex-col rounded-lg border bg-card p-5"
+          :class="[
+            'flex h-full flex-col rounded-lg border bg-card p-5',
+            isComingSoon(integration.platform) && 'opacity-60',
+          ]"
         >
           <div class="flex items-start gap-3">
             <div :class="platformIconWrapperClass(integration.platform)">
@@ -285,16 +228,27 @@
           </div>
 
           <div class="mt-4 flex-1">
-            <div class="inline-flex rounded-full border border-border bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground">
+            <div
+              v-if="isComingSoon(integration.platform)"
+              class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs text-amber-700"
+            >
+              Em breve
+            </div>
+            <div
+              v-else
+              class="inline-flex rounded-full border border-border bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground"
+            >
               Pronto para configuração
             </div>
           </div>
 
           <div class="mt-5 flex items-center justify-between gap-2">
-            <span class="text-xs text-muted-foreground">OAuth e vínculo da conta</span>
+            <span class="text-xs text-muted-foreground">
+              {{ isComingSoon(integration.platform) ? 'Disponível em breve' : 'OAuth e vínculo da conta' }}
+            </span>
             <Button
               size="sm"
-              :disabled="loading"
+              :disabled="loading || isComingSoon(integration.platform)"
               @click="emitAction(integration.platform as IntegrationPlatformKey, 'connect')"
             >
               Conectar
@@ -314,7 +268,6 @@ import MetaAdsLogoIcon from '@/components/icons/MetaAdsLogoIcon.vue'
 import IntegrationStatusBadge from '@/components/integrations/IntegrationStatusBadge.vue'
 import Button from '@/components/ui/Button.vue'
 import { useFormat } from '@/composables/useFormat'
-import type { ConnectedAccount } from '@/types/whatsapp'
 import type { Integration } from '@/types/models'
 import type {
   AdMetricsLoadingMap,
@@ -330,11 +283,6 @@ interface Props {
   whatsappConnecting: boolean
   adMetrics: AdMetricsMap
   metricsLoading: AdMetricsLoadingMap
-  whatsappAccounts: ConnectedAccount[]
-  whatsappAccountsLoading: boolean
-  getWhatsappStatusLabel: (status: ConnectedAccount['status']) => string
-  getWhatsappStatusClass: (status: ConnectedAccount['status']) => string
-  isPrimaryConnectedInstance: (account: ConnectedAccount) => boolean
 }
 
 const props = defineProps<Props>()
@@ -429,6 +377,11 @@ const platformIconWrapperClass = (platform: Integration['platform']) => {
   return classMap[platform] ?? 'flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-foreground'
 }
 
+const comingSoonPlatforms: IntegrationPlatformKey[] = ['tiktok']
+
+const isComingSoon = (platform: Integration['platform']) =>
+  comingSoonPlatforms.includes(platform as IntegrationPlatformKey)
+
 const normalizeBadgeStatus = (status: Integration['status']) => {
   if (status === 'pending') return 'syncing'
   return status
@@ -464,6 +417,11 @@ const getAttentionActionLabel = (integration: Integration) => {
 
 const handleAttentionAction = (integration: Integration) => {
   if (integration.status === 'error') {
+    emitAction(integration.platform as IntegrationPlatformKey, 'reconnect')
+    return
+  }
+
+  if (integration.status === 'pending' || integration.status === 'syncing') {
     emitAction(integration.platform as IntegrationPlatformKey, 'reconnect')
     return
   }

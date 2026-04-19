@@ -12,7 +12,7 @@
  * @feature G8.6 — Alertas automáticos de falhas em eventos
  */
 import { computed } from 'vue'
-import { RefreshCw, ExternalLink, TrendingDown, Activity } from 'lucide-vue-next'
+import { AlertTriangle, XCircle, RefreshCw, ExternalLink, TrendingDown, Activity } from 'lucide-vue-next'
 import Alert from '@/components/ui/Alert.vue'
 import Button from '@/components/ui/Button.vue'
 import Badge from '@/components/ui/Badge.vue'
@@ -65,6 +65,12 @@ const formatPlatformName = (platform: string): string => {
 const alertVariant = computed<'warning' | 'destructive'>(() => {
   if (!props.alert) return 'warning'
   return props.alert.severity === 'critical' ? 'destructive' : 'warning'
+})
+
+// Ícone baseado na severidade
+const AlertIcon = computed(() => {
+  if (!props.alert) return AlertTriangle
+  return props.alert.severity === 'critical' ? XCircle : AlertTriangle
 })
 
 // Título do alerta
@@ -128,7 +134,18 @@ const trendInfo = computed(() => {
       :variant="alertVariant"
       class="mb-4"
     >
-      <div class="flex-1 min-w-0">
+      <div class="flex items-start gap-3">
+        <!-- Ícone -->
+        <component 
+          :is="AlertIcon" 
+          :class="cn(
+            'h-5 w-5 mt-0.5 shrink-0',
+            alert.severity === 'critical' ? 'text-red-500' : 'text-amber-500'
+          )"
+        />
+        
+        <!-- Conteúdo -->
+        <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             <h4 class="section-title-sm">{{ alertTitle }}</h4>
             
@@ -199,6 +216,7 @@ const trendInfo = computed(() => {
               Dispensar
             </Button>
           </div>
+        </div>
       </div>
     </Alert>
   </Transition>

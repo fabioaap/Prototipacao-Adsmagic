@@ -4,6 +4,7 @@ import type { SupabaseDbClient } from '../types-db.ts'
 export interface StageRule {
   stageId: string
   stageName: string
+  stageType: string
   trackingPhrase: string
   displayOrder: number
 }
@@ -18,7 +19,7 @@ export class StageRuleRepository {
   async listActiveRules(projectId: string): Promise<StageRule[]> {
     const { data, error } = await this.supabaseClient
       .from('stages')
-      .select('id, name, tracking_phrase, display_order')
+      .select('id, name, type, tracking_phrase, display_order')
       .eq('project_id', projectId)
       .eq('is_active', true)
       .order('display_order', { ascending: true })
@@ -33,6 +34,7 @@ export class StageRuleRepository {
       .map((stage) => ({
         stageId: String(stage.id || ''),
         stageName: String(stage.name || ''),
+        stageType: String(stage.type || ''),
         trackingPhrase: String(stage.tracking_phrase || '').trim(),
         displayOrder: Number(stage.display_order || 0),
       }))

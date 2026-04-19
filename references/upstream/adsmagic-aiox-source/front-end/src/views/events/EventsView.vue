@@ -47,7 +47,6 @@ const isExporting = ref(false)
 // COMPUTED
 // ============================================================================
 
-// Converter arrays readonly para mutáveis
 const events = computed(() => [...eventsStore.events])
 const isLoading = computed(() => eventsStore.isLoading)
 const hasFilters = computed(() => eventsStore.hasFilters)
@@ -88,14 +87,7 @@ const activeFiltersCount = computed(() => {
 })
 
 const filteredEventsCount = computed(() => {
-  if (!searchQuery.value) return events.value.length
-  
-  const query = searchQuery.value.toLowerCase()
-  return events.value.filter((event: Event) => {
-    const contactName = event.metadata?.contactName?.toLowerCase() || ''
-    const contactPhone = event.metadata?.contactPhone?.toLowerCase() || ''
-    return contactName.includes(query) || contactPhone.includes(query)
-  }).length
+  return eventsStore.pagination.total
 })
 
 // ============================================================================
@@ -233,6 +225,14 @@ const handleApplyFilters = async (newFilters: EventFilters) => {
   }
 }
 
+const handlePageChange = async (page: number) => {
+  try {
+    await eventsStore.goToPage(page)
+  } catch (error) {
+    console.error('Erro ao mudar página:', error)
+  }
+}
+
 const handleClearFilters = async () => {
   try {
     await eventsStore.clearFilters()
@@ -312,12 +312,17 @@ const handleClearFilters = async () => {
         :events="events"
         :loading="isLoading"
         :search-query="searchQuery"
+        :items-per-page="10"
         :has-active-filters="hasFilters"
         :active-filters-count="activeFiltersCount"
+        server-paginated
+        :page="eventsStore.pagination.page"
+        :total-items="eventsStore.pagination.total"
         @event-view-details="handleViewDetails"
         @event-retry="handleRetry"
         @export="handleExport"
         @open-filters="isFiltersModalOpen = true"
+        @page-change="handlePageChange"
       />
     </div>
 

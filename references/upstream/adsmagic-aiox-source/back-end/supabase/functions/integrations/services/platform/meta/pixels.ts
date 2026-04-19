@@ -18,44 +18,16 @@ export async function fetchMetaPixels(
 ): Promise<Pixel[]> {
   try {
     const apiVersion = Deno.env.get('META_OAUTH_API_VERSION') || 'v23.0'
-    
-    // First, get the business ID from the ad account
-    const accountUrl = `https://graph.facebook.com/${apiVersion}/${accountId}?` +
-      `fields=business&` +
+
+    // Ensure accountId has the act_ prefix required by Meta Graph API
+    const normalizedAccountId = accountId.startsWith('act_') ? accountId : `act_${accountId}`
+
+    // Fetch pixels directly from the ad account (works for both personal and Business Manager accounts)
+    const pixelsUrl = `https://graph.facebook.com/${apiVersion}/${normalizedAccountId}/adspixels?` +
+      `fields=id,name,is_created_by_business&` +
       `access_token=${encodeURIComponent(accessToken)}`
 
-    console.log('[Meta Pixels] Fetching business ID for account:', accountId)
-
-    const accountResponse = await fetch(accountUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    })
-
-    if (!accountResponse.ok) {
-      const errorData = await accountResponse.text()
-      console.error('[Meta Pixels] Failed to fetch account:', {
-        status: accountResponse.status,
-        error: errorData,
-      })
-      throw new Error(`Failed to fetch account: ${accountResponse.status}`)
-    }
-
-    const accountData = await accountResponse.json()
-    const businessId = accountData.business?.id
-
-    if (!businessId) {
-      console.warn('[Meta Pixels] No business ID found for account')
-      return []
-    }
-
-    // Fetch pixels from business
-    const pixelsUrl = `https://graph.facebook.com/${apiVersion}/${businessId}/owned_pixels?` +
-      `fields=id,name,is_created_by_self&` +
-      `access_token=${encodeURIComponent(accessToken)}`
-
-    console.log('[Meta Pixels] Fetching pixels for business:', businessId)
+    console.log('[Meta Pixels] Fetching pixels for account:', normalizedAccountId)
 
     const pixelsResponse = await fetch(pixelsUrl, {
       method: 'GET',
@@ -70,7 +42,7 @@ export async function fetchMetaPixels(
         status: pixelsResponse.status,
         error: errorData,
       })
-      throw new Error(`Failed to fetch pixels: ${pixelsResponse.status}`)
+      throw new Error(`Failed to fetch pixels: ${pixelsResponse.status} - ${errorData}`)
     }
 
     const pixelsData = await pixelsResponse.json()
@@ -81,7 +53,7 @@ export async function fetchMetaPixels(
     return pixels.map((pixel: any) => ({
       id: pixel.id,
       name: pixel.name || `Pixel ${pixel.id}`,
-      isCreated: pixel.is_created_by_self || false,
+      isCreated: pixel.is_created_by_business || false,
     }))
   } catch (error) {
     console.error('[Meta Pixels] Error fetching pixels:', error)
@@ -104,39 +76,12 @@ export async function createMetaPixel(
 ): Promise<Pixel> {
   try {
     const apiVersion = Deno.env.get('META_OAUTH_API_VERSION') || 'v23.0'
-    
-    // First, get the business ID from the ad account
-    const accountUrl = `https://graph.facebook.com/${apiVersion}/${accountId}?` +
-      `fields=business&` +
-      `access_token=${encodeURIComponent(accessToken)}`
 
-    console.log('[Meta Pixels] Fetching business ID for account:', accountId)
+    // Ensure accountId has the act_ prefix required by Meta Graph API
+    const normalizedAccountId = accountId.startsWith('act_') ? accountId : `act_${accountId}`
 
-    const accountResponse = await fetch(accountUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    })
-
-    if (!accountResponse.ok) {
-      const errorData = await accountResponse.text()
-      console.error('[Meta Pixels] Failed to fetch account:', {
-        status: accountResponse.status,
-        error: errorData,
-      })
-      throw new Error(`Failed to fetch account: ${accountResponse.status}`)
-    }
-
-    const accountData = await accountResponse.json()
-    const businessId = accountData.business?.id
-
-    if (!businessId) {
-      throw new Error('No business ID found for account')
-    }
-
-    // Create pixel in business
-    const createUrl = `https://graph.facebook.com/${apiVersion}/${businessId}/owned_pixels`
+    // Create pixel directly on the ad account
+    const createUrl = `https://graph.facebook.com/${apiVersion}/${normalizedAccountId}/adspixels`
 
     console.log('[Meta Pixels] Creating pixel:', pixelName)
 

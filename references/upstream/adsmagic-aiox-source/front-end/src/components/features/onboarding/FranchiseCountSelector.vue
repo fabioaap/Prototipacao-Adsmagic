@@ -115,10 +115,6 @@ const getPillClasses = computed(() => {
       </button>
     </div>
 
-    <!-- Mensagem de ajuda -->
-    <p class="text-sm text-muted-foreground mt-6 text-center">
-      Quantas franquias sua equipe gerencia atualmente?
-    </p>
   </div>
 </template>
 

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteLocationRaw, RouteRecordRaw } from 'vue-router'
+import type { RouteRecordRaw, RouteLocationRaw } from 'vue-router'
 import { localeGuard, detectUserLocale } from './guards/locale'
 import { projectGuard } from './guards/project'
 import {
@@ -18,6 +18,17 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     redirect: () => `/${detectUserLocale()}/login`
+  },
+  // Rota pública de compartilhamento de QR Code do WhatsApp (sem locale, sem auth)
+  {
+    path: '/share/whatsapp/:token',
+    name: 'whatsapp-share',
+    component: () => import('@/views/share/WhatsAppShareView.vue'),
+    meta: {
+      requiresAuth: false,
+      skipGuards: true,
+      layout: 'blank',
+    },
   },
   // Rotas com prefix de locale
   {
@@ -175,15 +186,6 @@ const routes: RouteRecordRaw[] = [
         beforeEnter: projectGuard,
       },
       {
-        path: 'dashboard-legacy',
-        name: 'dashboard-legacy',
-        component: () => import('@/components/features/DashboardLegacy.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: 'blank',
-        },
-      },
-      {
         path: 'projects/:projectId/events',
         name: 'events',
         component: () => import('@/views/events/EventsView.vue'),
@@ -198,17 +200,6 @@ const routes: RouteRecordRaw[] = [
         path: 'projects/:projectId/integrations',
         name: 'integrations',
         component: () => import('@/views/integrations/IntegrationsView.vue'),
-        meta: {
-          requiresAuth: true,
-          requiresOnboarding: true,
-          layout: 'default',
-        },
-        beforeEnter: projectGuard,
-      },
-      {
-        path: 'projects/:projectId/analytics',
-        name: 'analytics',
-        component: () => import('@/views/analytics/AnalyticsView.vue'),
         meta: {
           requiresAuth: true,
           requiresOnboarding: true,
@@ -321,16 +312,6 @@ const routes: RouteRecordRaw[] = [
         ],
       },
       {
-        path: 'company/settings',
-        name: 'company-settings',
-        component: () => import('@/views/companies/CompanySettingsView.vue'),
-        meta: {
-          requiresAuth: true,
-          requiresOnboarding: true,
-          layout: 'default',
-        },
-      },
-      {
         path: 'projects',
         name: 'projects',
         component: () => import('@/views/projects/ProjectsView.vue'),
@@ -372,101 +353,68 @@ const routes: RouteRecordRaw[] = [
           layout: 'blank',
         },
       },
-      // Catalog (dev only)
-      {
-        path: 'catalog',
-        name: 'catalog',
-        component: () => import('@/views/catalog/ComponentsCatalog.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: 'default',
+      // Dev-only routes (tree-shaken in production builds)
+      ...(import.meta.env.DEV ? [
+        {
+          path: 'catalog',
+          name: 'catalog',
+          component: () => import('@/views/catalog/ComponentsCatalog.vue'),
+          meta: { requiresAuth: false, layout: 'default' },
         },
-      },
-      // Test Service (dev only - TEMPORARY)
-      {
-        path: 'test-service',
-        name: 'test-service',
-        component: () => import('@/views/TestServiceView.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: 'default',
+        {
+          path: 'test-service',
+          name: 'test-service',
+          component: () => import('@/views/TestServiceView.vue'),
+          meta: { requiresAuth: false, layout: 'default' },
         },
-      },
-      // Test Components (dev only - TEMPORARY)
-      {
-        path: 'test-components',
-        name: 'test-components',
-        component: () => import('@/views/TestComponentsView.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: 'default',
+        {
+          path: 'test-components',
+          name: 'test-components',
+          component: () => import('@/views/TestComponentsView.vue'),
+          meta: { requiresAuth: false, layout: 'default' },
         },
-      },
-      // Test Common Components (dev only - TEMPORARY)
-      {
-        path: 'test-common-components',
-        name: 'test-common-components',
-        component: () => import('@/views/TestCommonComponentsView.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: 'blank',
+        {
+          path: 'test-common-components',
+          name: 'test-common-components',
+          component: () => import('@/views/TestCommonComponentsView.vue'),
+          meta: { requiresAuth: false, layout: 'blank' },
         },
-      },
-      // Test Layouts (dev only - TEMPORARY)
-      {
-        path: 'test-layouts',
-        name: 'test-layouts',
-        component: () => import('@/views/TestLayoutsView.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: undefined,
+        {
+          path: 'test-layouts',
+          name: 'test-layouts',
+          component: () => import('@/views/TestLayoutsView.vue'),
+          meta: { requiresAuth: false, layout: undefined },
         },
-      },
-      // Test Dashboard (dev only - TEMPORARY)
-      {
-        path: 'test-dashboard',
-        name: 'test-dashboard',
-        component: () => import('@/views/TestDashboardView.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: 'default',
+        {
+          path: 'test-dashboard',
+          name: 'test-dashboard',
+          component: () => import('@/views/TestDashboardView.vue'),
+          meta: { requiresAuth: false, layout: 'default' },
         },
-      },
-      // Test Contacts (dev only - TEMPORARY)
-      {
-        path: 'test-contacts',
-        name: 'test-contacts',
-        component: () => import('@/views/TestContactsView.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: undefined,
+        {
+          path: 'test-contacts',
+          name: 'test-contacts',
+          component: () => import('@/views/TestContactsView.vue'),
+          meta: { requiresAuth: false, layout: undefined },
         },
-      },
-      // Design System: Radix Foundation Components (Primary showcase for Lighthouse CI)
-      {
-        path: 'test/radix',
-        name: 'test-radix',
-        component: () => import('@/views/test/TestRadixComponents.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: 'blank',
+        {
+          path: 'test/radix',
+          name: 'test-radix',
+          component: () => import('@/views/test/TestRadixComponents.vue'),
+          meta: { requiresAuth: false, layout: 'blank' },
         },
-      },
-      // Design System: Tokens & Theme Validation (Secondary showcase)
-      {
-        path: 'test/tokens',
-        name: 'test-tokens',
-        component: () => import('@/views/test/TestRadixComponents.vue'),
-        meta: {
-          requiresAuth: false,
-          layout: 'blank',
+        {
+          path: 'test/tokens',
+          name: 'test-tokens',
+          component: () => import('@/views/test/TestRadixComponents.vue'),
+          meta: { requiresAuth: false, layout: 'blank' },
         },
-      },
-      // Routes Map (dev only - gitignored)
+      ] as RouteRecordRaw[] : []),
+      // 404 catch-all (must be last)
       {
-        path: 'rotas',
-        name: 'routes-map',
-        component: () => import('@/views/dev/RoutesMapView.vue'),
+        path: ':pathMatch(.*)*',
+        name: 'not-found',
+        component: () => import('@/views/NotFoundView.vue'),
         meta: {
           requiresAuth: false,
           layout: 'blank',
@@ -479,6 +427,12 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+  scrollBehavior(_to, _from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    }
+    return { top: 0 }
+  },
 })
 
 let companyGateResolvedForUserId: string | null = null
@@ -563,7 +517,7 @@ router.beforeEach(async (to, _from, next) => {
   const guardStartedAt = performance.now()
   startNavigationFeedback(to.fullPath)
 
-  const finish = (target?: RouteLocationRaw) => {
+  const finish = (target?: string | RouteLocationRaw | Parameters<typeof next>[0]) => {
     if (ROUTER_VERBOSE_LOGS) {
       const elapsedMs = Math.round((performance.now() - guardStartedAt) * 100) / 100
       console.info('[Router] Guard resolved', {
@@ -572,11 +526,12 @@ router.beforeEach(async (to, _from, next) => {
         elapsedMs,
       })
     }
-    if (target === undefined) {
-      next()
-      return
-    }
-    next(target)
+    next(target as never)
+  }
+
+  // 0. Rotas públicas fora do /:locale (ex: /share/whatsapp/:token) — bypass all guards
+  if (to.meta.skipGuards) {
+    return finish()
   }
 
   // 1. Locale Guard - SEMPRE PRIMEIRO
@@ -798,6 +753,33 @@ router.beforeEach(async (to, _from, next) => {
     import.meta.env.PROD
   ) {
     return finish(`/${locale}/projects`)
+  }
+
+  // Subscription gate — redirect expired subscriptions to pricing
+  const SUBSCRIPTION_EXEMPT_ROUTES = ['pricing', 'login', 'register', 'onboarding', 'projects']
+  if (
+    requiresOnboarding &&
+    isAuthenticated &&
+    hasCompaniesResolved &&
+    hasCompanies &&
+    !SUBSCRIPTION_EXEMPT_ROUTES.includes(to.name as string)
+  ) {
+    try {
+      const { useBillingStore } = await import('@/stores/billing')
+      const billing = useBillingStore()
+
+      if (!billing.limits) {
+        await billing.fetchLimits()
+      }
+
+      if (billing.isExpired && to.name !== 'pricing') {
+        return finish({ name: 'pricing', params: { locale }, query: { expired: 'true' } })
+      }
+    } catch (err) {
+      if (ROUTER_VERBOSE_LOGS) {
+        console.warn('[Router] Subscription check failed (non-blocking):', err)
+      }
+    }
   }
 
   return finish()

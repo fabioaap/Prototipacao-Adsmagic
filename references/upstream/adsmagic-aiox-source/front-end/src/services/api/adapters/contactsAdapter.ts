@@ -228,11 +228,6 @@ export function mapFiltersToBackendParams(
     params.stage_id = filters.stages[0]
   }
 
-  // Tag filter - backend accepts comma-separated UUIDs
-  if (filters.tags && filters.tags.length > 0) {
-    params.tag_ids = filters.tags.join(',')
-  }
-
   // Pagination: convert page/pageSize to limit/offset
   const page = filters.page ?? 1
   const pageSize = filters.pageSize ?? 10

@@ -7,9 +7,8 @@
  * - POST /tags - Criar tag
  * - PATCH /tags/:id - Atualizar tag
  * - DELETE /tags/:id - Deletar tag
- * - GET /contacts/:contactId/tags ou /tags/contacts/:contactId/tags - Listar tags de um contato
- * - POST /contacts/:contactId/tags ou /tags/contacts/:contactId/tags - Adicionar tag a contato
- * - DELETE /contacts/:contactId/tags/:tagId ou /tags/contacts/:contactId/tags/:tagId - Remover tag de contato
+ * - POST /contacts/:contactId/tags - Adicionar tag a contato
+ * - DELETE /contacts/:contactId/tags/:tagId - Remover tag de contato
  */
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
@@ -21,7 +20,6 @@ import { handleUpdate } from './handlers/update.ts'
 import { handleGet } from './handlers/get.ts'
 import { handleList } from './handlers/list.ts'
 import { handleDelete } from './handlers/delete.ts'
-import { handleGetContactTags } from './handlers/getContactTags.ts'
 import { handleAddTagToContact } from './handlers/addTagToContact.ts'
 import { handleRemoveTagFromContact } from './handlers/removeTagFromContact.ts'
 
@@ -72,18 +70,6 @@ serve(async (req) => {
       pathParts,
       userId: user.id
     })
-
-    const isLegacyContactTagsRoute =
-      pathParts[0] === 'contacts' &&
-      pathParts[2] === 'tags'
-
-    const isNamespacedContactTagsRoute =
-      pathParts[0] === 'tags' &&
-      pathParts[1] === 'contacts' &&
-      pathParts[3] === 'tags'
-
-    const contactId = isNamespacedContactTagsRoute ? pathParts[2] : pathParts[1]
-    const tagId = isNamespacedContactTagsRoute ? pathParts[4] : pathParts[3]
     
     // POST /tags - Criar tag
     if (req.method === 'POST' && pathParts.length === 1 && pathParts[0] === 'tags') {
@@ -109,30 +95,21 @@ serve(async (req) => {
     if (req.method === 'DELETE' && pathParts.length === 2 && pathParts[0] === 'tags') {
       return await handleDelete(req, supabaseClient, pathParts[1])
     }
-
-    // GET /contacts/:contactId/tags ou /tags/contacts/:contactId/tags - Listar tags de um contato
-    if (req.method === 'GET' &&
-        ((pathParts.length === 3 && isLegacyContactTagsRoute) ||
-         (pathParts.length === 4 && isNamespacedContactTagsRoute)) &&
-        contactId) {
-      return await handleGetContactTags(req, supabaseClient, contactId)
-    }
     
-    // POST /contacts/:contactId/tags ou /tags/contacts/:contactId/tags - Adicionar tag a contato
+    // POST /contacts/:contactId/tags - Adicionar tag a contato
     if (req.method === 'POST' && 
-        ((pathParts.length === 3 && isLegacyContactTagsRoute) ||
-         (pathParts.length === 4 && isNamespacedContactTagsRoute)) &&
-        contactId) {
-      return await handleAddTagToContact(req, supabaseClient, contactId)
+        pathParts.length === 3 && 
+        pathParts[0] === 'contacts' && 
+        pathParts[2] === 'tags') {
+      return await handleAddTagToContact(req, supabaseClient, pathParts[1])
     }
     
-    // DELETE /contacts/:contactId/tags/:tagId ou /tags/contacts/:contactId/tags/:tagId - Remover tag de contato
+    // DELETE /contacts/:contactId/tags/:tagId - Remover tag de contato
     if (req.method === 'DELETE' && 
-        ((pathParts.length === 4 && isLegacyContactTagsRoute) ||
-         (pathParts.length === 5 && isNamespacedContactTagsRoute)) &&
-        contactId &&
-        tagId) {
-      return await handleRemoveTagFromContact(req, supabaseClient, contactId, tagId)
+        pathParts.length === 4 && 
+        pathParts[0] === 'contacts' && 
+        pathParts[2] === 'tags') {
+      return await handleRemoveTagFromContact(req, supabaseClient, pathParts[1], pathParts[3])
     }
 
     // Rota não encontrada

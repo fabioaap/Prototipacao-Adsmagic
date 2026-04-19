@@ -23,11 +23,19 @@ export async function handleList(
       return errorResponse('Authentication required', 401)
     }
 
+    // Resolve project ID: header (standard) or query param (backwards compat)
+    const projectId = req.headers.get('X-Project-ID') || req.headers.get('x-project-id')
+      || new URL(req.url).searchParams.get('project_id')
+
+    if (!projectId) {
+      return errorResponse('Project ID is required (X-Project-ID header or project_id param)', 400)
+    }
+
     // Parse dos query params
     const url = new URL(req.url)
     const filters: Record<string, unknown> = {}
-    
-    if (url.searchParams.get('project_id')) filters.project_id = url.searchParams.get('project_id')
+
+    filters.project_id = projectId
     if (url.searchParams.get('platform')) filters.platform = url.searchParams.get('platform')
     if (url.searchParams.get('event_type')) filters.event_type = url.searchParams.get('event_type')
     if (url.searchParams.get('status')) filters.status = url.searchParams.get('status')
@@ -49,15 +57,20 @@ export async function handleList(
     const validatedFilters = validationResult.data
     console.log('[List Events] Filters:', validatedFilters)
 
-    // Construir query
+    // Construir query com join de contatos para exibir nome/telefone
     let query = supabaseClient
       .from('conversion_events')
-      .select('*', { count: 'exact' })
+      .select(`
+        *,
+        contacts (
+          name,
+          phone,
+          country_code
+        )
+      `, { count: 'exact' })
 
-    // Aplicar filtros
-    if (validatedFilters.project_id) {
-      query = query.eq('project_id', validatedFilters.project_id)
-    }
+    // Aplicar filtros (project_id é sempre obrigatório)
+    query = query.eq('project_id', validatedFilters.project_id)
     if (validatedFilters.platform) {
       query = query.eq('platform', validatedFilters.platform)
     }

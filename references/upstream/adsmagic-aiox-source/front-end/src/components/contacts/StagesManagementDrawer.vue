@@ -43,9 +43,7 @@ const isOpen = computed({
 
 // Carregar stages do store
 const loadStages = () => {
-  localStages.value = stagesStore.stages.map((stage) => (
-    ({ ...stage }) as Partial<Stage> & { tempId?: string }
-  ))
+  localStages.value = JSON.parse(JSON.stringify(stagesStore.stages)) as Array<Partial<Stage> & { tempId?: string }>
 }
 
 const isSystemStage = (stage: Partial<Stage> & { tempId?: string }): boolean => {
@@ -309,16 +307,6 @@ const hasChanges = computed(() => {
         <!-- Content -->
         <div class="flex-1 overflow-y-auto p-6">
           <div class="space-y-4">
-            <!-- Botão adicionar etapa -->
-            <Button
-              variant="outline"
-              class="w-full border-dashed"
-              @click="addStage"
-            >
-              <Plus class="h-4 w-4 mr-2" />
-              Adicionar Nova Etapa
-            </Button>
-
             <!-- Lista de etapas -->
             <div class="stages-sortable-container space-y-4">
               <div
@@ -396,6 +384,15 @@ const hasChanges = computed(() => {
               </div>
             </div>
 
+            <!-- Botão adicionar etapa -->
+            <Button
+              variant="outline"
+              class="w-full border-dashed"
+              @click="addStage"
+            >
+              <Plus class="h-4 w-4 mr-2" />
+              Adicionar Nova Etapa
+            </Button>
           </div>
         </div>
 

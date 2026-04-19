@@ -10,6 +10,7 @@ const props = defineProps<TabsContentProps>()
 
 const tabs = inject<{
   activeTab: ComputedRef<string>
+  baseId: string
   orientation: ComputedRef<'horizontal' | 'vertical'>
   updateActiveTab: (value: string) => void
 }>('tabs')
@@ -25,9 +26,9 @@ const contentClass = cn(
 <template>
   <div
     v-if="isActive"
-    :id="`panel-${value}`"
+    :id="`${tabs?.baseId}-panel-${value}`"
     role="tabpanel"
-    :aria-labelledby="`tab-${value}`"
+    :aria-labelledby="`${tabs?.baseId}-tab-${value}`"
     :class="contentClass"
     tabindex="0"
   >

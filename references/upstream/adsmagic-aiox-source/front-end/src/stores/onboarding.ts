@@ -433,7 +433,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
         // O company_id será atualizado depois que a empresa for criada
         // no createCompanyFromOnboarding() do OnboardingView
       } else {
-        console.log('[Onboarding] Modo mock - pulando salvamento no backend')
       }
 
       // Marca como completado
@@ -481,7 +480,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     // Primeiro tenta carregar do localStorage (mais rápido)
     const savedData = loadFromLocalStorage()
     if (savedData) {
-      console.log('[Onboarding] 📦 Restaurando dados do localStorage:', savedData)
       currentStep.value = savedData.currentStep || 1
       companyType.value = savedData.companyType as CompanyType | null
       franchiseCount.value = savedData.franchiseCount as FranchiseCount | null

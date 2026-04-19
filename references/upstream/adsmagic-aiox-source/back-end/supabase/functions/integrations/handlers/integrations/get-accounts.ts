@@ -25,6 +25,9 @@ export interface GetAccountsResponse {
     is_primary: boolean
     status: string
     account_metadata?: Record<string, unknown>
+    token_expires_at?: string
+    external_email?: string
+    permissions?: string[]
   }>
 }
 
@@ -87,10 +90,13 @@ export async function handleGetAccounts(
         account_name: acc.account_name,
         external_account_id: acc.external_account_id,
         external_account_name: acc.external_account_name,
-        pixel_id: acc.pixel_id, // ✅ NOVO: Pixel ID por conta
+        pixel_id: acc.pixel_id,
         is_primary: acc.is_primary,
         status: acc.status,
         account_metadata: acc.account_metadata || {},
+        token_expires_at: acc.token_expires_at,
+        external_email: acc.external_email,
+        permissions: acc.permissions || [],
       })),
     }
 

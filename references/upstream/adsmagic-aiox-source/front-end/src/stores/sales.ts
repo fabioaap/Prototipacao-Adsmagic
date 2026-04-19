@@ -84,7 +84,6 @@ export const useSalesStore = defineStore('sales', () => {
     (newProjectId, oldProjectId) => {
       // Only clear if project actually changed
       if (newProjectId !== oldProjectId) {
-        console.log('[Sales Store] Project changed, clearing data:', { oldProjectId, newProjectId })
 
         // Clear all data
         sales.value = []
@@ -105,11 +104,7 @@ export const useSalesStore = defineStore('sales', () => {
           pageSize: 10
         }
 
-        // Reload data for new project if project exists
-        if (newProjectId) {
-          console.log('[Sales Store] Loading data for new project:', newProjectId)
-          fetchSales()
-        }
+        // Data will be fetched on demand when the view mounts
       }
     },
     { immediate: false }
@@ -251,15 +246,6 @@ export const useSalesStore = defineStore('sales', () => {
       sales.value = result.data
       pagination.value = result.pagination
 
-      console.log(
-        '[Sales Store] Fetched',
-        result.data.length,
-        'sales (page',
-        result.pagination.page,
-        'of',
-        result.pagination.totalPages,
-        ')'
-      )
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar vendas'
       error.value = errorMessage
@@ -288,7 +274,6 @@ export const useSalesStore = defineStore('sales', () => {
       const sale = sales.value.find((s) => s.id === id)
 
       selectedSale.value = sale || null
-      console.log('[Sales Store] Selected sale:', sale?.id)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar venda'
       error.value = errorMessage
@@ -321,7 +306,6 @@ export const useSalesStore = defineStore('sales', () => {
       // Atualiza contador total
       pagination.value.total += 1
 
-      console.log('[Sales Store] Created sale:', newSale.id)
       return newSale
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao criar venda'
@@ -354,7 +338,6 @@ export const useSalesStore = defineStore('sales', () => {
         sales.value[saleIndex] = updatedSale
       }
 
-      console.log('[Sales Store] Updated sale:', updatedSale.id)
       return updatedSale
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar venda'
@@ -392,7 +375,6 @@ export const useSalesStore = defineStore('sales', () => {
         selectedSale.value = updated
       }
 
-      console.log('[Sales Store] Marked sale as lost:', id)
       return updated
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao marcar venda como perdida'
@@ -429,7 +411,6 @@ export const useSalesStore = defineStore('sales', () => {
         selectedSale.value = updated
       }
 
-      console.log('[Sales Store] Recovered sale:', id)
       return updated
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao recuperar venda'
@@ -465,7 +446,6 @@ export const useSalesStore = defineStore('sales', () => {
         selectedSale.value = null
       }
 
-      console.log('[Sales Store] Deleted sale:', id)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir venda'
       error.value = errorMessage
@@ -576,7 +556,6 @@ export const useSalesStore = defineStore('sales', () => {
         return saleDate === targetDate
       })
 
-      console.log(`[Sales Store] Found ${filtered.length} sales for date ${targetDate}`)
       return filtered
     } catch (err) {
       console.error('[Sales Store] Error filtering sales by date:', err)

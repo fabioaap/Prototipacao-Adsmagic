@@ -1,0 +1,739 @@
+{
+	"info": {
+		"_postman_id": "official-whatsapp-webhook-001",
+		"name": "WhatsApp Official Webhook - Adsmagic",
+		"description": "Collection completa para testar o webhook da API Oficial do WhatsApp Business.\n\n## URL do Webhook\n`POST /messaging-webhooks/webhook/official_whatsapp/{accountId}`\n\n## Cenários\n1. Verificação do Webhook (GET)\n2. Mensagem de texto simples\n3. Mensagem com referral/campanha (Click-to-WhatsApp Ads)\n4. Mensagem com UTMs no protocolo\n5. Mensagem de imagem\n6. Mensagem de documento\n7. Mensagem de áudio\n8. Mensagem de vídeo\n9. Resposta (reply) a mensagem\n10. Status updates (sent/delivered/read/failed)\n\n## Variáveis de Ambiente\n- `webhook_url`: URL completa do webhook\n- `phone_number_id`: ID do número configurado no Meta\n- `display_phone_number`: Número de exibição do negócio\n- `verify_token`: Token de verificação do webhook",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "webhook_url",
+			"value": "https://nitefyufrzytdtxhaocf.supabase.co/functions/v1/messaging-webhooks/webhook/official_whatsapp/00f5adea-bc40-4ff5-935d-c4c4745be3d4",
+			"type": "string"
+		},
+		{
+			"key": "phone_number_id",
+			"value": "7794189252778687",
+			"type": "string"
+		},
+		{
+			"key": "display_phone_number",
+			"value": "5547999999999",
+			"type": "string"
+		},
+		{
+			"key": "verify_token",
+			"value": "adsmagic_verify_token",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Verificacao do Webhook (GET)",
+			"item": [
+				{
+					"name": "Webhook Verification - hub.verify_token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response body contains challenge', function () {",
+									"    pm.expect(pm.response.text()).to.eql('1234567890');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{webhook_url}}?hub.mode=subscribe&hub.verify_token={{verify_token}}&hub.challenge=1234567890",
+							"host": ["{{webhook_url}}"],
+							"query": [
+								{
+									"key": "hub.mode",
+									"value": "subscribe",
+									"description": "Sempre 'subscribe' para verificação"
+								},
+								{
+									"key": "hub.verify_token",
+									"value": "{{verify_token}}",
+									"description": "Token configurado no Meta Business"
+								},
+								{
+									"key": "hub.challenge",
+									"value": "1234567890",
+									"description": "Challenge que deve ser ecoado na resposta"
+								}
+							]
+						},
+						"description": "Meta envia este GET para verificar o endpoint do webhook.\nO servidor deve responder com o valor de hub.challenge se o verify_token for válido."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Mensagens de Texto",
+			"item": [
+				{
+					"name": "Texto Simples",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"João Silva\"\n                },\n                \"wa_id\": \"5547991662434\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5547991662434\",\n                \"id\": \"wamid.HBgLNTU0Nzk5MTY2MjQzNBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711900800\",\n                \"type\": \"text\",\n                \"text\": {\n                  \"body\": \"Olá! Gostaria de saber mais sobre os planos.\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem de texto simples recebida de um contato."
+					},
+					"response": []
+				},
+				{
+					"name": "Texto com Reply (Resposta a Mensagem)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Maria Santos\"\n                },\n                \"wa_id\": \"5511998887777\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5511998887777\",\n                \"id\": \"wamid.HBgLNTUxMTk5ODg4Nzc3NxUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711901400\",\n                \"type\": \"text\",\n                \"text\": {\n                  \"body\": \"Sim, quero o plano premium!\"\n                },\n                \"context\": {\n                  \"from\": \"{{display_phone_number}}\",\n                  \"id\": \"wamid.ORIGINAL_MSG_ID_12345=\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem de resposta (reply) a uma mensagem enviada pelo negócio.\nO campo 'context' indica a qual mensagem o contato está respondendo."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Campanha - Click-to-WhatsApp Ads",
+			"item": [
+				{
+					"name": "Referral - Facebook Ad (Meta Ads)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Ana Oliveira\"\n                },\n                \"wa_id\": \"5521987654321\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5521987654321\",\n                \"id\": \"wamid.HBgLNTUyMTk4NzY1NDMyMRUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711902000\",\n                \"type\": \"text\",\n                \"text\": {\n                  \"body\": \"Vi o anúncio e quero saber mais!\"\n                },\n                \"referral\": {\n                  \"source_url\": \"https://fb.me/1pv3GH7jw\",\n                  \"source_id\": \"120215975506350345\",\n                  \"source_type\": \"ad\",\n                  \"headline\": \"Promoção de Verão - 50% OFF\",\n                  \"body\": \"Aproveite descontos exclusivos em todos os planos. Oferta por tempo limitado!\",\n                  \"media_type\": \"image\",\n                  \"image_url\": \"https://scontent.xx.fbcdn.net/v/t45.1600-4/ad-preview.jpg\",\n                  \"video_url\": null,\n                  \"thumbnail_url\": null,\n                  \"ctwa_clid\": \"ARAkLEKsnGSBjgYRol7MfGKsg0AtmurMJmlB4GmGMoYCWHBh4MjIUzEZqfCsGJ\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem originada de um Click-to-WhatsApp Ad no Facebook/Instagram.\n\n**Campos de campanha:**\n- `referral.source_type`: 'ad' (anúncio) ou 'post' (publicação orgânica)\n- `referral.source_id`: ID do anúncio no Meta Ads\n- `referral.source_url`: URL do anúncio/post\n- `referral.headline`: Título do anúncio\n- `referral.body`: Descrição do anúncio\n- `referral.ctwa_clid`: Click-to-WhatsApp Click ID (usado para atribuição de conversão via CAPI)\n- `referral.media_type`: 'image' | 'video'\n- `referral.image_url`: Preview da imagem do anúncio"
+					},
+					"response": []
+				},
+				{
+					"name": "Referral - Instagram Ad com Video",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Carlos Mendes\"\n                },\n                \"wa_id\": \"5531912345678\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5531912345678\",\n                \"id\": \"wamid.HBgLNTUzMTkxMjM0NTY3OBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711902600\",\n                \"type\": \"text\",\n                \"text\": {\n                  \"body\": \"Oi, vi o vídeo no Instagram!\"\n                },\n                \"referral\": {\n                  \"source_url\": \"https://www.instagram.com/p/C4xB2kLo8mN/\",\n                  \"source_id\": \"120215975506399876\",\n                  \"source_type\": \"ad\",\n                  \"headline\": \"Transforme seu negócio com IA\",\n                  \"body\": \"Descubra como a Adsmagic pode automatizar suas campanhas e triplicar seus resultados.\",\n                  \"media_type\": \"video\",\n                  \"image_url\": null,\n                  \"video_url\": \"https://scontent.xx.fbcdn.net/v/t42.1790-2/ad-video.mp4\",\n                  \"thumbnail_url\": \"https://scontent.xx.fbcdn.net/v/t45.1600-4/ad-thumb.jpg\",\n                  \"ctwa_clid\": \"BRBkMFLtnHUCkhZSpm8NgGLth1BuvwsMKnoC5HnHNpZDXIBi5NkJVaFBrtDtHK\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem originada de um anúncio de vídeo no Instagram com Click-to-WhatsApp.\n\nNote que `media_type` é 'video' e `video_url` contém a URL do vídeo do anúncio."
+					},
+					"response": []
+				},
+				{
+					"name": "Referral - Post Organico (sem anuncio)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Fernanda Lima\"\n                },\n                \"wa_id\": \"5541987651234\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5541987651234\",\n                \"id\": \"wamid.HBgLNTU0MTk4NzY1MTIzNBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711903200\",\n                \"type\": \"text\",\n                \"text\": {\n                  \"body\": \"Oi! Vi o post de vocês\"\n                },\n                \"referral\": {\n                  \"source_url\": \"https://www.facebook.com/adsmagic/posts/123456789\",\n                  \"source_id\": \"123456789\",\n                  \"source_type\": \"post\",\n                  \"headline\": \"\",\n                  \"body\": \"Confira nossas novidades!\",\n                  \"media_type\": \"image\",\n                  \"image_url\": \"https://scontent.xx.fbcdn.net/v/t39.30808-6/post-image.jpg\",\n                  \"video_url\": null,\n                  \"thumbnail_url\": null,\n                  \"ctwa_clid\": null\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem originada de um post orgânico (não pago) no Facebook.\n\nNote que:\n- `source_type` é 'post' (não 'ad')\n- `ctwa_clid` é null (não há click ID de anúncio)"
+					},
+					"response": []
+				},
+				{
+					"name": "Referral - Campanha com fbclid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Pedro Costa\"\n                },\n                \"wa_id\": \"5511955554444\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5511955554444\",\n                \"id\": \"wamid.HBgLNTUxMTk1NTU1NDQ0NBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711903800\",\n                \"type\": \"text\",\n                \"text\": {\n                  \"body\": \"Quero aproveitar a promoção!\"\n                },\n                \"referral\": {\n                  \"source_url\": \"https://fb.me/2qw4RT8kx?fbclid=IwAR3xYzAbCdEfGhIjKlMnOpQrStUvWxYz0123456789\",\n                  \"source_id\": \"120215975506312345\",\n                  \"source_type\": \"ad\",\n                  \"headline\": \"Black Friday Antecipada\",\n                  \"body\": \"Descontos de até 70% em todas as ferramentas de marketing.\",\n                  \"media_type\": \"image\",\n                  \"image_url\": \"https://scontent.xx.fbcdn.net/v/t45.1600-4/bf-preview.jpg\",\n                  \"video_url\": null,\n                  \"thumbnail_url\": null,\n                  \"ctwa_clid\": \"CRCkOGMunIVDlhaSrn9OhHMui2CxwyuNLopD6IoINqaEYJCj6OlKWbGCsuEstM\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem de anúncio com fbclid na source_url.\n\nO fbclid aparece como parâmetro na URL do anúncio e é extraído pelo SourceDataExtractor para atribuição."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Midia",
+			"item": [
+				{
+					"name": "Imagem com Legenda",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Lucas Ferreira\"\n                },\n                \"wa_id\": \"5521911112222\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5521911112222\",\n                \"id\": \"wamid.HBgLNTUyMTkxMTExMjIyMhUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711904400\",\n                \"type\": \"image\",\n                \"image\": {\n                  \"mime_type\": \"image/jpeg\",\n                  \"sha256\": \"ItJeKc4Iv2bLfbYlZeHXmR2y0Oy0kNqI7x8vX2z0sP4=\",\n                  \"id\": \"wamid.gBGF34hsfSDFDkdlfkWERE342==\",\n                  \"caption\": \"Olha o comprovante de pagamento\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem com imagem e legenda.\n\n- `image.id`: ID para download via Media API (expira em 24-48h)\n- `image.caption`: Texto enviado junto com a imagem"
+					},
+					"response": []
+				},
+				{
+					"name": "Documento (PDF)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Rafaela Souza\"\n                },\n                \"wa_id\": \"5531933334444\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5531933334444\",\n                \"id\": \"wamid.HBgLNTUzMTkzMzMzNDQ0NBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711905000\",\n                \"type\": \"document\",\n                \"document\": {\n                  \"mime_type\": \"application/pdf\",\n                  \"sha256\": \"KxYeRt5UiOpAsDfGhJkLzXcVbNmQwErTyUiOpAsDfGh=\",\n                  \"id\": \"wamid.gBGF34hsfSDFDkdlfkDocument123==\",\n                  \"filename\": \"proposta_comercial.pdf\",\n                  \"caption\": \"Segue a proposta para análise\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem com documento PDF.\n\n- `document.filename`: Nome original do arquivo\n- `document.caption`: Legenda do documento"
+					},
+					"response": []
+				},
+				{
+					"name": "Audio (Mensagem de Voz)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Bruno Almeida\"\n                },\n                \"wa_id\": \"5541955556666\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5541955556666\",\n                \"id\": \"wamid.HBgLNTU0MTk1NTU1NjY2NhUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711905600\",\n                \"type\": \"audio\",\n                \"audio\": {\n                  \"mime_type\": \"audio/ogg; codecs=opus\",\n                  \"sha256\": \"PlMnBvCxZaQwSdErFtGyHuJiKoLpMnBvCxZaQwSdEr=\",\n                  \"id\": \"wamid.gBGF34hsfSDFDkdlfkAudio456==\",\n                  \"voice\": true\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem de áudio/voz.\n\n- `audio.voice`: true indica gravação de voz (PTT), false indica arquivo de áudio"
+					},
+					"response": []
+				},
+				{
+					"name": "Video",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Camila Rodrigues\"\n                },\n                \"wa_id\": \"5511977778888\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5511977778888\",\n                \"id\": \"wamid.HBgLNTUxMTk3Nzc3ODg4OBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711906200\",\n                \"type\": \"video\",\n                \"video\": {\n                  \"mime_type\": \"video/mp4\",\n                  \"sha256\": \"QrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWxYzAbCdEf=\",\n                  \"id\": \"wamid.gBGF34hsfSDFDkdlfkVideo789==\",\n                  \"caption\": \"Veja o produto em funcionamento\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem com vídeo e legenda."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Status Updates",
+			"item": [
+				{
+					"name": "Status - Sent (Enviado)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"statuses\": [\n              {\n                \"id\": \"wamid.HBgLNTU0Nzk5MTY2MjQzNBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"status\": \"sent\",\n                \"timestamp\": \"1711906800\",\n                \"recipient_id\": \"5547991662434\",\n                \"conversation\": {\n                  \"id\": \"t_1ABC500001ABC500001ABC500001ABC500\",\n                  \"origin\": {\n                    \"type\": \"business_initiated\"\n                  },\n                  \"expiration_timestamp\": \"1711993200\"\n                },\n                \"pricing\": {\n                  \"billable\": true,\n                  \"pricing_model\": \"CBP\",\n                  \"category\": \"marketing\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Notificação de que a mensagem foi enviada ao servidor do WhatsApp.\n\n- `conversation.origin.type`: 'business_initiated' ou 'customer_initiated'\n- `pricing.category`: 'marketing', 'utility', 'authentication', 'service'"
+					},
+					"response": []
+				},
+				{
+					"name": "Status - Delivered (Entregue)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"statuses\": [\n              {\n                \"id\": \"wamid.HBgLNTU0Nzk5MTY2MjQzNBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"status\": \"delivered\",\n                \"timestamp\": \"1711906810\",\n                \"recipient_id\": \"5547991662434\"\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Notificação de que a mensagem chegou ao dispositivo do destinatário (check duplo cinza)."
+					},
+					"response": []
+				},
+				{
+					"name": "Status - Read (Lido)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"statuses\": [\n              {\n                \"id\": \"wamid.HBgLNTU0Nzk5MTY2MjQzNBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"status\": \"read\",\n                \"timestamp\": \"1711907400\",\n                \"recipient_id\": \"5547991662434\"\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Notificação de que a mensagem foi lida pelo destinatário (check duplo azul)."
+					},
+					"response": []
+				},
+				{
+					"name": "Status - Failed (Erro)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"statuses\": [\n              {\n                \"id\": \"wamid.HBgLNTU0Nzk5MTY2MjQzNBUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"status\": \"failed\",\n                \"timestamp\": \"1711907400\",\n                \"recipient_id\": \"5500000000000\",\n                \"errors\": [\n                  {\n                    \"code\": 131008,\n                    \"title\": \"Resource Not Found\",\n                    \"message\": \"Contact is not a valid WhatsApp user\",\n                    \"error_data\": {\n                      \"details\": \"The phone number 5500000000000 is not registered on WhatsApp\"\n                    },\n                    \"href\": \"https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes/\"\n                  }\n                ]\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Notificação de falha na entrega da mensagem.\n\n**Códigos de erro comuns:**\n- 131008: Contato não é usuário WhatsApp válido\n- 131049: Mensagem bloqueada pelo usuário\n- 131051: Tipo de mensagem não suportado\n- 131052: Rate limit excedido\n- 131001: Erro de processamento"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Cenarios Avancados",
+			"item": [
+				{
+					"name": "Campanha + Midia (Imagem com Referral)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Juliana Martins\"\n                },\n                \"wa_id\": \"5547988889999\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5547988889999\",\n                \"id\": \"wamid.HBgLNTU0Nzk4ODg4OTk5OVUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711908000\",\n                \"type\": \"image\",\n                \"image\": {\n                  \"mime_type\": \"image/jpeg\",\n                  \"sha256\": \"YzAbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMn=\",\n                  \"id\": \"wamid.gBGF34hsfSDFDkdlfkCombo123==\",\n                  \"caption\": \"Esse é o produto que vi no anúncio?\"\n                },\n                \"referral\": {\n                  \"source_url\": \"https://fb.me/3ty6UI9lz\",\n                  \"source_id\": \"120215975506387654\",\n                  \"source_type\": \"ad\",\n                  \"headline\": \"Novo Produto - Lançamento Exclusivo\",\n                  \"body\": \"Seja o primeiro a experimentar nossa nova solução de marketing com IA.\",\n                  \"media_type\": \"image\",\n                  \"image_url\": \"https://scontent.xx.fbcdn.net/v/t45.1600-4/launch-preview.jpg\",\n                  \"video_url\": null,\n                  \"thumbnail_url\": null,\n                  \"ctwa_clid\": \"DSDlPHNvoJWElibUto0PiIMvj3DzxztONrpE7JpJOrfFZKDk8OmLXcIDdvFwuO\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Cenário combinado: contato clica no anúncio Click-to-WhatsApp e envia uma imagem como primeira mensagem.\n\nContem tanto dados de mídia (image) quanto dados de campanha (referral)."
+					},
+					"response": []
+				},
+				{
+					"name": "Mensagem com Botao de Resposta Rapida",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Roberto Nunes\"\n                },\n                \"wa_id\": \"5511966667777\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5511966667777\",\n                \"id\": \"wamid.HBgLNTUxMTk2NjY2Nzc3NxUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711908600\",\n                \"type\": \"button\",\n                \"button\": {\n                  \"text\": \"Sim, tenho interesse\",\n                  \"payload\": \"INTERESTED_YES\"\n                },\n                \"context\": {\n                  \"from\": \"{{display_phone_number}}\",\n                  \"id\": \"wamid.TEMPLATE_MSG_ID_67890=\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Resposta a um template com botões de resposta rápida.\n\n- `button.text`: Texto do botão clicado\n- `button.payload`: Payload programático do botão\n- `context`: Referência ao template original enviado"
+					},
+					"response": []
+				},
+				{
+					"name": "Localizacao",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Amanda Pereira\"\n                },\n                \"wa_id\": \"5521944445555\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5521944445555\",\n                \"id\": \"wamid.HBgLNTUyMTk0NDQ0NTU1NRUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711909200\",\n                \"type\": \"location\",\n                \"location\": {\n                  \"latitude\": -26.3044,\n                  \"longitude\": -48.8487,\n                  \"name\": \"Shopping Neumarkt\",\n                  \"address\": \"R. Sete de Setembro, 1213 - Centro, Blumenau - SC\"\n                }\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Mensagem de localização compartilhada pelo contato.\n\n- `location.latitude/longitude`: Coordenadas GPS\n- `location.name`: Nome do local (opcional)\n- `location.address`: Endereço formatado (opcional)"
+					},
+					"response": []
+				},
+				{
+					"name": "Contato Compartilhado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"215589313241560883\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"{{display_phone_number}}\",\n              \"phone_number_id\": \"{{phone_number_id}}\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Diego Oliveira\"\n                },\n                \"wa_id\": \"5531922223333\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5531922223333\",\n                \"id\": \"wamid.HBgLNTUzMTkyMjIyMzMzMxUCABEYEjZGQkE3NjI1QzZFQjhEMDk2QQA=\",\n                \"timestamp\": \"1711909800\",\n                \"type\": \"contacts\",\n                \"contacts\": [\n                  {\n                    \"name\": {\n                      \"formatted_name\": \"Ricardo Gomes\",\n                      \"first_name\": \"Ricardo\",\n                      \"last_name\": \"Gomes\"\n                    },\n                    \"phones\": [\n                      {\n                        \"phone\": \"+5541999998888\",\n                        \"type\": \"CELL\",\n                        \"wa_id\": \"5541999998888\"\n                      }\n                    ],\n                    \"emails\": [\n                      {\n                        \"email\": \"ricardo@empresa.com\",\n                        \"type\": \"WORK\"\n                      }\n                    ]\n                  }\n                ]\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{webhook_url}}",
+							"host": ["{{webhook_url}}"]
+						},
+						"description": "Contato compartilhado (vCard) pelo usuário.\n\nContém dados estruturados: nome, telefones, emails."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -9,7 +9,9 @@ import {
   classifyGoogleApiFailure,
   prepareGoogleIdentifiers,
   resolveEnhancedConversionsForLeadsEnabled,
+  fetchEnhancedConversionsForLeadsSetting,
 } from '../../events/integrations/google-conversion-policy.ts'
+import { refreshGoogleAccessTokenOnDemand } from '../../events/integrations/google-token-refresh.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
 import type { Database, Json } from '../../../types/database.types.ts'
 
@@ -37,6 +39,8 @@ interface IntegrationAccountRow {
   account_metadata: Record<string, unknown>
   status: string
   is_primary?: boolean
+  pixel_id?: string | null
+  pixel_access_token?: string | null
 }
 
 function parseSendEventPayload(payload: Record<string, unknown>): SendEventPayload | null {
@@ -196,7 +200,9 @@ export async function executeSendEvent(
           access_token,
           account_metadata,
           status,
-          is_primary
+          is_primary,
+          pixel_id,
+          pixel_access_token
         )
       `)
       .eq('project_id', event.project_id)
@@ -243,9 +249,19 @@ export async function executeSendEvent(
       }
     }
 
+    // Descriptografar pixel_access_token se existir (usado pela Meta CAPI)
+    let decryptedPixelAccessToken: string | null = null
+    if (selectedAccount.pixel_access_token) {
+      decryptedPixelAccessToken = await decryptAccessToken(
+        supabaseClient,
+        selectedAccount.pixel_access_token
+      )
+    }
+
     const accountForSend = {
       ...selectedAccount,
       access_token: decryptedAccessToken,
+      pixel_access_token: decryptedPixelAccessToken,
     }
 
     // 4. Enviar para a plataforma específica
@@ -256,9 +272,19 @@ export async function executeSendEvent(
         result = await sendToMetaAPI(event, integration, accountForSend)
         break
 
-      case 'google':
-        result = await sendToGoogleAPI(event, integration, accountForSend)
+      case 'google': {
+        const platformConfig = isRecord(integration.platform_config)
+          ? integration.platform_config as Record<string, unknown>
+          : {}
+        await ensureGoogleEnhancedLeadsSettingForWorker(
+          accountForSend,
+          supabaseClient,
+          integration.id as string,
+          platformConfig
+        )
+        result = await sendToGoogleAPI(event, integration, accountForSend, supabaseClient)
         break
+      }
 
       case 'tiktok':
         result = await sendToTikTokAPI(event, integration, accountForSend)
@@ -323,13 +349,21 @@ async function sendToMetaAPI(
 ): Promise<SendEventResult> {
   try {
     const config = integration.platform_config as Record<string, unknown> || {}
-    const pixelId = config.pixel_id as string
+    const accountMeta = (account.account_metadata as Record<string, unknown>) || {}
+    const metaAdsMeta = (accountMeta.meta_ads as Record<string, unknown>) || {}
+
+    // Buscar pixel_id: coluna dedicada > metadata > platform_config (legado)
+    const pixelId =
+      (account.pixel_id as string) ||
+      (metaAdsMeta.selected_pixel_id as string) ||
+      (config.pixel_id as string)
 
     if (!pixelId) {
       return { success: false, nonRetryable: true, error: 'Pixel ID not configured' }
     }
 
-    const accessToken = account.access_token as string
+    // pixel_access_token é o token dedicado para a Conversions API (CAPI)
+    const accessToken = account.pixel_access_token as string
     if (!accessToken) {
       return { success: false, nonRetryable: true, error: 'Access token not found' }
     }
@@ -399,17 +433,103 @@ async function sendToMetaAPI(
 /**
  * Envia evento para Google Ads Conversion API v17
  */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+async function ensureGoogleEnhancedLeadsSettingForWorker(
+  account: Record<string, unknown>,
+  supabaseClient: SupabaseDbClient,
+  integrationId: string,
+  platformConfig: Record<string, unknown>
+): Promise<void> {
+  const accountMetadata = isRecord(account.account_metadata)
+    ? account.account_metadata as Record<string, unknown>
+    : {}
+
+  const resolved = resolveEnhancedConversionsForLeadsEnabled(accountMetadata)
+  if (resolved !== undefined) {
+    return
+  }
+
+  let accessToken = typeof account.access_token === 'string' ? account.access_token : null
+  if (!accessToken) {
+    return
+  }
+
+  const customerId = typeof account.external_account_id === 'string' ? account.external_account_id : ''
+  if (!customerId) {
+    return
+  }
+
+  const loginCustomerId = typeof accountMetadata.parentMccId === 'string'
+    ? accountMetadata.parentMccId
+    : undefined
+
+  console.log('[SendEvent Worker] enhanced_conversions_for_leads_enabled not cached, fetching from Google API...')
+
+  let result = await fetchEnhancedConversionsForLeadsSetting(accessToken, customerId, loginCustomerId)
+
+  if (result.httpStatus === 401) {
+    console.log('[SendEvent Worker] Enhanced leads check got 401, refreshing token...')
+    const refreshedToken = await refreshGoogleAccessTokenOnDemand(
+      supabaseClient,
+      integrationId,
+      platformConfig
+    )
+    if (refreshedToken) {
+      accessToken = refreshedToken
+      account.access_token = refreshedToken
+      result = await fetchEnhancedConversionsForLeadsSetting(refreshedToken, customerId, loginCustomerId)
+    }
+  }
+
+  if (typeof result.value !== 'boolean') {
+    return
+  }
+
+  const existingGoogleAds = isRecord(accountMetadata.google_ads)
+    ? accountMetadata.google_ads as Record<string, unknown>
+    : {}
+
+  const updatedMetadata = {
+    ...accountMetadata,
+    google_ads: {
+      ...existingGoogleAds,
+      enhanced_conversions_for_leads_enabled: result.value,
+      enhanced_conversions_for_leads_checked_at: new Date().toISOString(),
+    },
+  }
+
+  account.account_metadata = updatedMetadata
+
+  const accountId = typeof account.id === 'string' ? account.id : null
+  if (accountId) {
+    const { error: updateError } = await supabaseClient
+      .from('integration_accounts')
+      .update({ account_metadata: updatedMetadata, updated_at: new Date().toISOString() })
+      .eq('id', accountId)
+
+    if (updateError) {
+      console.warn('[SendEvent Worker] Failed to cache enhanced leads setting:', updateError)
+    } else {
+      console.log('[SendEvent Worker] Cached enhanced_conversions_for_leads_enabled =', result.value)
+    }
+  }
+}
+
 async function sendToGoogleAPI(
   event: Record<string, unknown>,
   integration: Record<string, unknown>,
-  account: Record<string, unknown>
+  account: Record<string, unknown>,
+  supabaseClient: SupabaseDbClient
 ): Promise<SendEventResult> {
   try {
     const config = integration.platform_config as Record<string, unknown> || {}
     const accountMetadata = (account.account_metadata as Record<string, unknown>) || {}
     const googleAdsMetadata = (accountMetadata.google_ads as Record<string, unknown>) || {}
     const eventPayload = event.payload as Record<string, unknown> || {}
-    const enhancedConversionsForLeadsEnabled = resolveEnhancedConversionsForLeadsEnabled(accountMetadata)
+    const enhancedConversionsForLeadsEnabled = resolveEnhancedConversionsForLeadsEnabled(accountMetadata) ?? false
 
     const payloadCustomerId =
       typeof eventPayload.google_customer_id === 'string'
@@ -520,12 +640,45 @@ async function sendToGoogleAPI(
       }
     )
 
-    const data = await response.json()
+    let data = await response.json()
+    let finalResponse = response
 
-    if (!response.ok) {
-      const apiErrorMessage = data.error?.message || `Google API error: ${response.status}`
+    // On 401, attempt on-demand token refresh and retry once
+    if (!response.ok && response.status === 401) {
+      console.log('[SendEvent Google] 401 received, attempting on-demand token refresh...')
+      const config = integration.platform_config as Record<string, unknown> || {}
+      const refreshedToken = await refreshGoogleAccessTokenOnDemand(
+        supabaseClient,
+        integration.id as string,
+        config
+      )
+
+      if (refreshedToken) {
+        console.log('[SendEvent Google] Token refreshed, retrying API call...')
+        const retryResponse = await fetch(
+          `https://googleads.googleapis.com/v23/customers/${customerId}:uploadClickConversions`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${refreshedToken}`,
+              'Content-Type': 'application/json',
+              'developer-token': developerToken,
+              ...(loginCustomerIdRaw ? { 'login-customer-id': normalizeGoogleCustomerId(loginCustomerIdRaw) } : {}),
+            },
+            body: JSON.stringify(googlePayload)
+          }
+        )
+        data = await retryResponse.json()
+        finalResponse = retryResponse
+      } else {
+        console.warn('[SendEvent Google] Token refresh failed, returning original 401 error')
+      }
+    }
+
+    if (!finalResponse.ok) {
+      const apiErrorMessage = data.error?.message || `Google API error: ${finalResponse.status}`
       const failureClassification = classifyGoogleApiFailure({
-        status: response.status,
+        status: finalResponse.status,
         message: apiErrorMessage,
       })
 

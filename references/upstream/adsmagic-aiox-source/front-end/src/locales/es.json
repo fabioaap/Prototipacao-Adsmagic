@@ -19,14 +19,14 @@
       "invalidCredentials": "Email o contraseña inválidos",
       "emailNotConfirmed": "Por favor, confirma tu email antes de iniciar sesión",
       "hero": {
-        "title": "Transforma tus anuncios en resultados",
-        "description": "Automatiza, optimiza y escala tus campañas publicitarias con inteligencia artificial.",
-        "feature1Title": "Automatización Inteligente",
-        "feature1Description": "Deja que la IA optimice tus campañas 24/7",
-        "feature2Title": "Análisis en Tiempo Real",
-        "feature2Description": "Rastrea métricas y toma decisiones basadas en datos",
-        "feature3Title": "Integración Total",
-        "feature3Description": "Conéctate con todas las principales plataformas publicitarias"
+        "title": "Descubre qué anuncios realmente generan clientes",
+        "description": "Conecta anuncios, conversaciones y ventas para revelar qué campañas realmente generan ingresos.",
+        "feature1Title": "Atribución de Ventas",
+        "feature1Description": "Descubre qué campaña, conjunto de anuncios y creativo generaron cada venta.",
+        "feature2Title": "Conversiones Reales para los Algoritmos",
+        "feature2Description": "Envía eventos de conversión y ventas a las plataformas publicitarias.",
+        "feature3Title": "Escala Más Estable",
+        "feature3Description": "Mejora el aprendizaje de los algoritmos y escala campañas con más previsibilidad."
       }
     },
     "register": {
@@ -54,14 +54,14 @@
       "resendEmailError": "No se pudo reenviar. Inténtalo más tarde.",
       "resendingEmail": "Reenviando...",
       "hero": {
-        "title": "Comienza tu viaje con IA",
-        "description": "Únete a miles de anunciantes que ya automatizan sus campañas con inteligencia artificial.",
-        "feature1Title": "Configuración en Minutos",
-        "feature1Description": "Configura tus campañas y comienza a automatizar inmediatamente",
-        "feature2Title": "Soporte 24/7",
-        "feature2Description": "Nuestro equipo siempre está disponible para ayudar",
-        "feature3Title": "Resultados Garantizados",
-        "feature3Description": "Ve mejoras en el rendimiento en hasta 30 días"
+        "title": "Descubre qué anuncios realmente generan clientes",
+        "description": "Conecta anuncios, conversaciones y ventas para revelar qué campañas realmente generan ingresos.",
+        "feature1Title": "Atribución de Ventas",
+        "feature1Description": "Descubre qué campaña, conjunto de anuncios y creativo generaron cada venta.",
+        "feature2Title": "Conversiones Reales para los Algoritmos",
+        "feature2Description": "Envía eventos de conversión y ventas a las plataformas publicitarias.",
+        "feature3Title": "Escala Más Estable",
+        "feature3Description": "Mejora el aprendizaje de los algoritmos y escala campañas con más previsibilidad."
       }
     },
     "forgotPassword": {
@@ -192,6 +192,36 @@
       "privacy": "Política de Privacidad"
     }
   },
+  "setupChecklist": {
+    "title": "Configura tu operación",
+    "subtitle": "{completed} de {total} pasos completados",
+    "completed": "Completado",
+    "allCompleteTitle": "¡Todo listo!",
+    "allCompleteMessage": "Tu operación está configurada. Ahora solo sigue los resultados en el dashboard.",
+    "dismiss": "Cerrar",
+    "steps": {
+      "connectWhatsapp": {
+        "title": "Conectar WhatsApp",
+        "tooltip": "Con WhatsApp conectado, tus leads llegan automáticamente y puedes responder directamente desde la plataforma.",
+        "cta": "Conectar WhatsApp"
+      },
+      "connectAds": {
+        "title": "Conectar Google Ads o Meta Ads",
+        "tooltip": "Conecta tus cuentas de anuncios para ver inversión, costo por lead y ROAS en tiempo real.",
+        "cta": "Conectar anuncios"
+      },
+      "configureFunnel": {
+        "title": "Configurar embudo de ventas",
+        "tooltip": "El embudo organiza el recorrido de tus leads. Define etapas como Nuevo, Calificado, Propuesta y Cerrado.",
+        "cta": "Configurar embudo"
+      },
+      "receiveLead": {
+        "title": "Recibir primer lead",
+        "tooltip": "Cuando tu primer contacto llegue por WhatsApp, formulario o importación, este paso se completará automáticamente.",
+        "cta": "Esperando leads..."
+      }
+    }
+  },
   "onboarding": {
     "title": "Bienvenido a AdsMagic",
     "subtitle": "Configuremos tu cuenta en pocos pasos",
@@ -207,12 +237,12 @@
     "helperText": "Selecciona el tipo de empresa que mejor describe tu negocio",
     "steps": {
       "companyType": "Tipo de Empresa",
-      "franchiseCount": "Nº de Franquicias",
-      "franchiseName": "Nombre de Franquicia"
+      "franchiseCount": "Información del negocio",
+      "franchiseName": "Nombre de la Empresa"
     },
     "companyType": {
-      "title": "¿En qué tipo de empresa trabajas?",
-      "subtitle": "Selecciona la opción que mejor describa tu negocio para personalizar tu experiencia",
+      "title": "¿Cuál es el tipo de tu negocio?",
+      "subtitle": "Vamos a adaptar Adsmagic a tu modelo de negocio",
       "local": "Empresa Local",
       "localDescription": "Negocio con una sola ubicación física",
       "franchise": "Franquicia",
@@ -228,21 +258,24 @@
       "retail": "Comercio Minorista",
       "healthcare": "Salud",
       "education": "Educación",
-      "realestate": "Inmobiliaria"
+      "realestate": "Inmobiliaria",
+      "services": "Servicios",
+      "infoproduct": "Infoproducto",
+      "other": "Otros"
     },
     "franchiseCount": {
-      "title": "¿Cuántas franquicias gestiona tu equipo?",
-      "subtitle": "Esto nos ayuda a entender el tamaño de tu negocio y personalizar las herramientas adecuadas",
+      "title": "¿Cuál es el tamaño de tu equipo?",
+      "subtitle": "Esto nos ayuda a adaptar Adsmagic al tamaño de tu operación.",
       "count": "Número de unidades",
       "countPlaceholder": "Ingresa el número de unidades"
     },
     "franchiseName": {
-      "title": "¿Cómo quieres nombrar tu primera franquicia?",
-      "subtitle": "Elige un nombre que represente bien tu marca y sea fácil de recordar",
-      "name": "Nombre de la franquicia",
-      "label": "Nombre de la franquicia",
-      "placeholder": "Ej: Mi Franquicia",
-      "namePlaceholder": "Ej: McDonald's, Subway, etc."
+      "title": "¿Cuál es el nombre de tu empresa?",
+      "subtitle": "Este será el nombre de tu cuenta dentro de Adsmagic",
+      "name": "Nombre de la empresa",
+      "label": "Nombre de la empresa",
+      "placeholder": "Ej: Mi Empresa",
+      "namePlaceholder": "Ej: Mi Empresa"
     },
     "success": {
       "title": "¡Todo listo!",
@@ -282,6 +315,9 @@
       "viewDetails": "Ver detalles",
       "archive": "Archivar",
       "unarchive": "Desarchivar"
+    },
+    "errors": {
+      "operationFailed": "Error en la operación"
     },
     "table": {
       "project": "Proyecto",
@@ -406,7 +442,9 @@
       "sales": "Ventas",
       "salesRate": "Tasa de ventas",
       "costPerClick": "Costo por clic",
-      "clickThroughRate": "Tasa de clics"
+      "clickThroughRate": "Tasa de clics",
+      "contacts": "Contactos",
+      "spend": "Gastos"
     },
     "charts": {
       "performance": "Rendimiento",
@@ -475,14 +513,27 @@
       "totalRevenue": "Total de ingresos",
       "funnelTitle": "Embudo de conversión",
       "funnelSubtitle": "Distribución de leads por etapa",
+      "funnelSubtitleCurrent": "Distribución actual de leads por etapa.",
+      "funnelSubtitlePassed": "Personas que pasaron por cada etapa del embudo.",
+      "funnelModeLabel": "Modo de conteo del embudo",
+      "funnelModePassed": "Pasaron por la etapa",
+      "funnelModeCurrent": "En la etapa",
       "totalAnalyzed": "Total analizado",
       "funnelEntry": "Entrada del embudo",
       "avgAdvance": "Avance promedio",
       "finalConversion": "Conversión final",
+      "funnelEntryCurrentValue": "{count} en la etapa {stage}",
+      "funnelEntryPassedValue": "{count} pasaron por {stage}",
+      "funnelFinalCurrentValue": "{count} en la etapa final ({rate})",
+      "funnelFinalPassedValue": "{count} llegaron a la etapa final ({rate})",
       "avgTime": "Tiempo promedio: {time}",
       "contactsInStage": "Contactos en esta etapa",
+      "contactsPassedStage": "Contactos que pasaron por esta etapa",
       "ofTotal": "del total",
       "advanced": "avanzaron",
+      "fromPreviousStage": "de la etapa anterior",
+      "funnelChartAriaCurrent": "Gráfico de embudo con contactos en la etapa actual",
+      "funnelChartAriaPassed": "Gráfico de embudo con contactos que pasaron por cada etapa",
       "kpiAdSpend": "Gasto en anuncios",
       "kpiAdSpendCaption": "Inversión del período.",
       "kpiRevenue": "Ingresos",
@@ -511,7 +562,15 @@
       "kpiCycleDaysCaption": "Objetivo: 24 días.",
       "kpiActiveCustomers": "Clientes activos",
       "kpiActiveCustomersCaption": "Renovaciones previstas: 14."
-    }
+    },
+    "noName": "Sin nombre",
+    "saleClosed": "Cerrada",
+    "saleLost": "Perdida"
+  },
+  "sales": {
+    "statusAll": "Todas",
+    "statusCompleted": "Realizadas",
+    "statusLost": "Perdidas"
   },
   "contacts": {
     "title": "Contactos",
@@ -590,6 +649,14 @@
       "saving": "Guardando...",
       "updateStage": "Actualizar Etapa",
       "createStage": "Crear Etapa"
+    },
+    "tabs": {
+      "details": "Detalles",
+      "conversations": "Conversaciones"
+    },
+    "conversation": {
+      "empty": "No se encontraron conversaciones",
+      "loadingMore": "Cargando mensajes anteriores..."
     }
   },
   "common": {
@@ -630,8 +697,8 @@
   "ui": {
     "trialBanner": {
       "expiredToday": "Tu prueba expiró hoy.",
-      "oneDay": "Queda {days} día para que expire tu prueba.",
-      "multipleDays": "Quedan {days} días para que expire tu prueba.",
+      "oneDay": "Queda {days} día de tu prueba del plan {plan}.",
+      "multipleDays": "Quedan {days} días de tu prueba del plan {plan}.",
       "continueMessage": "Continúa generando informes en solo 3 segundos.",
       "choosePlan": "Elegir plan",
       "closeWarning": "Cerrar aviso"
@@ -817,6 +884,8 @@
       "step2": "Toca en Menú > Dispositivos vinculados",
       "step3": "Apunta tu celular a esta pantalla para capturar el código",
       "shareLink": "Compartir enlace de conexión",
+      "shareCopied": "¡Enlace copiado al portapapeles!",
+      "shareDescription": "Envía este enlace a la persona que escaneará el código QR",
       "shareTitle": "Conectar WhatsApp - AdsMagic",
       "shareText": "Conecta tu WhatsApp a AdsMagic",
       "successTitle": "¡WhatsApp Conectado!",
@@ -907,6 +976,34 @@
     "newProject": "Nuevo Proyecto",
     "onboarding": "Onboarding"
   },
+  "integrations": {
+    "whatsappWebhook": {
+      "connectionMethodTitle": "Conectar WhatsApp",
+      "connectionMethodDesc": "Elige cómo deseas conectar tu WhatsApp Business",
+      "methodQr": "Vía QR Code",
+      "methodQrDesc": "Escanea con WhatsApp Business en tu celular",
+      "methodWebhook": "Vía Webhook (API Oficial)",
+      "methodWebhookDesc": "Reenvía webhooks vía N8N, Make u otra herramienta de automatización",
+      "formTitle": "Configurar Webhook",
+      "formDesc": "Configura la conexión con la API oficial de WhatsApp Business",
+      "phoneNumberId": "Phone Number ID",
+      "phoneNumberIdPlaceholder": "Ej: 123456789012345",
+      "phoneNumberIdHelp": "Encuéntralo en el panel de Meta Business → WhatsApp → Configuración de API",
+      "accessToken": "Token de Acceso (opcional)",
+      "accessTokenPlaceholder": "Pega el token permanente aquí",
+      "accessTokenHelp": "Recomendado: permite validación automática y verificación de firma de webhooks",
+      "accountName": "Nombre de la cuenta (opcional)",
+      "accountNamePlaceholder": "Ej: Mi Empresa",
+      "submit": "Configurar",
+      "successTitle": "¡Webhook configurado!",
+      "successDesc": "Configura la URL de abajo en tu N8N, Make o herramienta de automatización",
+      "webhookUrlLabel": "URL del Webhook",
+      "webhookUrlHelp": "Configura esta URL como destino de los webhooks de WhatsApp en N8N/Make",
+      "copyUrl": "Copiar URL",
+      "copied": "¡URL copiada al portapapeles!",
+      "done": "Finalizar"
+    }
+  },
   "settings": {
     "title": "Configuración",
     "description": "Gestiona la configuración de tu proyecto",
@@ -932,10 +1029,14 @@
       "title": "Notificaciones",
       "description": "Configure cómo y cuándo desea recibir notificaciones"
     },
+    "navAriaLabel": "Navegación de Configuración",
     "links": {
       "general": "General",
       "funnel": "Embudo",
       "origins": "Orígenes"
+    },
+    "stages": {
+      "reorderError": "Error al reordenar etapas"
     },
     "loading": "Cargando configuración...",
     "errorTitle": "Error",
@@ -962,58 +1063,67 @@
     "description": "Selecciona el plan ideal para tu negocio",
     "monthly": "Mensual",
     "annual": "Anual",
-    "annualDiscount": "Ahorra 20%",
+    "annualDiscount": "2 meses gratis",
     "perMonth": "/mes",
     "perYear": "/año",
     "recommended": "Recomendado",
     "subscribe": "Suscribirse",
+    "startTrial": "Iniciar prueba gratis",
     "currentPlan": "Plan Actual",
+    "manage": "Gestionar suscripción",
     "contactSales": "Hablar con Ventas",
-    "projects": "proyectos",
-    "extraProjectCost": "+{price}/proyecto adicional",
+    "loading": "Cargando planes...",
+    "errorLoading": "Error al cargar planes. Inténtalo de nuevo.",
+    "retry": "Intentar de nuevo",
+    "projects": "Proyectos",
+    "addons": "Add-ons disponibles",
+    "extraProject": "Proyecto adicional",
+    "extraProjectPrice": "R$ 79/mes por proyecto extra (cualquier plan)",
+    "addProjectsButton": "Agregar proyectos",
+    "manageSubscription": "Administrar suscripción",
+    "extraContacts": "Contactos extras (paquete de 500)",
     "starter": {
       "name": "Starter",
       "description": "Para quienes comienzan a rastrear resultados",
-      "price": "97",
-      "annualPrice": "77",
       "features": {
-        "projects": "Hasta 3 proyectos",
-        "contacts": "500 contactos/mes",
+        "projects": "1 proyecto",
+        "users": "2 usuarios",
+        "contacts": "500 contactos/proyecto/mes",
         "dashboard": "Dashboard básico",
         "whatsapp": "1 integración WhatsApp",
         "support": "Soporte por email"
-      }
+      },
+      "extraContactsPrice": "R$ 29/paquete de 500 contactos"
     },
-    "pro": {
-      "name": "Pro",
-      "description": "Para equipos que necesitan más control y automatización",
-      "price": "197",
-      "annualPrice": "157",
+    "growth": {
+      "name": "Growth",
+      "description": "Para equipos que necesitan escalar sus operaciones",
       "features": {
-        "projects": "Hasta 10 proyectos",
-        "contacts": "5.000 contactos/mes",
+        "projects": "3 proyectos",
+        "users": "5 usuarios",
+        "contacts": "1.000 contactos/proyecto/mes",
         "dashboard": "Dashboard completo + Embudo",
         "whatsapp": "3 integraciones WhatsApp",
         "origins": "Todos los orígenes (Meta, Google, TikTok)",
         "export": "Exportación CSV/Excel",
         "support": "Soporte prioritario"
-      }
+      },
+      "extraContactsPrice": "R$ 19/paquete de 500 contactos"
     },
-    "premium": {
-      "name": "Premium",
-      "description": "Para agencias y operaciones a gran escala",
-      "price": "497",
-      "annualPrice": "397",
+    "pro": {
+      "name": "Pro",
+      "description": "Para agencias y operaciones avanzadas",
       "features": {
-        "projects": "Proyectos ilimitados",
-        "contacts": "Contactos ilimitados",
-        "dashboard": "Dashboard completo + Pipeline + Insights IA",
-        "whatsapp": "Integraciones ilimitadas",
+        "projects": "5 proyectos",
+        "users": "15 usuarios",
+        "contacts": "2.000 contactos/proyecto/mes",
+        "dashboard": "Dashboard completo + Pipeline",
+        "whatsapp": "Integraciones WhatsApp ilimitadas",
         "origins": "Todos los orígenes + API personalizada",
         "export": "Exportación avanzada + Webhooks",
-        "whiteLabel": "White-label disponible",
         "support": "Soporte dedicado + Onboarding"
-      }
+      },
+      "extraContactsPrice": "R$ 9/paquete de 500 contactos"
     }
   },
   "nav": {
@@ -1027,5 +1137,33 @@
       "disconnected": "Desconectado",
       "notConnected": "WhatsApp no conectado. Configúralo en las integraciones del proyecto."
     }
+  },
+  "trial": {
+    "banner": {
+      "active": "Estás en un período de prueba de 14 días del plan {plan}. {days} días restantes.",
+      "expired": "Tu período de prueba ha expirado.",
+      "upgrade": "Hacer upgrade",
+      "choosePlan": "Elegir un plan"
+    },
+    "limits": {
+      "projectsReached": "Límite de proyectos alcanzado para tu plan.",
+      "usersReached": "Límite de usuarios alcanzado para tu plan.",
+      "contactsReached": "Límite de contactos alcanzado en este proyecto.",
+      "upgradeCta": "Haz upgrade para agregar más."
+    }
+  },
+  "usage": {
+    "title": "Uso del plan",
+    "plan": "Plan {plan}",
+    "projects": "Proyectos",
+    "users": "Usuarios",
+    "contactsPerProject": "Contactos/proyecto",
+    "trialDays": "{days}d restantes",
+    "expired": "Expirado"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "message": "La página que buscas no existe o ha sido movida.",
+    "backHome": "Volver al inicio"
   }
 }

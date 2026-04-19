@@ -103,22 +103,11 @@ pids
 # OS generated files
 Thumbs.db
 
-# Environment & Secrets (AIOX)
-.env.*.local
-*.key
-*.pem
+# Screenshots (debugging artifacts)
+*.png
+!front-end/public/**/*.png
+!front-end/src/**/*.png
+!docs/**/*.png
 
-# Dependencies (AIOX)
-node_modules/
-
-# Build & Logs (AIOX)
-logs/
-
-# IDE & OS (AIOX)
-.idea/
-*.swp
-
-# AIOX Local (AIOX)
-.aiox-core/local/
-.claude/settings.local.json
-.aiox/install-log.txt
+# Playwright reports
+**/playwright-report/

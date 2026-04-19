@@ -4,9 +4,11 @@
  * Cria um novo contato com validação completa
  */
 
+import { createWriteClient } from '../utils/writeClient.ts'
+import { insertContactStageHistory } from '../services/contactStageHistory.ts'
 import { successResponse, errorResponse, validationErrorResponse } from '../utils/response.ts'
 import { createContactSchema, extractValidationErrors } from '../validators/contact.ts'
-import type { Contact, CreateContactDTO } from '../types.ts'
+import type { CreateContactDTO } from '../types.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
 /**
  * Cria um novo contato
@@ -100,11 +102,23 @@ export async function handleCreate(
       return errorResponse('Stage does not belong to this project', 400)
     }
 
-    console.log('[Create Contact] Access verified:', { 
-      projectId: contactData.project_id, 
+    console.log('[Create Contact] Access verified:', {
+      projectId: contactData.project_id,
       originId: contactData.main_origin_id,
       stageId: contactData.current_stage_id
     })
+
+    // Verificar limite de contatos do plano
+    const { data: canCreate, error: limitError } = await supabaseClient
+      .rpc('check_contact_limit', { p_project_id: contactData.project_id })
+
+    if (limitError) {
+      console.error('[Create Contact] Contact limit check failed:', limitError)
+      // Não bloquear se a verificação falhar (graceful degradation)
+    } else if (canCreate === false) {
+      console.log('[Create Contact] Contact limit reached for project:', contactData.project_id)
+      return errorResponse('Monthly contact limit reached for this project. Please upgrade or add extra contacts.', 403)
+    }
 
     // Criar contato (RLS validará automaticamente)
     const { data: contact, error } = await supabaseClient
@@ -151,14 +165,39 @@ export async function handleCreate(
       return errorResponse(`Failed to create contact: ${error.message}`, 500)
     }
 
+    // Incrementar contador de uso de contatos
+    const { error: usageError } = await supabaseClient
+      .rpc('increment_contact_usage', { p_project_id: contactData.project_id })
+
+    if (usageError) {
+      console.error('[Create Contact] Usage increment failed:', usageError)
+      // Não falhar a criação — o contato já foi criado
+    }
+
+    const writeClient = createWriteClient(supabaseClient)
+
     // Registrar origem no histórico
-    await supabaseClient
+    await writeClient
       .from('contact_origins')
       .insert({
         contact_id: contact.id,
         origin_id: contactData.main_origin_id,
         acquired_at: new Date().toISOString()
       })
+
+    try {
+      await insertContactStageHistory(writeClient, {
+        contactId: contact.id,
+        stageId: contactData.current_stage_id,
+        movedBy: `user:${user.id}`
+      })
+    } catch (stageHistoryError) {
+      console.error('[Create Contact] Failed to log stage history:', {
+        contactId: contact.id,
+        stageId: contactData.current_stage_id,
+        error: stageHistoryError instanceof Error ? stageHistoryError.message : stageHistoryError
+      })
+    }
 
     // Venda automática quando estágio é "sale": feita pelo trigger create_sale_on_contact_stage_sale (migration 047)
 
@@ -176,4 +215,3 @@ export async function handleCreate(
     return errorResponse('Internal server error', 500)
   }
 }
-

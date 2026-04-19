@@ -75,7 +75,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     (newProjectId, oldProjectId) => {
       // Only clear if project actually changed
       if (newProjectId !== oldProjectId) {
-        console.log('[Dashboard Store] Project changed, clearing data:', { oldProjectId, newProjectId })
         
         // Clear all data
         metrics.value = null
@@ -88,7 +87,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
         
         // Reload data for new project if project exists
         if (newProjectId) {
-          console.log('[Dashboard Store] Loading data for new project:', newProjectId)
           fetchMetrics()
         }
       }
@@ -251,8 +249,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
       timeSeriesData.value = timeSeriesResult
       originPerformanceData.value = originPerformanceResult
 
-      console.log('[Dashboard Store] Fetched metrics for period:', selectedPeriod.value)
-      console.log('[Dashboard Store] Metrics:', metrics.value)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar métricas'
       error.value = errorMessage
@@ -297,7 +293,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
       timeSeriesData.value = mockTimeSeries
 
-      console.log('[Dashboard Store] Fetched time series data:', mockTimeSeries.length, 'points')
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar série temporal'
       error.value = errorMessage
@@ -357,7 +352,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
       originPerformanceData.value = performance
 
-      console.log('[Dashboard Store] Fetched origin performance:', performance.length, 'origins')
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Erro ao buscar performance por origem'

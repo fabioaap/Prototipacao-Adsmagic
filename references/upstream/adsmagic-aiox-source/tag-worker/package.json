@@ -1,0 +1,15 @@
+{
+  "name": "adsmagic-tag-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:production": "wrangler deploy --env production",
+    "sync-tag": "cp ../front-end/public/adsmagic-tag.js src/tag-v1.txt && echo 'Tag synced from front-end/public/adsmagic-tag.js'"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "wrangler": "^3.0.0"
+  }
+}

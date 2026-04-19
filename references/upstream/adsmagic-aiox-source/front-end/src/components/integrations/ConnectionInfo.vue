@@ -28,12 +28,25 @@
       <div class="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <div class="rounded-lg border border-border bg-background/80 px-3 py-2.5">
           <p class="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">ID da Conta</p>
-          <p class="mt-1 text-sm font-mono break-all text-foreground leading-5">{{ connection.accountId }}</p>
+          <div v-if="loading" class="mt-1 h-5 w-3/4 animate-pulse rounded bg-muted"></div>
+          <p v-else class="mt-1 text-sm font-mono break-all text-foreground leading-5">{{ connection.accountId }}</p>
         </div>
 
         <div class="rounded-lg border border-border bg-background/80 px-3 py-2.5">
           <p class="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Conectado em</p>
-          <p class="mt-1 text-sm text-foreground leading-5">{{ formatSafeDateTime(connection.connectedAt) }}</p>
+          <div v-if="loading" class="mt-1 h-5 w-2/3 animate-pulse rounded bg-muted"></div>
+          <p v-else class="mt-1 text-sm text-foreground leading-5">{{ formatSafeDateTime(connection.connectedAt) }}</p>
+        </div>
+
+        <div v-if="webhookUrl" class="rounded-lg border border-border bg-background/80 px-3 py-2.5 sm:col-span-2">
+          <p class="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">URL do Webhook</p>
+          <div class="mt-1 flex items-center gap-2">
+            <p class="flex-1 text-sm font-mono break-all text-foreground leading-5">{{ webhookUrl }}</p>
+            <Button variant="ghost" size="sm" class="shrink-0" @click="handleCopyWebhookUrl">
+              <Check v-if="webhookUrlCopied" class="h-4 w-4 text-green-600" />
+              <Copy v-else class="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <div v-if="connection.email" class="rounded-lg border border-border bg-background/80 px-3 py-2.5 sm:col-span-2">
@@ -89,6 +102,9 @@
         <Badge v-if="googleAdsSummary" variant="secondary" class="text-xs">
           {{ googleAdsSummary.selectedConversionActions.length }} ação(ões) de conversão
         </Badge>
+        <Badge v-if="metaAdsSummary?.selectedPixelId" variant="secondary" class="text-xs">
+          Pixel configurado
+        </Badge>
       </div>
 
       <div v-if="googleAdsSummary" class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -131,6 +147,30 @@
         </div>
       </div>
 
+      <div v-if="metaAdsSummary" class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <div class="rounded-lg border border-border bg-muted/20 px-3 py-2.5">
+          <p class="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Pixel selecionado</p>
+          <p class="mt-1 text-sm text-foreground">
+            {{ metaAdsSummary.selectedPixelName || 'Nenhum pixel selecionado' }}
+          </p>
+          <p v-if="metaAdsSummary.selectedPixelId" class="mt-0.5 text-xs text-muted-foreground font-mono">
+            {{ metaAdsSummary.selectedPixelId }}
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-border bg-muted/20 px-3 py-2.5">
+          <p class="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Token CAPI</p>
+          <p class="mt-1 text-sm" :class="metaAdsSummary.pixelAccessTokenSet ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'">
+            {{ metaAdsSummary.pixelAccessTokenSet ? 'Configurado' : 'Não configurado' }}
+          </p>
+        </div>
+
+        <div v-if="metaAdsSummary.updatedAt" class="rounded-lg border border-border bg-muted/20 px-3 py-2.5 sm:col-span-2">
+          <p class="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Última atualização</p>
+          <p class="mt-1 text-sm text-foreground">{{ formatSafeDateTime(metaAdsSummary.updatedAt) }}</p>
+        </div>
+      </div>
+
       <div v-if="genericMetadataEntries.length > 0" class="space-y-1.5">
         <div
           v-for="entry in genericMetadataEntries"
@@ -145,31 +185,9 @@
 
     <!-- Actions -->
     <div class="mt-3 border-t pt-3 space-y-2">
-      <div class="grid grid-cols-2 gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          class="w-full justify-center"
-          @click="handleViewLogs"
-        >
-          <FileText class="h-4 w-4 mr-2" />
-          Ver Logs
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          class="w-full justify-center"
-          @click="handleRefresh"
-        >
-          <RefreshCw class="h-4 w-4 mr-2" />
-          Atualizar
-        </Button>
-      </div>
-
       <div
         class="grid gap-2"
-        :class="showGoogleConversionActions ? 'grid-cols-2' : 'grid-cols-1'"
+        :class="(showGoogleConversionActions || showMetaPixelManagement) ? 'grid-cols-2' : 'grid-cols-1'"
       >
         <Button
           v-if="showGoogleConversionActions"
@@ -182,6 +200,16 @@
         </Button>
 
         <Button
+          v-if="showMetaPixelManagement"
+          variant="outline"
+          size="sm"
+          class="w-full justify-center"
+          @click="handleManageMetaPixels"
+        >
+          Gerenciar pixels
+        </Button>
+
+        <Button
           variant="destructive"
           size="sm"
           class="w-full justify-center"
@@ -191,14 +219,38 @@
           Desconectar
         </Button>
       </div>
+
+      <div v-if="showTokenRenewal || showChangeAccount" class="grid gap-2" :class="(showTokenRenewal && showChangeAccount) ? 'grid-cols-2' : 'grid-cols-1'">
+        <Button
+          v-if="showTokenRenewal"
+          variant="outline"
+          size="sm"
+          class="w-full justify-center"
+          @click="handleRenewToken"
+        >
+          <KeyRound class="h-4 w-4 mr-2" />
+          Renovar token
+        </Button>
+
+        <Button
+          v-if="showChangeAccount"
+          variant="outline"
+          size="sm"
+          class="w-full justify-center"
+          @click="handleChangeAccount"
+        >
+          <Users class="h-4 w-4 mr-2" />
+          Trocar conta
+        </Button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import BrandIcons from '@/components/icons/BrandIcons.vue'
-import { CheckCircle, FileText, Link2, RefreshCw } from '@/composables/useIcons'
+import { CheckCircle, Link2, KeyRound, Users, Copy, Check } from '@/composables/useIcons'
 import Button from '@/components/ui/Button.vue'
 import Badge from '@/components/ui/Badge.vue'
 import type { Connection } from '@/types/models'
@@ -214,18 +266,30 @@ interface Props {
    * Plataforma da conexão
    */
   platform: string
+  /**
+   * Indica que os detalhes estão sendo carregados em background
+   */
+  loading?: boolean
   showGoogleConversionActions?: boolean
+  showMetaPixelManagement?: boolean
+  showTokenRenewal?: boolean
+  showChangeAccount?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  loading: false,
   showGoogleConversionActions: false,
+  showMetaPixelManagement: false,
+  showTokenRenewal: false,
+  showChangeAccount: false,
 })
 
 const emit = defineEmits<{
-  viewLogs: []
-  refresh: []
   disconnect: []
   manageGoogleConversionActions: []
+  manageMetaPixels: []
+  renewToken: []
+  changeAccount: []
 }>()
 
 // ============================================================================
@@ -256,6 +320,26 @@ interface GenericMetadataEntry {
   key: string
   label: string
   value: string
+}
+
+const webhookUrl = computed(() => {
+  const metadata = props.connection.metadata
+  if (!metadata || typeof metadata !== 'object') return null
+  const url = (metadata as Record<string, unknown>).webhookUrl
+  return typeof url === 'string' ? url : null
+})
+
+const webhookUrlCopied = ref(false)
+
+const handleCopyWebhookUrl = async () => {
+  if (!webhookUrl.value) return
+  try {
+    await navigator.clipboard.writeText(webhookUrl.value)
+    webhookUrlCopied.value = true
+    setTimeout(() => { webhookUrlCopied.value = false }, 2000)
+  } catch {
+    // Fallback silencioso
+  }
 }
 
 const hasPermissions = computed(() => props.connection.permissions.length > 0)
@@ -296,9 +380,31 @@ const googleAdsSummary = computed<GoogleAdsMetadataSummary | null>(() => {
   }
 })
 
+interface MetaAdsMetadataSummary {
+  updatedAt?: string
+  selectedPixelId?: string
+  selectedPixelName?: string
+  pixelAccessTokenSet: boolean
+}
+
+const metaAdsSummary = computed<MetaAdsMetadataSummary | null>(() => {
+  const metaAdsValue = parsedMetadata.value.meta_ads
+
+  if (!isRecord(metaAdsValue)) {
+    return null
+  }
+
+  return {
+    updatedAt: typeof metaAdsValue.updated_at === 'string' ? metaAdsValue.updated_at : undefined,
+    selectedPixelId: typeof metaAdsValue.selected_pixel_id === 'string' ? metaAdsValue.selected_pixel_id : undefined,
+    selectedPixelName: typeof metaAdsValue.selected_pixel_name === 'string' ? metaAdsValue.selected_pixel_name : undefined,
+    pixelAccessTokenSet: metaAdsValue.pixel_access_token_set === true,
+  }
+})
+
 const genericMetadataEntries = computed<GenericMetadataEntry[]>(() => {
   return Object.entries(parsedMetadata.value)
-    .filter(([key, value]) => key !== 'google_ads' && key !== 'id' && value !== null && value !== undefined && value !== '')
+    .filter(([key, value]) => key !== 'google_ads' && key !== 'meta_ads' && key !== 'id' && value !== null && value !== undefined && value !== '')
     .map(([key, value]) => ({
       key,
       label: formatMetadataKey(key),
@@ -317,7 +423,7 @@ const primaryResourceLabel = computed(() => {
 })
 
 const hasAdditionalInformation = computed(() => {
-  return !!googleAdsSummary.value || genericMetadataEntries.value.length > 0
+  return !!googleAdsSummary.value || !!metaAdsSummary.value || genericMetadataEntries.value.length > 0
 })
 
 // ============================================================================
@@ -474,6 +580,7 @@ const formatMetadataKey = (key: string) => {
     country: 'País',
     language: 'Idioma',
     google_ads: 'Configuração Google Ads',
+    meta_ads: 'Configuração Meta Ads',
   }
   
   return keyMap[key] || key
@@ -483,19 +590,23 @@ const formatMetadataKey = (key: string) => {
 // HANDLERS
 // ============================================================================
 
-const handleViewLogs = () => {
-  emit('viewLogs')
-}
-
-const handleRefresh = () => {
-  emit('refresh')
-}
-
 const handleDisconnect = () => {
   emit('disconnect')
 }
 
 const handleManageGoogleConversionActions = () => {
   emit('manageGoogleConversionActions')
+}
+
+const handleManageMetaPixels = () => {
+  emit('manageMetaPixels')
+}
+
+const handleRenewToken = () => {
+  emit('renewToken')
+}
+
+const handleChangeAccount = () => {
+  emit('changeAccount')
 }
 </script>

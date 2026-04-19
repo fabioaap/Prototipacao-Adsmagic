@@ -142,8 +142,6 @@ vi.mock('@/composables/useIntegrationsPlatformActions', () => ({
     handleGoogleViewDetails: vi.fn(),
     handleTikTokViewDetails: vi.fn(),
     handleWhatsAppViewDetails: vi.fn(),
-    handleViewConnectionLogs: vi.fn(),
-    handleRefreshConnection: vi.fn(),
     handleDisconnectConnection: vi.fn(),
     handleWhatsAppConnect: vi.fn(),
     handleGenerateWhatsAppQR: vi.fn(),
@@ -186,7 +184,7 @@ describe('IntegrationsView - Ads Tab', () => {
     shallowMount(IntegrationsView, {
       global: {
         stubs: {
-          AppLayout: { template: '<div><slot /></div>' },
+          AppShell: { template: '<div><slot /></div>' },
           WhatsAppQRModal: { template: '<div />' },
           IntegrationsAdsTab: false,
           Tabs: { template: '<div><slot /></div>' },
@@ -201,7 +199,7 @@ describe('IntegrationsView - Ads Tab', () => {
     const wrapper = mountView()
 
     expect(loadDataMock).toHaveBeenCalled()
-    expect(wrapper.text()).toContain('Anuncios')
+    expect(wrapper.text()).toContain('Anúncios')
     expect(wrapper.find('[data-testid="ads-card-google"]').exists()).toBe(true)
   })
 

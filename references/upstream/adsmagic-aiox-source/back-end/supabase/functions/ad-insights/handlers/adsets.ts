@@ -108,54 +108,62 @@ export async function handleAdsets(
 
     let adsets: Omit<AdsetMetrics, 'contacts' | 'sales' | 'revenue' | 'roas'>[] = []
 
-    if (platform === 'meta') {
-      if (campaignId) {
-        adsets = await getMetaAdsets(campaignId, account.accessToken, dateRange)
-      } else {
-        const campaigns = await getMetaCampaigns(
-          account.externalAccountId.replace('act_', ''),
-          account.accessToken,
-          dateRange
-        )
-
-        const activeCampaigns = campaigns.filter((campaign) => campaign.status === 'ACTIVE')
-        const batches = await Promise.all(
-          activeCampaigns.map((campaign) =>
-            getMetaAdsets(campaign.campaignId, account.accessToken, dateRange)
+    try {
+      if (platform === 'meta') {
+        if (campaignId) {
+          adsets = await getMetaAdsets(campaignId, account.accessToken, dateRange)
+        } else {
+          const campaigns = await getMetaCampaigns(
+            account.externalAccountId.replace('act_', ''),
+            account.accessToken,
+            dateRange
           )
-        )
-        adsets = batches.flat()
-      }
-    } else if (platform === 'google') {
-      if (campaignId) {
-        adsets = await getGoogleAdgroups(
-          account.externalAccountId,
-          campaignId,
-          account.accessToken,
-          dateRange
-        )
-      } else {
-        const campaigns = await getGoogleCampaigns(
-          account.externalAccountId,
-          account.accessToken,
-          dateRange
-        )
-        const activeCampaigns = campaigns.filter((campaign) => campaign.status === 'ACTIVE')
 
-        const batches = await Promise.all(
-          activeCampaigns.map((campaign) =>
-            getGoogleAdgroups(
-              account.externalAccountId,
-              campaign.campaignId,
-              account.accessToken,
-              dateRange
+          const activeCampaigns = campaigns.filter((campaign) => campaign.status === 'ACTIVE')
+          const batches = await Promise.all(
+            activeCampaigns.map((campaign) =>
+              getMetaAdsets(campaign.campaignId, account.accessToken, dateRange)
             )
           )
-        )
-        adsets = batches.flat()
+          adsets = batches.flat()
+        }
+      } else if (platform === 'google') {
+        if (campaignId) {
+          adsets = await getGoogleAdgroups(
+            account.externalAccountId,
+            campaignId,
+            account.accessToken,
+            dateRange,
+            account.loginCustomerId
+          )
+        } else {
+          const campaigns = await getGoogleCampaigns(
+            account.externalAccountId,
+            account.accessToken,
+            dateRange,
+            account.loginCustomerId
+          )
+          const activeCampaigns = campaigns.filter((campaign) => campaign.status === 'ACTIVE')
+
+          const batches = await Promise.all(
+            activeCampaigns.map((campaign) =>
+              getGoogleAdgroups(
+                account.externalAccountId,
+                campaign.campaignId,
+                account.accessToken,
+                dateRange,
+                account.loginCustomerId
+              )
+            )
+          )
+          adsets = batches.flat()
+        }
+      } else {
+        return errorResponse('TikTok not implemented yet', 501)
       }
-    } else {
-      return errorResponse('TikTok not implemented yet', 501)
+    } catch (apiError) {
+      console.error(`[Ad Insights Adsets] ${platform} API error:`, apiError)
+      return successResponse([])
     }
 
     const deduped = dedupeAdsets(adsets)

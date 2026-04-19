@@ -53,6 +53,10 @@ app.use(pinia)
 app.use(i18n)
 app.use(router)
 
+// Product analytics (PostHog) — no-op when VITE_POSTHOG_KEY is missing or mock mode
+import { analytics } from './services/analytics'
+analytics.init()
+
 // Inicializa stores após criar o app
 import { useAuthStore } from './stores/auth'
 import { useLanguageStore } from './stores/language'

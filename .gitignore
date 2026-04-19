@@ -1,4 +1,5 @@
 node_modules
+_temp_node_modules/
 dist
 docs/node_modules
 docs/build
@@ -38,6 +39,11 @@ Thumbs.db
 
 # Playwright MCP auto-generated logs
 .playwright-mcp/
+
+# Test artifacts
+**/test-results/
+**/usability-test-results/
+**/playwright-report/
 
 # Residual empty dir locked by VS Code file watcher
 _reference/

@@ -107,16 +107,16 @@ const sizeClasses = {
 
 // Computed classes
 const overlayClasses = computed(() => cn(
-  'fixed inset-0 bg-black/50 backdrop-blur-sm',
+  'fixed inset-0 bg-black/50',
   'flex items-center justify-center p-4',
-  'transition-opacity duration-300 ease-out'
+  'transition-opacity duration-200 ease-out'
 ))
 
 const containerClasses = computed(() => cn(
   // Base styles
   'relative bg-background shadow-2xl w-full',
   'border border-border',
-  'transition-all duration-300 ease-out',
+  'transition-all duration-200 ease-out',
   // Mobile: fullscreen, Desktop: rounded
   'sm:rounded-lg',
   // Size

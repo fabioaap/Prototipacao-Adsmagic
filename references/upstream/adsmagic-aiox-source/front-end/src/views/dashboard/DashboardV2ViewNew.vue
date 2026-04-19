@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Settings2 } from 'lucide-vue-next'
 import { useDashboardV2Store } from '@/stores/dashboardV2'
@@ -10,6 +10,7 @@ import { useOriginsStore } from '@/stores/origins'
 import { useSettingsStore } from '@/stores/settings'
 import { useProjectsStore } from '@/stores/projects'
 import { useStagesStore } from '@/stores/stages'
+import { useSetupChecklistStore } from '@/stores/setupChecklist'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { downloadBlob, generateFilename } from '@/utils/download'
 import {
@@ -26,6 +27,7 @@ import TimelineChart from '@/components/dashboardV2/TimelineChart.vue'
 import RevenueGoalCard from '@/components/dashboardV2/RevenueGoalCard.vue'
 import DashboardFiltersBarNew from '@/components/dashboardV2/DashboardFiltersBarNew.vue'
 import OriginsPerformanceTable from '@/components/dashboard/OriginsPerformanceTable.vue'
+import SetupChecklist from '@/components/dashboard/SetupChecklist.vue'
 import NorthStarConfigDrawer from '@/components/dashboardV2/NorthStarConfigDrawer.vue'
 import EntityListDrawer from '@/components/dashboardV2/EntityListDrawer.vue'
 import ContactDetailsDrawer from '@/components/contacts/ContactDetailsDrawer.vue'
@@ -33,14 +35,16 @@ import SaleDetailsDrawer from '@/components/sales/SaleDetailsDrawer.vue'
 import { Button } from '@/components/ui/button'
 import Badge from '@/components/ui/Badge.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
+import Tabs from '@/components/ui/Tabs.vue'
+import TabsList from '@/components/ui/TabsList.vue'
+import TabsTrigger from '@/components/ui/TabsTrigger.vue'
 
 import { dashboardV2Service } from '@/services/api/dashboardV2'
 import type { ChannelData } from '@/components/dashboardV2/ChannelDonutChart.vue'
-import type { DrillDownEntity, NorthStarCustomMetricDefinition } from '@/types'
+import type { DrillDownEntity, FunnelCountMode, NorthStarCustomMetricDefinition } from '@/types'
 import type { Contact, Sale } from '@/types/models'
 
 const route = useRoute()
-const router = useRouter()
 const { t } = useI18n()
 const dashboardStore = useDashboardV2Store()
 const contactsStore = useContactsStore()
@@ -49,6 +53,7 @@ const originsStore = useOriginsStore()
 const settingsStore = useSettingsStore()
 const projectsStore = useProjectsStore()
 const stagesStore = useStagesStore()
+const setupChecklistStore = useSetupChecklistStore()
 const { toast } = useToast()
 
 // Revenue goal from settings store (persisted in database)
@@ -60,40 +65,7 @@ const showDetailedKpis = ref(false)
 
 const projectId = computed(() => route.params.projectId as string | undefined)
 
-const currentProject = computed(() => {
-  if (!projectId.value) return null
-  if (projectsStore.currentProject?.id === projectId.value) {
-    return projectsStore.currentProject
-  }
-  return projectsStore.projects.find((project) => project.id === projectId.value) || null
-})
 
-const assistantData = computed(() => {
-  const wizardProgress = currentProject.value?.wizard_progress
-  if (!wizardProgress || typeof wizardProgress !== 'object') {
-    return {}
-  }
-
-  const progressData = wizardProgress.data
-  if (!progressData || typeof progressData !== 'object') {
-    return {}
-  }
-
-  return progressData as Record<string, unknown>
-})
-
-const hasPendingOnboardingActions = computed(() => {
-  const project = currentProject.value
-  if (!project) return false
-
-  const hasMissingSegment = String(assistantData.value.segment || '').trim().length === 0
-  const hasNoConnectedChannels =
-    !project.meta_ads_connected &&
-    !project.google_ads_connected &&
-    !project.whatsapp_connected
-
-  return hasMissingSegment || hasNoConnectedChannels
-})
 
 // Estado para drill-down (G5.5)
 const drilldownOpen = ref(false)
@@ -385,14 +357,14 @@ async function handleSaveNorthStarConfig(payload: {
     await dashboardStore.loadDashboardData(dashboardTimezone.value)
     northStarConfigOpen.value = false
     toast({
-      title: 'North Star atualizada',
+      title: 'Métricas principais atualizadas',
       description: 'A configuração de métricas foi salva com sucesso.',
     })
   } catch (error) {
     console.error('[Dashboard] Error saving North Star config:', error)
     toast({
       title: 'Erro',
-      description: 'Não foi possível salvar a configuração da North Star.',
+      description: 'Não foi possível salvar a configuração das métricas principais.',
       variant: 'destructive',
     })
   } finally {
@@ -493,7 +465,21 @@ const timelineData = computed(() => {
 })
 
 // Funil de conversão (dados reais: dashboardStore.funnelStats)
-const funnelStatsForView = computed(() => dashboardStore.funnelStats ?? [])
+const activeFunnelMode = ref<FunnelCountMode>('passed')
+
+const funnelStatsForView = computed(() => (
+  dashboardStore.funnelStatsByMode[activeFunnelMode.value] ?? []
+))
+
+const funnelSubtitle = computed(() => (
+  activeFunnelMode.value === 'current'
+    ? t('dashboard.v2.funnelSubtitleCurrent')
+    : t('dashboard.v2.funnelSubtitlePassed')
+))
+
+const funnelOverallConversionRateForView = computed(() => (
+  dashboardStore.funnelOverallConversionRateByMode[activeFunnelMode.value] ?? 0
+))
 
 const funnelTotalFormatted = computed(() => {
   const total = dashboardStore.funnelTotalContacts ?? 0
@@ -501,9 +487,17 @@ const funnelTotalFormatted = computed(() => {
 })
 
 const funnelEntradaFormatted = computed(() => {
-  const stages = funnelStatsForView.value
-  const firstCount = stages.length > 0 ? (stages[0]?.count ?? 0) : 0
-  return firstCount.toLocaleString('pt-BR') + ' novos contatos'
+  const firstStage = funnelStatsForView.value[0]
+  if (!firstStage) return '—'
+
+  const params = {
+    count: firstStage.count.toLocaleString('pt-BR'),
+    stage: firstStage.stageName
+  }
+
+  return activeFunnelMode.value === 'current'
+    ? t('dashboard.v2.funnelEntryCurrentValue', params)
+    : t('dashboard.v2.funnelEntryPassedValue', params)
 })
 
 const funnelAvancoMedioFormatted = computed(() => {
@@ -517,11 +511,19 @@ const funnelAvancoMedioFormatted = computed(() => {
 
 const funnelConversaoFinalFormatted = computed(() => {
   const stages = funnelStatsForView.value
-  const rate = dashboardStore.funnelOverallConversionRate ?? 0
+  const rate = funnelOverallConversionRateForView.value
   const lastStage = stages.length > 0 ? stages[stages.length - 1] : undefined
   const lastCount = lastStage?.count ?? 0
   const rateStr = rate.toFixed(1).replace('.', ',')
-  return lastCount.toLocaleString('pt-BR') + ' vendas (' + rateStr + '%)'
+
+  const params = {
+    count: lastCount.toLocaleString('pt-BR'),
+    rate: `${rateStr}%`
+  }
+
+  return activeFunnelMode.value === 'current'
+    ? t('dashboard.v2.funnelFinalCurrentValue', params)
+    : t('dashboard.v2.funnelFinalPassedValue', params)
 })
 
 const goalPercentageValue = computed(() => {
@@ -630,33 +632,6 @@ function handleOriginsChange(origin: string) {
   dashboardStore.updateFilter('origin', originValue)
 }
 
-function goToIntegrationsSetup() {
-  if (!projectId.value) return
-  const locale = (route.params.locale as string) || 'pt'
-  router.push({
-    name: 'integrations',
-    params: {
-      locale,
-      projectId: projectId.value,
-    },
-    query: {
-      tab: 'channels',
-    },
-  })
-}
-
-function continueWithAssistant() {
-  if (!projectId.value) return
-  const locale = (route.params.locale as string) || 'pt'
-  router.push({
-    name: 'project-wizard',
-    params: { locale },
-    query: {
-      projectId: projectId.value,
-    },
-  })
-}
-
 async function handleExport() {
   if (isExporting.value) return
   
@@ -722,19 +697,17 @@ async function handleExport() {
 }
 
 // Handler para drill-down em gráficos (G5.5)
-async function handleDrilldown(date: string, metric: 'contacts' | 'sales' | 'revenue' | 'spend', value: number) {
-  console.log(`[Dashboard] Drilldown clicked: ${metric} on ${date} (value: ${value})`)
-  
+async function handleDrilldown(date: string, metric: 'contacts' | 'sales' | 'revenue' | 'spend', _value: number) {
   drilldownLoading.value = true
   drilldownOpen.value = true
   drilldownEntities.value = []
   
   // Define título baseado na métrica
   const metricLabels = {
-    contacts: 'Contatos',
-    sales: 'Vendas',
-    revenue: 'Receita',
-    spend: 'Gastos'
+    contacts: t('dashboard.metrics.contacts'),
+    sales: t('dashboard.metrics.sales'),
+    revenue: t('dashboard.metrics.revenue'),
+    spend: t('dashboard.metrics.spend')
   }
   
   drilldownTitle.value = `${metricLabels[metric]} em ${new Date(date).toLocaleDateString('pt-BR')}`
@@ -749,20 +722,19 @@ async function handleDrilldown(date: string, metric: 'contacts' | 'sales' | 'rev
       entities.push(...contacts.map(contact => ({
         id: contact.id,
         type: 'contact' as const,
-        name: contact.name || 'Sem nome',
+        name: contact.name || t('dashboard.noName'),
         stage: contactsStore.getStageNameById(contact.stage),
         origin: contactsStore.getOriginNameById(contact.origin),
         createdAt: contact.createdAt
       })))
     } else if (metric === 'sales' || metric === 'revenue') {
-      // Buscar vendas reais da store
       const sales = await salesStore.getSalesByDate(date)
-      
+
       entities.push(...sales.map(sale => ({
         id: sale.id,
         type: 'sale' as const,
         name: salesStore.getContactNameById(sale.contactId),
-        stage: sale.status === 'completed' ? 'Fechada' : 'Perdida',
+        stage: sale.status === 'completed' ? t('dashboard.saleClosed') : t('dashboard.saleLost'),
         origin: salesStore.getOriginNameById(sale.origin),
         value: sale.value,
         createdAt: sale.date
@@ -790,15 +762,11 @@ async function handleDrilldown(date: string, metric: 'contacts' | 'sales' | 'rev
 }
 
 function handleEntityClick(entity: DrillDownEntity) {
-  console.log('[Dashboard] Entity clicked:', entity)
-  
   if (entity.type === 'contact') {
-    // Buscar contato completo na store
     const contact = contactsStore.contacts.find(c => c.id === entity.id)
     if (contact) {
       selectedContactForDetails.value = contact
       showContactDetails.value = true
-      console.log('[Dashboard] Opening ContactDetailsDrawer for:', contact.name)
     } else {
       toast({
         title: 'Erro',
@@ -812,7 +780,6 @@ function handleEntityClick(entity: DrillDownEntity) {
     if (sale) {
       selectedSaleForDetails.value = sale
       showSaleDetails.value = true
-      console.log('[Dashboard] Opening SaleDetailsDrawer for:', sale.id)
     } else {
       toast({
         title: 'Erro',
@@ -825,8 +792,6 @@ function handleEntityClick(entity: DrillDownEntity) {
 
 // Handler para clique em canal/origem (drill-down por origem)
 function handleChannelClick(channel: ChannelData) {
-  console.log('[Dashboard] Channel clicked:', channel.name)
-  
   drilldownLoading.value = true
   drilldownOpen.value = true
   drilldownEntities.value = []
@@ -837,44 +802,38 @@ function handleChannelClick(channel: ChannelData) {
     
     // Buscar ID da origem pelo nome
     const originId = originsStore.getOriginIdByName(channel.name)
-    console.log('[Dashboard] Origin ID for', channel.name, ':', originId)
-    
-    // Buscar contatos filtrados por origem (comparar com ID ou nome)
-    const filteredContacts = contactsStore.contacts.filter(c => 
-      c.origin === originId || 
-      c.origin === channel.name || 
+
+    const filteredContacts = contactsStore.contacts.filter(c =>
+      c.origin === originId ||
+      c.origin === channel.name ||
       c.origin?.toLowerCase().includes(channel.name.toLowerCase())
     )
-    console.log('[Dashboard] Filtered contacts:', filteredContacts.length)
     
     entities.push(...filteredContacts.map(contact => ({
       id: contact.id,
       type: 'contact' as const,
-      name: contact.name || 'Sem nome',
+      name: contact.name || t('dashboard.noName'),
       stage: contactsStore.getStageNameById(contact.stage),
       origin: contactsStore.getOriginNameById(contact.origin) || channel.name,
       createdAt: contact.createdAt
     })))
-    
-    // Buscar vendas filtradas por origem (comparar com ID ou nome)
-    const filteredSales = salesStore.sales.filter(s => 
-      s.origin === originId || 
-      s.origin === channel.name || 
+
+    const filteredSales = salesStore.sales.filter(s =>
+      s.origin === originId ||
+      s.origin === channel.name ||
       s.origin?.toLowerCase().includes(channel.name.toLowerCase())
     )
-    console.log('[Dashboard] Filtered sales:', filteredSales.length)
     
     entities.push(...filteredSales.map(sale => ({
       id: sale.id,
       type: 'sale' as const,
       name: salesStore.getContactNameById(sale.contactId),
-      stage: sale.status === 'completed' ? 'Fechada' : 'Perdida',
+      stage: sale.status === 'completed' ? t('dashboard.saleClosed') : t('dashboard.saleLost'),
       origin: salesStore.getOriginNameById(sale.origin) || channel.name,
       value: sale.value,
       createdAt: sale.date
     })))
-    
-    console.log('[Dashboard] Total entities:', entities.length)
+
     drilldownEntities.value = entities
   } catch (error) {
     console.error('Erro ao buscar dados do canal:', error)
@@ -894,13 +853,15 @@ onMounted(async () => {
       await projectsStore.loadProject(projectId.value)
     }
 
-    // Load settings first so timezone-sensitive date filters use company timezone.
-    if (!settingsStore.settings) {
-      await settingsStore.fetchSettings(projectId.value)
-    }
+    // Load settings + origins + stages in parallel (all needed before dashboard data)
+    await Promise.all([
+      !settingsStore.settings ? settingsStore.fetchSettings(projectId.value) : Promise.resolve(),
+      originsStore.fetchOrigins(),
+      stagesStore.fetchStages(),
+    ])
 
+    // Load dashboard data after settings (needs timezone)
     await dashboardStore.loadDashboardData(dashboardTimezone.value)
-    await stagesStore.fetchStages()
   }
 })
 
@@ -936,37 +897,10 @@ const getDeltaBadgeColor = (badgeType?: 'positive' | 'negative') => {
         @export="handleExport"
         class="mb-6"
       />
-      <section
-        v-if="hasPendingOnboardingActions"
-        class="mb-6 rounded-2xl border border-border bg-card dashboard-card"
-        aria-labelledby="dashboard-onboarding-title"
-      >
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 id="dashboard-onboarding-title" class="text-base font-semibold text-foreground">
-              Próximos passos do projeto
-            </h2>
-            <p class="mt-1 text-sm text-muted-foreground">
-              Você pode integrar agora ou continuar o assistente para revisar o que já está preenchido.
-            </p>
-          </div>
-          <div class="flex flex-col gap-2 sm:flex-row">
-            <Button
-              type="button"
-              variant="outline"
-              @click="goToIntegrationsSetup"
-            >
-              Ir para integrações
-            </Button>
-            <Button
-              type="button"
-              @click="continueWithAssistant"
-            >
-              Continuar com assistente
-            </Button>
-          </div>
-        </div>
-      </section>
+      <SetupChecklist
+        v-if="setupChecklistStore.shouldShow"
+        class="mb-6"
+      />
 
       <!-- Banner de erro global (Etapa 6): CTA "Tentar novamente" recarrega todo o dashboard -->
       <section
@@ -991,7 +925,7 @@ const getDeltaBadgeColor = (badgeType?: 'positive' | 'negative') => {
       <section class="mb-6 rounded-2xl border border-border bg-card dashboard-card" aria-labelledby="north-star-title">
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 id="north-star-title" class="text-lg font-semibold text-foreground">North Star</h2>
+            <h2 id="north-star-title" class="text-lg font-semibold text-foreground">Métricas principais</h2>
             <p class="text-sm text-muted-foreground">Métricas prioritárias para tomada de decisão</p>
           </div>
           <div class="flex items-center gap-2">
@@ -999,7 +933,7 @@ const getDeltaBadgeColor = (badgeType?: 'positive' | 'negative') => {
               type="button"
               variant="outline"
               size="icon"
-              aria-label="Configurar métricas North Star"
+              aria-label="Configurar métricas principais"
               @click="northStarConfigOpen = true"
             >
               <Settings2 class="h-4 w-4" />
@@ -1146,8 +1080,26 @@ const getDeltaBadgeColor = (badgeType?: 'positive' | 'negative') => {
       <!-- Funil de conversão (dados reais: GET /dashboard/funnel-stats) -->
       <section class="flex flex-col gap-4 mb-6" aria-labelledby="funnel-heading">
         <div class="card-shadow rounded-3xl border border-slate-200 bg-white dashboard-card overflow-hidden">
-          <h2 id="funnel-heading" class="text-lg font-semibold text-slate-900">{{ t('dashboard.v2.funnelTitle') }}</h2>
-          <p class="text-xs text-slate-500 mt-0.5">{{ t('dashboard.v2.funnelSubtitle') }}</p>
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 id="funnel-heading" class="text-lg font-semibold text-slate-900">{{ t('dashboard.v2.funnelTitle') }}</h2>
+              <p class="text-xs text-slate-500 mt-0.5">{{ funnelSubtitle }}</p>
+            </div>
+
+            <Tabs v-model="activeFunnelMode" class="w-full sm:w-auto">
+              <TabsList
+                class="grid w-full grid-cols-2 sm:w-auto"
+                :aria-label="t('dashboard.v2.funnelModeLabel')"
+              >
+                <TabsTrigger value="passed" class="min-w-0 px-2 text-xs sm:min-w-[154px] sm:px-3 sm:text-sm">
+                  {{ t('dashboard.v2.funnelModePassed') }}
+                </TabsTrigger>
+                <TabsTrigger value="current" class="min-w-0 px-2 text-xs sm:min-w-[154px] sm:px-3 sm:text-sm">
+                  {{ t('dashboard.v2.funnelModeCurrent') }}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
 
           <template v-if="dashboardStore.isLoading && funnelStatsForView.length === 0">
             <div class="mt-6 grid gap-3 text-xs text-slate-500 sm:grid-cols-3 sm:gap-4">
@@ -1201,11 +1153,7 @@ const getDeltaBadgeColor = (badgeType?: 'positive' | 'negative') => {
           </template>
 
           <template v-else>
-            <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div class="text-xs text-slate-500">
-                <p class="font-semibold text-slate-900">{{ t('dashboard.v2.funnelTitle') }}</p>
-                <p>{{ t('dashboard.v2.funnelSubtitle') }}</p>
-              </div>
+            <div class="mt-4 flex justify-end">
               <div class="text-right text-xs text-slate-500">
                 <p class="font-semibold text-slate-900">{{ t('dashboard.v2.totalAnalyzed') }}</p>
                 <p>{{ funnelTotalFormatted }}</p>
@@ -1226,6 +1174,7 @@ const getDeltaBadgeColor = (badgeType?: 'positive' | 'negative') => {
               </div>
             </div>
             <ConversionFunnelChart
+              :mode="activeFunnelMode"
               :stages="funnelStatsForView"
               :total-contacts="dashboardStore.funnelTotalContacts || 0"
             />
@@ -1251,15 +1200,19 @@ const getDeltaBadgeColor = (badgeType?: 'positive' | 'negative') => {
           </div>
         </template>
         <template v-else>
-          <ChannelDonutChart
+          <div
             v-if="salesByChannel.length > 0"
-            :title="t('dashboard.v2.salesByOriginTitle')"
-            :subtitle="t('dashboard.v2.salesByOriginSubtitle')"
-            :total-label="t('dashboard.v2.totalSales')"
-            :total-value="totalSalesForDonut"
-            :channels="salesByChannel"
-            @channel-click="handleChannelClick"
-          />
+            class="card-shadow rounded-3xl border border-slate-200 bg-white dashboard-card"
+          >
+            <ChannelDonutChart
+              :title="t('dashboard.v2.salesByOriginTitle')"
+              :subtitle="t('dashboard.v2.salesByOriginSubtitle')"
+              :total-label="t('dashboard.v2.totalSales')"
+              :total-value="totalSalesForDonut"
+              :channels="salesByChannel"
+              @channel-click="handleChannelClick"
+            />
+          </div>
           <div
             v-else
             class="card-shadow rounded-3xl border border-slate-200 bg-white dashboard-card flex flex-col items-center justify-center min-h-[200px]"
@@ -1272,15 +1225,19 @@ const getDeltaBadgeColor = (badgeType?: 'positive' | 'negative') => {
               {{ t('dashboard.v2.noOriginDataSalesHint') }}
             </p>
           </div>
-          <ChannelDonutChart
+          <div
             v-if="revenueByChannel.length > 0"
-            :title="t('dashboard.v2.revenueByOriginTitle')"
-            :subtitle="t('dashboard.v2.revenueByOriginSubtitle')"
-            :total-label="t('dashboard.v2.totalRevenue')"
-            :total-value="totalRevenueForDonut"
-            :channels="revenueByChannel"
-            @channel-click="handleChannelClick"
-          />
+            class="card-shadow rounded-3xl border border-slate-200 bg-white dashboard-card"
+          >
+            <ChannelDonutChart
+              :title="t('dashboard.v2.revenueByOriginTitle')"
+              :subtitle="t('dashboard.v2.revenueByOriginSubtitle')"
+              :total-label="t('dashboard.v2.totalRevenue')"
+              :total-value="totalRevenueForDonut"
+              :channels="revenueByChannel"
+              @channel-click="handleChannelClick"
+            />
+          </div>
           <div
             v-else
             class="card-shadow rounded-3xl border border-slate-200 bg-white dashboard-card flex flex-col items-center justify-center min-h-[200px]"
@@ -1569,4 +1526,3 @@ main.dashboard-wide {
 }
 
 </style>
-

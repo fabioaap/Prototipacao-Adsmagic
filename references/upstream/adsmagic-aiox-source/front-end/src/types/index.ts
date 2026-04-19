@@ -45,6 +45,8 @@ export type {
   DashboardV2Summary,
   DashboardInsight,
   FunnelStageStats,
+  FunnelCountMode,
+  FunnelStatsView,
   PipelineStageStats,
   OriginBreakdown,
   TimeSeriesPoint,
@@ -56,7 +58,12 @@ export type {
   ContactActivityMetadata,
   // Message types
   Message,
-  MessageMetrics
+  MessageMetrics,
+  // Conversation message types (Chat History)
+  ConversationMessage,
+  ConversationMessageDirection,
+  ConversationMessageContentType,
+  ConversationMessageStatus
 } from './models'
 
 // ============================================================================
@@ -281,3 +288,8 @@ export type {
   BackendValidationError,
   BackendErrorResponse
 } from './api/contacts.api'
+
+export type {
+  BackendConversationMessage,
+  BackendConversationResponse
+} from './api/conversations.api'

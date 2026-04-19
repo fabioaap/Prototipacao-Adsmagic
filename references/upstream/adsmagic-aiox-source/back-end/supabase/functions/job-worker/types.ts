@@ -38,7 +38,7 @@ export interface Job {
 
 export interface JobResult {
   jobId: string
-  status: 'completed' | 'failed' | 'retry_scheduled' | 'skipped'
+  status: 'completed' | 'failed' | 'retry_scheduled' | 'skipped' | 'cancelled'
   result?: Record<string, unknown>
   error?: string
   retryAfter?: string

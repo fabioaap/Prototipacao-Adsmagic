@@ -20,6 +20,9 @@ export const COMPANY_TYPES = [
   { id: 'healthcare', label: 'Saúde', icon: '🏥' },
   { id: 'education', label: 'Educação', icon: '🎓' },
   { id: 'realestate', label: 'Imobiliária', icon: '🏠' },
+  { id: 'services', label: 'Serviços', icon: '🔧' },
+  { id: 'infoproduct', label: 'Infoproduto', icon: '📦' },
+  { id: 'other', label: 'Outros', icon: '📌' },
 ] as const
 
 /**
@@ -98,13 +101,16 @@ export interface OnboardingStatus {
  */
 export const companyTypeSchema = z.enum([
   'ecommerce',
-  'saas', 
+  'saas',
   'agency',
   'restaurant',
   'retail',
   'healthcare',
   'education',
-  'realestate'
+  'realestate',
+  'services',
+  'infoproduct',
+  'other'
 ])
 
 /**

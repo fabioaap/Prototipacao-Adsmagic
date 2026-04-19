@@ -57,7 +57,6 @@ export const useTagsStore = defineStore('tags', () => {
         currentProjectId,
         (newProjectId, oldProjectId) => {
             if (newProjectId !== oldProjectId) {
-                console.log('[Tags Store] Project changed, clearing data:', { oldProjectId, newProjectId })
 
                 // Clear all data
                 tags.value = []
@@ -66,7 +65,6 @@ export const useTagsStore = defineStore('tags', () => {
 
                 // Reload data for new project if project exists
                 if (newProjectId) {
-                    console.log('[Tags Store] Loading data for new project:', newProjectId)
                     fetchTags()
                 }
             }
@@ -137,7 +135,6 @@ export const useTagsStore = defineStore('tags', () => {
         try {
             const data = await tagsService.getAll()
             tags.value = data
-            console.log('[Tags Store] Loaded', data.length, 'tags')
         } catch (err) {
             error.value = err instanceof Error ? err.message : 'Erro ao carregar tags'
             console.error('[Tags Store] Error loading tags:', err)
@@ -160,7 +157,6 @@ export const useTagsStore = defineStore('tags', () => {
         try {
             const newTag = await tagsService.create(data)
             tags.value.push(newTag)
-            console.log('[Tags Store] Created tag:', newTag.name)
             return newTag
         } catch (err) {
             error.value = err instanceof Error ? err.message : 'Erro ao criar tag'
@@ -194,7 +190,6 @@ export const useTagsStore = defineStore('tags', () => {
                 }
             })
 
-            console.log('[Tags Store] Updated tag:', updatedTag.name)
             return updatedTag
         } catch (err) {
             error.value = err instanceof Error ? err.message : 'Erro ao atualizar tag'
@@ -222,7 +217,6 @@ export const useTagsStore = defineStore('tags', () => {
                 contactTagsCache.value.set(contactId, filtered)
             })
 
-            console.log('[Tags Store] Deleted tag:', id)
         } catch (err) {
             error.value = err instanceof Error ? err.message : 'Erro ao excluir tag'
             throw err
@@ -271,7 +265,6 @@ export const useTagsStore = defineStore('tags', () => {
                 }
             })
 
-            console.log('[Tags Store] Added tags to contact:', contactId, tagIds)
         } catch (err) {
             error.value = err instanceof Error ? err.message : 'Erro ao adicionar tags'
             throw err
@@ -298,7 +291,6 @@ export const useTagsStore = defineStore('tags', () => {
                 }
             })
 
-            console.log('[Tags Store] Removed tags from contact:', contactId, tagIds)
         } catch (err) {
             error.value = err instanceof Error ? err.message : 'Erro ao remover tags'
             throw err

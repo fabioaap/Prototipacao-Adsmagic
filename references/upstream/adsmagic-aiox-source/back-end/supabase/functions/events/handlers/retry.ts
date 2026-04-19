@@ -55,19 +55,20 @@ export async function handleRetry(
       return errorResponse('Event already sent successfully', 400)
     }
 
-    if (eventData.status === 'cancelled') {
-      return errorResponse('Cannot retry cancelled event', 400)
-    }
+    const isCancelled = eventData.status === 'cancelled'
 
-    if (eventData.retry_count >= eventData.max_retries) {
+    if (!isCancelled && eventData.retry_count >= eventData.max_retries) {
       return errorResponse(`Maximum retry attempts (${eventData.max_retries}) reached`, 400)
     }
+
+    // Para eventos cancelados (nonRetryable), resetar retry_count para dar nova chance
+    const newRetryCount = isCancelled ? 1 : eventData.retry_count + 1
 
     // Atualizar contador de retry
     const { data: updatedEvent, error: updateError } = await supabaseClient
       .from('conversion_events')
       .update({
-        retry_count: eventData.retry_count + 1,
+        retry_count: newRetryCount,
         last_retry_at: new Date().toISOString(),
         status: 'pending'
       })

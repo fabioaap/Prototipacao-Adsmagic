@@ -117,8 +117,8 @@ const MOCK_CONTACT_TAGS: Map<string, string[]> = new Map([
 // Flag para alternar entre mock e API real
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 
-// Flag para usar mock em endpoints de contact-tags
-const USE_MOCK_FOR_CONTACT_TAGS = false
+// Flag para usar mock em endpoints de contact-tags (ainda não implementados no backend)
+const USE_MOCK_FOR_CONTACT_TAGS = true
 
 /**
  * Limite máximo de tags por projeto
@@ -149,9 +149,6 @@ export const tagsService = {
             return rows.map(mapBackendTagToFrontend)
         } catch (err) {
             const message = getApiErrorMessage(err)
-            if (import.meta.env.DEV) {
-                console.error('[Tags Service] Error fetching tags:', err)
-            }
             throw new Error(message)
         }
     },
@@ -283,9 +280,12 @@ export const tagsService = {
 
     /**
      * Buscar tags de um contato
+     * 
+     * NOTA: Endpoint /contacts/{id}/tags ainda não implementado no backend.
+     * Usando mock como fallback até implementação.
      */
     async getContactTags(contactId: string): Promise<Tag[]> {
-        // Usar mock quando habilitado por configuração
+        // Usar mock enquanto endpoint não estiver implementado no backend
         if (USE_MOCK || USE_MOCK_FOR_CONTACT_TAGS) {
             await new Promise(resolve => setTimeout(resolve, 150))
 
@@ -293,15 +293,18 @@ export const tagsService = {
             return MOCK_TAGS.filter(tag => tagIds.includes(tag.id))
         }
 
-        const response = await apiClient.get<BackendTagRow[]>(`/tags/contacts/${contactId}/tags`)
-        return (response.data || []).map(mapBackendTagToFrontend)
+        const response = await apiClient.get<Tag[]>(`/contacts/${contactId}/tags`)
+        return response.data
     },
 
     /**
      * Adicionar tags a um contato
+     * 
+     * NOTA: Endpoint /contacts/{id}/tags ainda não implementado no backend.
+     * Usando mock como fallback até implementação.
      */
     async addTagsToContact(contactId: string, tagIds: string[]): Promise<void> {
-        // Usar mock quando habilitado por configuração
+        // Usar mock enquanto endpoint não estiver implementado no backend
         if (USE_MOCK || USE_MOCK_FOR_CONTACT_TAGS) {
             await new Promise(resolve => setTimeout(resolve, 200))
 
@@ -320,18 +323,17 @@ export const tagsService = {
             return
         }
 
-        await Promise.all(
-            tagIds.map(async (tagId) => {
-                await apiClient.post(`/tags/contacts/${contactId}/tags`, { tag_id: tagId })
-            })
-        )
+        await apiClient.post(`/contacts/${contactId}/tags`, { tagIds })
     },
 
     /**
      * Remover tags de um contato
+     * 
+     * NOTA: Endpoint /contacts/{id}/tags ainda não implementado no backend.
+     * Usando mock como fallback até implementação.
      */
     async removeTagsFromContact(contactId: string, tagIds: string[]): Promise<void> {
-        // Usar mock quando habilitado por configuração
+        // Usar mock enquanto endpoint não estiver implementado no backend
         if (USE_MOCK || USE_MOCK_FOR_CONTACT_TAGS) {
             await new Promise(resolve => setTimeout(resolve, 200))
 
@@ -350,11 +352,7 @@ export const tagsService = {
             return
         }
 
-        await Promise.all(
-            tagIds.map(async (tagId) => {
-                await apiClient.delete(`/tags/contacts/${contactId}/tags/${tagId}`)
-            })
-        )
+        await apiClient.delete(`/contacts/${contactId}/tags`, { data: { tagIds } })
     },
 
     /**

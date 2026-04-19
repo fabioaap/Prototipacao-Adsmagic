@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button.vue'
 import Pagination from '@/components/ui/Pagination.vue'
 import Select from '@/components/ui/Select.vue'
 import SearchInput from '@/components/ui/SearchInput.vue'
-import type { Contact, Tag } from '@/types/models'
+import type { Contact } from '@/types/models'
 import { useContactsStore } from '@/stores/contacts'
 import { useStagesStore } from '@/stores/stages'
 
@@ -69,7 +69,6 @@ const stagesStore = useStagesStore()
 const selectedContacts = ref<Set<string>>(new Set())
 const internalSearchQuery = ref(props.searchQuery || '')
 const localCurrentPage = ref(1)
-const visibleContactTags = ref<Record<string, Tag[]>>({})
 
 watch(
   () => props.searchQuery,
@@ -146,8 +145,6 @@ watch(
     }
   }
 )
-
-// Tags preload desabilitado — coluna Tags não está visível no momento
 
 // Seleção
 const allSelected = computed(() => {
@@ -392,6 +389,9 @@ const handleExport = () => {
               <th class="hidden lg:table-cell px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Origem
               </th>
+              <th class="hidden lg:table-cell px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Tags
+              </th>
               <th class="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Data
               </th>
@@ -414,7 +414,7 @@ const handleExport = () => {
 
             <!-- Empty State -->
             <tr v-else-if="paginatedContacts.length === 0">
-              <td :colspan="props.selectable ? 9 : 8" class="px-4 py-12 text-center">
+              <td :colspan="props.selectable ? 10 : 9" class="px-4 py-12 text-center">
                 <div class="flex flex-col items-center justify-center">
                   <p class="text-muted-foreground mb-2">
                     {{ hasActiveSearch ? 'Nenhum contato encontrado' : 'Nenhum contato cadastrado' }}
@@ -437,7 +437,6 @@ const handleExport = () => {
               v-for="contact in paginatedContacts"
               :key="contact.id"
               :contact="contact"
-              :tags="visibleContactTags[contact.id] ?? []"
               :selectable="props.selectable"
               :selected="selectedContacts.has(contact.id)"
               @select="handleSelectContact"

@@ -61,13 +61,19 @@ export async function handleAds(req: Request, supabaseClient: SupabaseClient) {
       return successResponse([])
     }
 
-    const rawAdsResult = await fetchRawAdsByPlatform(
-      account,
-      params.platform,
-      dateRange,
-      params.campaignId,
-      params.adsetId
-    )
+    let rawAdsResult
+    try {
+      rawAdsResult = await fetchRawAdsByPlatform(
+        account,
+        params.platform,
+        dateRange,
+        params.campaignId,
+        params.adsetId
+      )
+    } catch (apiError) {
+      console.error(`[Ad Insights Ads] ${params.platform} API error:`, apiError)
+      return successResponse([])
+    }
 
     const normalizedAds = normalizeAdsWithCampaignFallback(
       rawAdsResult,

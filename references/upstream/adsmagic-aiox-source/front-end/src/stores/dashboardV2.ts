@@ -20,6 +20,7 @@ import { resolveTimezone, toISODateInTimezone } from '@/utils/dateTimezone'
 import type {
   DashboardV2Filters,
   DashboardV2Summary,
+  FunnelCountMode,
   NorthStarConfig,
   NorthStarCustomMetricValue,
   FunnelStageStats,
@@ -86,6 +87,20 @@ function saveFiltersToStorage(filters: DashboardV2Filters): void {
   }
 }
 
+function createEmptyFunnelStatsByMode(): Record<FunnelCountMode, FunnelStageStats[]> {
+  return {
+    current: [],
+    passed: []
+  }
+}
+
+function createEmptyFunnelOverallConversionRateByMode(): Record<FunnelCountMode, number> {
+  return {
+    current: 0,
+    passed: 0
+  }
+}
+
 export const useDashboardV2Store = defineStore('dashboardV2', () => {
   // ========================================================================
   // STATE
@@ -110,9 +125,11 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
   const customMetrics = ref<NorthStarCustomMetricValue[]>([])
 
   /**
-   * Funnel statistics (stages from GET /dashboard/funnel-stats)
+   * Funnel statistics grouped by count mode.
    */
-  const funnelStats = ref<FunnelStageStats[]>([])
+  const funnelStatsByMode = ref<Record<FunnelCountMode, FunnelStageStats[]>>(
+    createEmptyFunnelStatsByMode()
+  )
 
   /**
    * Total contacts in funnel period (from funnel-stats response)
@@ -120,9 +137,14 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
   const funnelTotalContacts = ref<number>(0)
 
   /**
-   * Overall conversion rate contatos → vendas (from funnel-stats response)
+   * Overall conversion rate contatos → vendas por modo de visualização.
    */
-  const funnelOverallConversionRate = ref<number>(0)
+  const funnelOverallConversionRateByMode = ref<Record<FunnelCountMode, number>>(
+    createEmptyFunnelOverallConversionRateByMode()
+  )
+
+  const funnelStats = computed(() => funnelStatsByMode.value.passed)
+  const funnelOverallConversionRate = computed(() => funnelOverallConversionRateByMode.value.passed)
 
   /**
    * Pipeline statistics
@@ -224,14 +246,13 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
     currentProjectId,
     (newProjectId, oldProjectId) => {
       if (newProjectId !== oldProjectId && newProjectId) {
-        console.log('[Dashboard V2 Store] Project changed, reloading data:', newProjectId)
         // Clear existing data
         summary.value = null
         northStarConfig.value = null
         customMetrics.value = []
-        funnelStats.value = []
+        funnelStatsByMode.value = createEmptyFunnelStatsByMode()
         funnelTotalContacts.value = 0
-        funnelOverallConversionRate.value = 0
+        funnelOverallConversionRateByMode.value = createEmptyFunnelOverallConversionRateByMode()
         pipelineStats.value = []
         originBreakdown.value = []
         timeSeries.value = []
@@ -365,9 +386,9 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
     customMetrics.value = []
     timeSeries.value = []
     originsPerformance.value = []
-    funnelStats.value = []
+    funnelStatsByMode.value = createEmptyFunnelStatsByMode()
     funnelTotalContacts.value = 0
-    funnelOverallConversionRate.value = 0
+    funnelOverallConversionRateByMode.value = createEmptyFunnelOverallConversionRateByMode()
     pipelineStats.value = []
 
     const { startDate, endDate } = resolveDateRange(filters.value, resolvedTimezone)
@@ -406,9 +427,15 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
     }
 
     if (funnelResult.status === 'fulfilled') {
-      funnelStats.value = funnelResult.value.stages
+      funnelStatsByMode.value = {
+        current: funnelResult.value.views.current.stages,
+        passed: funnelResult.value.views.passed.stages
+      }
       funnelTotalContacts.value = funnelResult.value.totalContacts
-      funnelOverallConversionRate.value = funnelResult.value.overallConversionRate
+      funnelOverallConversionRateByMode.value = {
+        current: funnelResult.value.views.current.overallConversionRate,
+        passed: funnelResult.value.views.passed.overallConversionRate
+      }
     } else {
       funnelError.value = getFriendlyMessage(funnelResult.reason)
       console.warn('[Dashboard V2 Store] Funnel stats failed:', funnelResult.reason)
@@ -422,7 +449,6 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
     }
 
     if (summaryResult.status === 'fulfilled') {
-      console.log('[Dashboard V2 Store] Data loaded successfully')
     }
     isLoading.value = false
   }
@@ -558,7 +584,6 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
 
       const data = await dashboardV2Service.getOriginsPerformance(projectId, resolved)
       originsPerformance.value = data
-      console.log('[Dashboard V2 Store] Origins performance loaded:', data.length, 'origins')
       return data
     } catch (err) {
       console.error('[Dashboard V2 Store] Failed to load origins performance:', err)
@@ -612,7 +637,6 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
         period.isLoading = false
       }
 
-      console.log('[Dashboard V2 Store] Comparison period loaded:', period.label)
     } catch (err) {
       console.error('[Dashboard V2 Store] Error loading comparison period:', err)
       // Remove o período em caso de erro
@@ -625,7 +649,6 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
    */
   function removeComparisonPeriod(periodId: string): void {
     comparisonPeriods.value = comparisonPeriods.value.filter(p => p.id !== periodId)
-    console.log('[Dashboard V2 Store] Comparison period removed:', periodId)
   }
 
   /**
@@ -633,7 +656,6 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
    */
   function clearComparisonPeriods(): void {
     comparisonPeriods.value = []
-    console.log('[Dashboard V2 Store] All comparison periods cleared')
   }
 
   /**
@@ -667,8 +689,10 @@ export const useDashboardV2Store = defineStore('dashboardV2', () => {
     summary,
     northStarConfig,
     customMetrics,
+    funnelStatsByMode,
     funnelStats,
     funnelTotalContacts,
+    funnelOverallConversionRateByMode,
     funnelOverallConversionRate,
     pipelineStats,
     originBreakdown,

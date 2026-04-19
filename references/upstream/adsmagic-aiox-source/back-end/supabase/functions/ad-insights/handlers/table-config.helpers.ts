@@ -1,9 +1,5 @@
 import type { AdPlatform } from '../types.ts'
 
-export type AdInsightsLevel = 'campaign' | 'adset' | 'ad'
-
-export const TABLE_LEVELS: AdInsightsLevel[] = ['campaign', 'adset', 'ad']
-
 export const ALLOWED_COLUMN_IDS = [
   'name',
   'spend',
@@ -22,10 +18,15 @@ export const ALLOWED_COLUMN_IDS = [
 
 const ALLOWED_COLUMN_ID_SET = new Set<string>(ALLOWED_COLUMN_IDS)
 
-export const DEFAULT_COLUMNS_BY_LEVEL: Record<AdInsightsLevel, string[]> = {
-  campaign: ['name', 'spend', 'results', 'costPerResult', 'impressions', 'clicks', 'ctr', 'contacts', 'sales'],
-  adset: ['name', 'spend', 'results', 'costPerResult', 'impressions', 'clicks', 'ctr', 'contacts', 'sales'],
-  ad: ['name', 'spend', 'results', 'costPerResult', 'impressions', 'clicks', 'ctr', 'contacts', 'sales'],
+// Defaults para Google/TikTok (sem results/costPerResult — requer conversion tracking)
+const DEFAULT_COLUMNS: string[] = ['name', 'spend', 'impressions', 'clicks', 'ctr', 'contacts', 'sales']
+
+// Defaults para Meta (inclui results/costPerResult — sempre disponível via actions)
+const META_DEFAULT_COLUMNS: string[] = ['name', 'spend', 'results', 'costPerResult', 'impressions', 'clicks', 'ctr', 'contacts', 'sales']
+
+function getDefaultColumnsForPlatform(platform: AdPlatform): string[] {
+  if (platform === 'meta') return [...META_DEFAULT_COLUMNS]
+  return [...DEFAULT_COLUMNS]
 }
 
 export const MAX_SELECTED_COLUMNS = 20
@@ -64,13 +65,6 @@ export function mergeOrder(selectedColumnIds: string[], requestedOrder: string[]
   return order
 }
 
-export function resolveLevel(value: string | null): AdInsightsLevel | null {
-  if (!value) return null
-  return TABLE_LEVELS.includes(value as AdInsightsLevel)
-    ? (value as AdInsightsLevel)
-    : null
-}
-
 export function resolvePlatform(value: string | null): AdPlatform | null {
   if (!value) return null
   return ['meta', 'google', 'tiktok'].includes(value)
@@ -79,14 +73,14 @@ export function resolvePlatform(value: string | null): AdPlatform | null {
 }
 
 export function resolveTableColumns(
-  level: AdInsightsLevel,
+  platform: AdPlatform,
   selectedColumnIdsRaw: unknown,
   columnOrderRaw: unknown
 ): {
   selectedColumnIds: string[]
   columnOrder: string[]
 } {
-  const defaultSelectedColumnIds = [...DEFAULT_COLUMNS_BY_LEVEL[level]]
+  const defaultSelectedColumnIds = getDefaultColumnsForPlatform(platform)
   const selectedColumnIds = sanitizeColumnIds(
     normalizeStringArray(selectedColumnIdsRaw)
   )

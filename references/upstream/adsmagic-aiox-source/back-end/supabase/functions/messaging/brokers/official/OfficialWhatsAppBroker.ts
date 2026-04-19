@@ -28,16 +28,25 @@ export class OfficialWhatsAppBroker extends BaseWhatsAppBroker {
     super(config, accountId)
     this.accessToken = (config.accessToken as string) || ''
     this.phoneNumberId = (config.phoneNumberId as string) || ''
-    
+    // Validação lazy: accessToken e phoneNumberId só são obrigatórios para envio,
+    // não para recepção de webhooks. Ver ensureSendCredentials().
+  }
+
+  /**
+   * Valida credenciais necessárias para envio de mensagens.
+   * Chamado apenas nos métodos de envio (send*), não na recepção de webhooks.
+   */
+  private ensureSendCredentials(): void {
     if (!this.accessToken) {
-      throw new Error('WhatsApp Business API: accessToken é obrigatório')
+      throw new Error('WhatsApp Business API: accessToken é obrigatório para envio')
     }
     if (!this.phoneNumberId) {
-      throw new Error('WhatsApp Business API: phoneNumberId é obrigatório')
+      throw new Error('WhatsApp Business API: phoneNumberId é obrigatório para envio')
     }
   }
   
   async sendTextMessage(params: SendTextParams): Promise<SendMessageResult> {
+    this.ensureSendCredentials()
     try {
       const response = await this.makeRequest(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,
@@ -75,6 +84,7 @@ export class OfficialWhatsAppBroker extends BaseWhatsAppBroker {
   }
   
   async sendMediaMessage(params: SendMediaParams): Promise<SendMessageResult> {
+    this.ensureSendCredentials()
     try {
       // Primeiro fazer upload da mídia (simplificado - na prática precisa de upload separado)
       const response = await this.makeRequest(
@@ -115,6 +125,7 @@ export class OfficialWhatsAppBroker extends BaseWhatsAppBroker {
   }
   
   override async sendTemplateMessage(params: SendTemplateParams): Promise<SendMessageResult> {
+    this.ensureSendCredentials()
     try {
       const response = await this.makeRequest(
         `${this.apiUrl}/${this.phoneNumberId}/messages`,

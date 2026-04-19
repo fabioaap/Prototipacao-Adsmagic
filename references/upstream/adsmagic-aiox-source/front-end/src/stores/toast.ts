@@ -61,7 +61,6 @@ export const useToastStore = defineStore('toast', () => {
       }, duration)
     }
 
-    console.log('[Toast Store] Added toast:', newToast.title)
     return id
   }
 
@@ -74,7 +73,6 @@ export const useToastStore = defineStore('toast', () => {
     const index = toasts.value.findIndex(toast => toast.id === id)
     if (index !== -1) {
       toasts.value.splice(index, 1)
-      console.log('[Toast Store] Removed toast:', id)
     }
   }
 
@@ -83,7 +81,6 @@ export const useToastStore = defineStore('toast', () => {
    */
   const clearAll = (): void => {
     toasts.value = []
-    console.log('[Toast Store] Cleared all toasts')
   }
 
   /**
@@ -93,7 +90,6 @@ export const useToastStore = defineStore('toast', () => {
    */
   const clearByVariant = (variant: Toast['variant']): void => {
     toasts.value = toasts.value.filter(toast => toast.variant !== variant)
-    console.log('[Toast Store] Cleared toasts with variant:', variant)
   }
 
   // ========================================================================

@@ -19,8 +19,6 @@ export interface AdsTableRow {
   [key: string]: string | number | null | undefined | Record<string, number>
 }
 
-type AdsCellValue = AdsTableRow[string]
-
 interface Props {
   columns: AdsTableColumn[]
   rows: AdsTableRow[]
@@ -51,7 +49,8 @@ function getSortIcon(columnId: string) {
   return props.sortDirection === 'asc' ? ArrowUp : ArrowDown
 }
 
-function toNumber(value: AdsCellValue): number | null {
+function toNumber(value: string | number | Record<string, number> | null | undefined): number | null {
+  if (typeof value === 'object' && value !== null) return null
   if (typeof value === 'number') return Number.isFinite(value) ? value : null
   if (typeof value === 'string') {
     const parsed = Number(value)
@@ -60,9 +59,8 @@ function toNumber(value: AdsCellValue): number | null {
   return null
 }
 
-function formatValue(value: AdsCellValue, format: AdsTableColumn['format']): string {
+function formatValue(value: string | number | Record<string, number> | null | undefined, format: AdsTableColumn['format']): string {
   if (value === null || value === undefined || value === '') return '—'
-  if (typeof value === 'object') return '—'
   const numericValue = toNumber(value)
 
   if (format === 'currency') {

@@ -77,8 +77,12 @@ const totalCount = computed(() => {
 // ============================================================================
 
 const goToProject = async () => {
-  // TODO: Redirecionar para o ID do projeto criado
-  await router.push(`/${locale.value}/projects`)
+  const projectId = wizardStore.currentProjectId
+  if (projectId) {
+    await router.push(`/${locale.value}/projects/${projectId}/dashboard`)
+  } else {
+    await router.push(`/${locale.value}/projects`)
+  }
   wizardStore.reset()
 }
 

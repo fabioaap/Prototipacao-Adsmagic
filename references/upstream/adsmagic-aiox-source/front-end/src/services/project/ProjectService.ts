@@ -42,12 +42,10 @@ export class ProjectService implements IProjectService {
       const cached = this.cache.get<Project[]>(cacheKey)
       
       if (cached) {
-        console.log(`[ProjectService] Cache hit for company ${companyId} projects`)
         return cached
       }
 
       // Buscar da API
-      console.log(`[ProjectService] Loading projects for company ${companyId} from API`)
       const projects = await this.repository.findByCompanyId(companyId)
       
       // Cache por 5 minutos
@@ -76,12 +74,10 @@ export class ProjectService implements IProjectService {
       const cached = this.cache.get<Project>(cacheKey)
       
       if (cached) {
-        console.log(`[ProjectService] Cache hit for project ${projectId}`)
         return cached
       }
 
       // Buscar da API
-      console.log(`[ProjectService] Loading project ${projectId} from API`)
       const project = await this.repository.findById(projectId)
       
       // Validar dados

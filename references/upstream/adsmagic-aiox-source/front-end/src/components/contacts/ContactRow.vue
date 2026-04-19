@@ -6,8 +6,8 @@ import type { Contact, Tag } from '@/types/models'
 import { useStagesStore } from '@/stores/stages'
 import { useOriginsStore } from '@/stores/origins'
 import { formatSafeDate } from '@/utils/formatters'
+import TagBadge from '@/components/tags/TagBadge.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
-import StageBadge from '@/components/ui/StageBadge.vue'
 import { MoreVertical } from '@/composables/useIcons'
 
 interface Props {
@@ -51,6 +51,9 @@ const emit = defineEmits<{
 const stagesStore = useStagesStore()
 const originsStore = useOriginsStore()
 
+// Tags recebidas via prop (carregadas no nível da lista para evitar N+1)
+const contactTags = computed(() => props.tags ?? [])
+
 // Get stage data
 const stage = computed(() => {
   return stagesStore.stages.find(s => s.id === props.contact.stage)
@@ -70,6 +73,19 @@ const avatarFallback = computed(() => {
     .join('')
     .toUpperCase()
 })
+
+// Stage badge color
+const stageBadgeClass = computed(() => {
+  if (!stage.value) return 'bg-muted text-muted-foreground'
+
+  return cn(
+    'inline-flex items-center text-xs px-3 py-1.5 font-medium',
+    stage.value.color
+  )
+})
+
+// Badge pill style
+const badgePillClass = 'rounded-full border border-border/50 backdrop-blur-sm'
 
 // Handle selection
 const handleSelect = () => {
@@ -97,14 +113,15 @@ const handleAddSale = () => {
 <template>
   <tr
     :class="cn(
-      'border-b border-border transition-colors hover:bg-muted/50',
+      'border-b border-border transition-colors hover:bg-muted/50 cursor-pointer',
       {
         'bg-muted/30': props.selected,
       }
     )"
+    @click="handleViewDetails"
   >
     <!-- Checkbox -->
-    <td v-if="props.selectable" class="w-12 px-4 py-3">
+    <td v-if="props.selectable" class="w-12 px-4 py-3" @click.stop>
       <input
         type="checkbox"
         :checked="props.selected"
@@ -158,11 +175,10 @@ const handleAddSale = () => {
 
       <!-- Email -->
       <td class="px-4 py-3">
-        <div v-if="props.contact.email" class="flex items-center gap-2 text-sm">
+        <div class="flex items-center gap-2 text-sm">
           <Mail class="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <span class="truncate">{{ props.contact.email }}</span>
         </div>
-        <span v-else class="text-sm text-muted-foreground">-</span>
       </td>
 
       <!-- Telefone -->
@@ -185,7 +201,9 @@ const handleAddSale = () => {
 
       <!-- Etapa -->
       <td class="px-4 py-3">
-        <StageBadge v-if="stage" :stage="stage" size="md" />
+        <span v-if="stage" :class="[stageBadgeClass, badgePillClass]">
+          {{ stage.name }}
+        </span>
         <span v-else class="text-sm text-muted-foreground">-</span>
       </td>
 
@@ -197,13 +215,32 @@ const handleAddSale = () => {
         <span v-else class="text-sm text-muted-foreground">-</span>
       </td>
 
+      <!-- Tags -->
+      <td class="px-4 py-3">
+        <div v-if="contactTags.length" class="flex flex-wrap gap-1 max-w-[200px]">
+          <TagBadge
+            v-for="tag in contactTags.slice(0, 3)"
+            :key="tag.id"
+            :tag="tag"
+            size="sm"
+          />
+          <span
+            v-if="contactTags.length > 3"
+            class="text-xs text-muted-foreground"
+          >
+            +{{ contactTags.length - 3 }}
+          </span>
+        </div>
+        <span v-else class="text-sm text-muted-foreground">-</span>
+      </td>
+
       <!-- Data de Criação -->
       <td class="px-4 py-3 text-sm text-muted-foreground">
         {{ formatSafeDate(props.contact.createdAt) }}
       </td>
 
       <!-- Actions -->
-      <td class="px-4 py-3">
+      <td class="px-4 py-3" @click.stop>
         <div class="flex items-center justify-end gap-1">
           <button
             class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-muted transition-colors"

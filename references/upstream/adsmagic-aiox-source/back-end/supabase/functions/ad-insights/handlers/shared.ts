@@ -17,6 +17,7 @@ export interface AdAccountCredentials {
   externalAccountId: string
   accessToken: string
   integrationId: string
+  loginCustomerId?: string
 }
 
 function getIntegrationRelation(
@@ -82,6 +83,7 @@ export async function getAdAccount(
       external_account_id,
       access_token,
       integration_id,
+      account_metadata,
       integrations!inner(platform, platform_type, status, project_id)
     `
     )
@@ -123,11 +125,15 @@ export async function getAdAccount(
       encryptionKey
     )
 
+    const metadata = account.account_metadata as Record<string, unknown> | null
+    const parentMccId = typeof metadata?.parentMccId === 'string' ? metadata.parentMccId : undefined
+
     return {
       id: account.id,
       externalAccountId: account.external_account_id,
       accessToken: decryptedToken,
       integrationId: account.integration_id,
+      loginCustomerId: parentMccId,
     }
   } catch (decryptError) {
     console.error('[Ad Insights Shared] Error decrypting token:', decryptError)

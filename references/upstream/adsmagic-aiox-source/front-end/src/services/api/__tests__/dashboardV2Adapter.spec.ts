@@ -9,6 +9,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   mapBackendSummaryToDashboardV2Summary,
+  mapBackendFunnelStatsToFunnelViews,
+  type BackendFunnelStatsResponse,
   type BackendSummaryResponse
 } from '../adapters/dashboardV2Adapter'
 
@@ -62,6 +64,99 @@ describe('dashboardV2Adapter', () => {
       const result = mapBackendSummaryToDashboardV2Summary(raw)
 
       expect(result.northStar.contacts.delta).toBeNull()
+    })
+  })
+
+  describe('mapBackendFunnelStatsToFunnelViews', () => {
+    it('maps current and passed views with stages and overall conversion rate', () => {
+      const raw: BackendFunnelStatsResponse = {
+        totalContacts: 120,
+        views: {
+          current: {
+            overallConversionRate: 5,
+            stages: [
+              {
+                stageId: 'stage-1',
+                stageName: 'Contato iniciado',
+                displayOrder: 0,
+                count: 70,
+                conversionRate: 58.3,
+                avgDays: 1.5
+              }
+            ]
+          },
+          passed: {
+            overallConversionRate: 12.5,
+            stages: [
+              {
+                stageId: 'stage-1',
+                stageName: 'Contato iniciado',
+                displayOrder: 0,
+                count: 120,
+                conversionRate: 100,
+                avgDays: 1.5
+              },
+              {
+                stageId: 'stage-2',
+                stageName: 'Qualificação',
+                displayOrder: 1,
+                count: 60,
+                conversionRate: 50,
+                avgDays: 3
+              }
+            ]
+          }
+        }
+      }
+
+      const result = mapBackendFunnelStatsToFunnelViews(raw)
+
+      expect(result.current.overallConversionRate).toBe(5)
+      expect(result.current.stages).toEqual([
+        {
+          stageId: 'stage-1',
+          stageName: 'Contato iniciado',
+          count: 70,
+          conversionRate: 58.3,
+          avgTimeInStage: 1.5
+        }
+      ])
+
+      expect(result.passed.overallConversionRate).toBe(12.5)
+      expect(result.passed.stages[1]).toEqual({
+        stageId: 'stage-2',
+        stageName: 'Qualificação',
+        count: 60,
+        conversionRate: 50,
+        avgTimeInStage: 3
+      })
+    })
+
+    it('falls back to empty views when backend omits one of the modes', () => {
+      const raw: BackendFunnelStatsResponse = {
+        totalContacts: 0,
+        views: {
+          current: {
+            overallConversionRate: 0,
+            stages: []
+          },
+          passed: {
+            overallConversionRate: 0,
+            stages: []
+          }
+        }
+      }
+
+      const result = mapBackendFunnelStatsToFunnelViews(raw)
+
+      expect(result.current).toEqual({
+        stages: [],
+        overallConversionRate: 0
+      })
+      expect(result.passed).toEqual({
+        stages: [],
+        overallConversionRate: 0
+      })
     })
   })
 })

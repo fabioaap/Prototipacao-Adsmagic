@@ -3,6 +3,7 @@
     :model-value="open"
     @update:model-value="emit('update:open', $event)"
     size="lg"
+    :show-close="false"
   >
     <template #default>
       <div class="max-w-xl mx-auto p-6">

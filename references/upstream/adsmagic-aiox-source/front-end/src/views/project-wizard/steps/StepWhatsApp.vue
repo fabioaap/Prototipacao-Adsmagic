@@ -6,6 +6,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useToast } from '@/components/ui/toast/use-toast'
 import { useProjectWizardStore } from '@/stores/projectWizard'
 import { whatsappIntegrationService } from '@/services/api/whatsappIntegrationService'
 import { whatsappAdapter } from '@/services/adapters/whatsappAdapter'
@@ -35,6 +36,7 @@ import {
 // ============================================================================
 
 const { t } = useI18n()
+const { error: toastError } = useToast()
 
 // ============================================================================
 // STORE
@@ -719,7 +721,20 @@ async function retry() {
  * Compartilha link de conexão
  */
 async function shareConnectionLink() {
-  const link = 'https://wa.me/qr/XXXXXXXX' // TODO: Gerar link real
+  let link = ''
+
+  if (accountId.value) {
+    const result = await whatsappIntegrationService.createShareToken(accountId.value)
+    if (result.success) {
+      link = result.data.shareUrl
+    } else {
+      toastError(t('projectWizard.step6.shareError', 'Erro ao gerar link de compartilhamento'))
+      return
+    }
+  } else {
+    toastError(t('projectWizard.step6.shareError', 'Nenhuma conta conectada'))
+    return
+  }
 
   try {
     if (navigator.share) {

@@ -4,6 +4,8 @@
  * Single source of truth for script generation across UI/store/services.
  */
 
+export const TAG_WORKER_ORIGIN = 'https://tag.adsmagic.com.br'
+export const TAG_SCRIPT_URL = `${TAG_WORKER_ORIGIN}/v1/adsmagic-tag.js`
 export const DEFAULT_TAG_SCRIPT_PATH = '/adsmagic-tag.js'
 export const DEFAULT_TRACKING_ENDPOINT_PATH = '/api/events/track'
 

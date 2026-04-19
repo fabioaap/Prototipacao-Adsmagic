@@ -14,11 +14,12 @@ import type {
   OAuthResult,
   Account,
   GoogleConversionAction,
+  MetaPixel,
   TagVerificationStartResponse,
   TagVerificationStatusResponse,
 } from '@/types/models'
 import {
-  buildDefaultTagScriptUrl,
+  TAG_SCRIPT_URL,
   buildTagSnippet,
 } from '@/services/tagSnippet'
 
@@ -79,25 +80,12 @@ const MOCK_INTEGRATIONS: Integration[] = [
     projectId: '2',
     platform: 'google',
     platformType: 'advertising',
-    status: 'connected',
-    isActive: true,
-    platformConfig: {
-      adAccountId: '123-456-7890',
-      customerId: '1234567890'
-    },
-    settings: {
-      adAccountId: '123-456-7890',
-      customerId: '1234567890'
-    },
-    connection: {
-      connectedAt: '2025-10-18T10:00:00Z',
-      lastSync: '2025-10-20T07:00:00Z',
-      accountId: '123-456-7890',
-      accountName: 'Google Ads Account'
-    },
-    lastSync: '2025-10-20T07:00:00Z',
+    status: 'disconnected',
+    isActive: false,
+    platformConfig: {},
+    settings: {},
     createdAt: '2025-10-18T10:00:00Z',
-    updatedAt: '2025-10-20T07:00:00Z'
+    updatedAt: '2025-10-18T10:00:00Z'
   },
   {
     id: '4',
@@ -113,14 +101,12 @@ const MOCK_INTEGRATIONS: Integration[] = [
   }
 ]
 
-const MOCK_TAG_ORIGIN = 'http://localhost:5173'
-
 const buildMockTagInstallation = (projectId: string): TagInstallation => ({
   projectId,
   isInstalled: true,
   scriptCode: buildTagSnippet({
     projectId,
-    scriptUrl: buildDefaultTagScriptUrl(MOCK_TAG_ORIGIN),
+    scriptUrl: TAG_SCRIPT_URL,
     debug: false,
     autoInit: true,
   }),
@@ -614,6 +600,23 @@ export const integrationsService = {
   },
 
   /**
+   * Renovar token via OAuth (novo popup)
+   * Preserva conta e pixel existentes, apenas atualiza o token
+   */
+  async renewTokenOAuth(integrationId: string, token: string): Promise<{
+    success: boolean
+    expiresAt?: string
+    expiresInDays?: number
+  }> {
+    const response = await apiClient.post<{
+      success: boolean
+      expiresAt?: string
+      expiresInDays?: number
+    }>(`/integrations/${integrationId}/renew-token-oauth`, { token })
+    return response.data
+  },
+
+  /**
    * Renovar token
    */
   async refreshToken(integrationId: string): Promise<{
@@ -737,6 +740,9 @@ export const integrationsService = {
         is_primary: boolean
         status: string
         account_metadata?: Record<string, unknown>
+        token_expires_at?: string
+        external_email?: string
+        permissions?: string[]
       }>
   }> {
     const response = await apiClient.get<{
@@ -749,8 +755,88 @@ export const integrationsService = {
         is_primary: boolean
         status: string
         account_metadata?: Record<string, unknown>
+        token_expires_at?: string
+        external_email?: string
+        permissions?: string[]
       }>
     }>(`/integrations/${integrationId}/accounts`)
+
+    return response.data
+  },
+
+  /**
+   * Buscar configuração de pixel Meta Ads para uma conta específica
+   */
+  async getMetaPixelConfig(
+    integrationId: string,
+    accountId: string
+  ): Promise<{
+    accountId: string
+    pixels: MetaPixel[]
+    selectedPixelId?: string
+    selectedPixelName?: string
+    pixelAccessTokenSet: boolean
+    fetchError?: string
+  }> {
+    if (USE_MOCK) {
+      await new Promise(resolve => setTimeout(resolve, 300))
+      return {
+        accountId,
+        pixels: [
+          { id: '123456789012345', name: 'Pixel Principal', isCreated: true },
+          { id: '987654321098765', name: 'Pixel Secundário', isCreated: false },
+        ],
+        selectedPixelId: undefined,
+        selectedPixelName: undefined,
+        pixelAccessTokenSet: false,
+      }
+    }
+
+    const response = await apiClient.get<{
+      accountId: string
+      pixels: MetaPixel[]
+      selectedPixelId?: string
+      selectedPixelName?: string
+      pixelAccessTokenSet: boolean
+      fetchError?: string
+    }>(`/integrations/${integrationId}/meta/pixel-config?accountId=${encodeURIComponent(accountId)}`)
+
+    return response.data
+  },
+
+  /**
+   * Salvar configuração de pixel Meta Ads
+   */
+  async saveMetaPixelConfig(
+    integrationId: string,
+    accountId: string,
+    selectedPixelId: string,
+    selectedPixelName: string,
+    pixelAccessToken?: string
+  ): Promise<{
+    success: boolean
+    accountId: string
+    selectedPixelId: string
+  }> {
+    if (USE_MOCK) {
+      await new Promise(resolve => setTimeout(resolve, 300))
+      return {
+        success: true,
+        accountId,
+        selectedPixelId,
+      }
+    }
+
+    const response = await apiClient.post<{
+      success: boolean
+      accountId: string
+      selectedPixelId: string
+    }>(`/integrations/${integrationId}/meta/pixel-config`, {
+      accountId,
+      selectedPixelId,
+      selectedPixelName,
+      pixelAccessToken,
+    })
 
     return response.data
   }

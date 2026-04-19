@@ -5,6 +5,7 @@ import type {
   ProjectFilters,
 } from '@/types/project'
 import { projectsApiService } from './api/projectsService'
+import { whatsappIntegrationService } from './api/whatsappIntegrationService'
 
 /**
  * Interface do serviço de projetos
@@ -52,10 +53,8 @@ export interface ProjectsService {
 class RealProjectsService implements ProjectsService {
   async getProjects(filters?: ProjectFilters): Promise<Project[]> {
     try {
-      console.log('[RealProjectsService] 📡 Fetching projects with filters:', filters)
       // Passar filtros para a API (companyId não é necessário, RLS filtra automaticamente)
       const projects = await projectsApiService.getUserProjects('', filters)
-      console.log('[RealProjectsService] ✅ Received', projects.length, 'projects')
       return projects
     } catch (error) {
       console.error('[RealProjectsService] ❌ Error fetching projects:', error)
@@ -179,10 +178,16 @@ class RealProjectsService implements ProjectsService {
     }
   }
 
-  async testWhatsAppConnection(_id: string): Promise<boolean> {
-    // TODO: Implementar teste real de conexão WhatsApp
-    // Por enquanto, simula sucesso
-    return true
+  async testWhatsAppConnection(id: string): Promise<boolean> {
+    try {
+      const result = await whatsappIntegrationService.checkConnectionStatus(id)
+      if (result.success) {
+        return result.data.status === 'connected'
+      }
+      return false
+    } catch {
+      return false
+    }
   }
 }
 

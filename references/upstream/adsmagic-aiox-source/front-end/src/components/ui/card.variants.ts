@@ -10,7 +10,7 @@ export const cardVariants = cva(
         outlined: 'border-2 shadow-none',
       },
       padded: {
-        true: 'sym-card-padded p-[var(--sym-space-7)]',
+        true: 'sym-card-padded',
         false: '',
       },
     },

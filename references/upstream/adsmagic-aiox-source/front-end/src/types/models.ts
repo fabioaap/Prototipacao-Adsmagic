@@ -284,7 +284,7 @@ export interface Event {
   processedAt?: string
 
   /** Event sending status */
-  status: 'pending' | 'sent' | 'failed'
+  status: 'pending' | 'sent' | 'failed' | 'cancelled'
 
   /** Last retry timestamp (ISO 8601) */
   lastRetryAt?: string
@@ -462,8 +462,23 @@ export interface StageEventRoute {
   /** Prioridade de execução (maior primeiro) */
   priority?: number
 
+  /** Pixel ID (Meta Ads) */
+  pixelId?: string
+
+  /** Nome legível do pixel selecionado */
+  pixelName?: string
+
   /** Regra ativa/inativa */
   isActive: boolean
+}
+
+/**
+ * Meta Pixel for CAPI configuration
+ */
+export interface MetaPixel {
+  id: string
+  name: string
+  isCreated?: boolean
 }
 
 /**
@@ -1413,6 +1428,13 @@ export interface FunnelStageStats {
   avgTimeInStage?: number
 }
 
+export type FunnelCountMode = 'passed' | 'current'
+
+export interface FunnelStatsView {
+  stages: FunnelStageStats[]
+  overallConversionRate: number
+}
+
 /**
  * Pipeline stage statistics (for sales funnel)
  */
@@ -1698,4 +1720,30 @@ export interface MessageMetrics {
 
   /** Average ticket across all sales */
   averageTicket: number
+}
+
+// ============================================================================
+// CONVERSATION MESSAGE (Chat History)
+// ============================================================================
+
+export type ConversationMessageDirection = 'inbound' | 'outbound'
+export type ConversationMessageContentType = 'text' | 'image' | 'video' | 'audio' | 'document' | 'location' | 'contact'
+export type ConversationMessageStatus = 'sent' | 'delivered' | 'read' | 'failed'
+
+/**
+ * Represents a single message in a conversation between a contact and the company
+ */
+export interface ConversationMessage {
+  id: string
+  contactId: string
+  direction: ConversationMessageDirection
+  contentType: ConversationMessageContentType
+  contentText: string | null
+  mediaUrl: string | null
+  caption: string | null
+  mimeType: string | null
+  fileName: string | null
+  status: ConversationMessageStatus
+  quotedMessageId: string | null
+  sentAt: string
 }

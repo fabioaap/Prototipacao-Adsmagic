@@ -6,13 +6,20 @@
  * Retorna 400 se start_date/end_date forem inválidos (formato ou start > end).
  *
  * Retorna:
- * - Contagem cumulativa de contatos por estágio do funil
- * - Taxa de conversão sequencial entre estágios
+ * - Visão `current`: contatos que estão atualmente na etapa
+ * - Visão `passed`: contatos que já chegaram até a etapa
+ * - Taxa de conversão sequencial entre estágios em cada visão
  * - Tempo médio em cada estágio
  */
 
 import { successResponse, errorResponse } from '../utils/response.ts'
 import { getDateRangeFromRequest } from '../utils/dateRange.ts'
+import { calculateAvgDaysForAllStages } from '../services/stage-metrics.ts'
+import {
+  buildFunnelViewMetrics,
+  countCurrentContactsByStage,
+  countPassedContactsByStage
+} from '../services/funnelViews.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
 
 interface FunnelStage {
@@ -24,65 +31,16 @@ interface FunnelStage {
   avgDays: number // Tempo médio neste estágio
 }
 
-interface FunnelStats {
+interface FunnelViewStats {
   stages: FunnelStage[]
-  totalContacts: number
-  overallConversionRate: number // Contatos -> Vendas
+  overallConversionRate: number
 }
 
-/**
- * Calcula tempo médio que contatos permanecem em cada estágio (movimentações no intervalo [rangeStart, rangeEnd]).
- */
-async function calculateAvgDaysInStage(
-  supabaseClient: SupabaseDbClient,
-  projectId: string,
-  stageId: string,
-  rangeStart: Date,
-  rangeEnd: Date
-): Promise<number> {
-  try {
-    const startISO = rangeStart.toISOString()
-    const endISO = rangeEnd.toISOString()
-
-    const { data: history, error } = await supabaseClient
-      .from('contact_stage_history')
-      .select(`
-        id,
-        contact_id,
-        stage_id,
-        moved_at,
-        created_at,
-        contacts!inner(project_id)
-      `)
-      .eq('contacts.project_id', projectId)
-      .eq('stage_id', stageId)
-      .gte('moved_at', startISO)
-      .lte('moved_at', endISO)
-
-    if (error) {
-      console.error('[Funnel Stats] Error fetching stage history:', error)
-      return 0
-    }
-
-    if (!history || history.length === 0) {
-      return 0
-    }
-
-    let totalDays = 0
-    let count = 0
-    for (const entry of history) {
-      const movedAt = entry.moved_at ? new Date(entry.moved_at) : (entry.created_at ? new Date(entry.created_at) : null)
-      if (movedAt) {
-        const days = Math.max(0, (rangeEnd.getTime() - movedAt.getTime()) / (1000 * 60 * 60 * 24))
-        totalDays += days
-        count++
-      }
-    }
-
-    return count > 0 ? totalDays / count : 0
-  } catch (error) {
-    console.error('[Funnel Stats] Error calculating avg days:', error)
-    return 0
+interface FunnelStats {
+  totalContacts: number
+  views: {
+    current: FunnelViewStats
+    passed: FunnelViewStats
   }
 }
 
@@ -107,6 +65,9 @@ export async function handleFunnelStats(
     const startISO = start.toISOString()
     const endISO = end.toISOString()
 
+    const originId = url.searchParams.get('origin') || null
+    const filterByOrigin = originId && originId !== 'all'
+
     const { data: stages, error: stagesError } = await supabaseClient
       .from('stages')
       .select('id, name, display_order, type')
@@ -120,19 +81,36 @@ export async function handleFunnelStats(
     }
 
     if (!stages || stages.length === 0) {
-      return successResponse({
-        stages: [],
-        totalContacts: 0,
-        overallConversionRate: 0
-      }, 200)
+      return successResponse(
+        {
+          totalContacts: 0,
+          views: {
+            current: {
+              stages: [],
+              overallConversionRate: 0
+            },
+            passed: {
+              stages: [],
+              overallConversionRate: 0
+            }
+          }
+        },
+        200
+      )
     }
 
-    const { data: contacts, error: contactsError } = await supabaseClient
+    let contactsQuery = supabaseClient
       .from('contacts')
-      .select('id, current_stage_id, created_at')
+      .select('id, current_stage_id')
       .eq('project_id', projectId)
       .gte('created_at', startISO)
       .lte('created_at', endISO)
+
+    if (filterByOrigin) {
+      contactsQuery = contactsQuery.eq('main_origin_id', originId!)
+    }
+
+    const { data: contacts, error: contactsError } = await contactsQuery
 
     if (contactsError) {
       console.error('[Funnel Stats] Error fetching contacts:', contactsError)
@@ -141,79 +119,71 @@ export async function handleFunnelStats(
 
     const totalContacts = contacts?.length || 0
 
-    // Contagem cumulativa: se o contato está em uma etapa mais avançada,
-    // ele também conta como tendo passado pelas anteriores.
-    const stageCounts: Record<string, number> = {}
     const orderedStages = [...stages].sort((a, b) => a.display_order - b.display_order)
-    const stageIndexById: Record<string, number> = {}
+    const stageIds = orderedStages.map((stage) => stage.id)
+    const contactIds = (contacts ?? []).map((contact) => contact.id)
+    const currentStageCounts = countCurrentContactsByStage(orderedStages, contacts ?? [])
 
-    for (let index = 0; index < orderedStages.length; index++) {
-      const stage = orderedStages[index]
-      stageCounts[stage.id] = 0
-      stageIndexById[stage.id] = index
-    }
+    let stageHistory: Array<{ contact_id: string; stage_id: string | null }> = []
 
-    for (const contact of contacts || []) {
-      if (!contact.current_stage_id) {
-        continue
-      }
+    if (contactIds.length > 0 && stageIds.length > 0) {
+      const { data: historyRows, error: historyError } = await supabaseClient
+        .from('contact_stage_history')
+        .select('contact_id, stage_id')
+        .in('contact_id', contactIds)
+        .in('stage_id', stageIds)
 
-      const currentStageIndex = stageIndexById[contact.current_stage_id]
-      if (currentStageIndex === undefined) {
-        continue
-      }
-
-      for (let index = 0; index <= currentStageIndex; index++) {
-        const reachedStage = orderedStages[index]
-        if (!reachedStage) {
-          continue
-        }
-
-        stageCounts[reachedStage.id]++
+      if (historyError) {
+        console.warn('[Funnel Stats] Error fetching stage history, using fallback logic:', historyError)
+      } else {
+        stageHistory = historyRows ?? []
       }
     }
 
-    const avgDaysPromises = orderedStages.map(stage =>
-      calculateAvgDaysInStage(supabaseClient, projectId, stage.id, start, end)
+    const passedStageCounts = countPassedContactsByStage(
+      orderedStages,
+      contacts ?? [],
+      stageHistory
     )
-    const avgDaysResults = await Promise.all(avgDaysPromises)
 
-    // Calcular taxas de conversão e montar resultado
-    const funnelStages: FunnelStage[] = []
-    let previousCount = totalContacts // Contatos no topo do funil
+    // Calcular avgDays para TODOS os estágios em uma única query (elimina N+1)
+    const avgDaysByStage = await calculateAvgDaysForAllStages(
+      supabaseClient,
+      projectId,
+      stageIds,
+      start,
+      end
+    )
 
-    for (let i = 0; i < orderedStages.length; i++) {
-      const stage = orderedStages[i]
-      const count = stageCounts[stage.id] || 0
-      const conversionRate = previousCount > 0 ? (count / previousCount) * 100 : 0
+    const currentView = buildFunnelViewMetrics({
+      orderedStages,
+      stageCounts: currentStageCounts,
+      totalContacts,
+      avgDaysByStage
+    })
 
-      funnelStages.push({
-        stageId: stage.id,
-        stageName: stage.name,
-        displayOrder: stage.display_order,
-        count,
-        conversionRate,
-        avgDays: avgDaysResults[i]
-      })
-
-      previousCount = count // Para próximo estágio, usar count atual como base
-    }
-
-    const lastStageCount = funnelStages.length > 0 ? (funnelStages[funnelStages.length - 1]?.count ?? 0) : 0
-    const overallConversionRate = totalContacts > 0 ? (lastStageCount / totalContacts) * 100 : 0
+    const passedView = buildFunnelViewMetrics({
+      orderedStages,
+      stageCounts: passedStageCounts,
+      totalContacts,
+      avgDaysByStage
+    })
 
     const result: FunnelStats = {
-      stages: funnelStages,
       totalContacts,
-      overallConversionRate
+      views: {
+        current: currentView,
+        passed: passedView
+      }
     }
 
     console.log('[Dashboard Funnel Stats]', {
       projectId,
       period: periodParam,
-      stagesCount: funnelStages.length,
+      stagesCount: orderedStages.length,
       totalContacts,
-      overallConversionRate
+      currentOverallConversionRate: currentView.overallConversionRate,
+      passedOverallConversionRate: passedView.overallConversionRate
     })
 
     return successResponse(result, 200)

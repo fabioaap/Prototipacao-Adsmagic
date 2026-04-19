@@ -116,7 +116,7 @@ export const MOCK_INTEGRATIONS: Integration[] = [
 
 export const MOCK_TAG_INSTALLATION: TagInstallation = {
   projectId: 'project-1',
-  scriptCode: '<script src="https://adsmagic.com.br/tag/adsmagic-tag.js"></script>',
+  scriptCode: '<script src="https://tag.adsmagic.com.br/v1/adsmagic-tag.js"></script>',
   isInstalled: true,
   status: 'active',
   lastPing: '2025-10-20T09:00:00Z',
@@ -248,7 +248,7 @@ export function generateMockTagStatus(): TagInstallation {
   
   return {
     projectId: 'project-1',
-    scriptCode: '<script src="https://adsmagic.com.br/tag/adsmagic-tag.js"></script>',
+    scriptCode: '<script src="https://tag.adsmagic.com.br/v1/adsmagic-tag.js"></script>',
     isInstalled,
     status: status === 'active' ? 'active' : 'inactive',
     lastPing: isInstalled ? new Date().toISOString() : undefined,

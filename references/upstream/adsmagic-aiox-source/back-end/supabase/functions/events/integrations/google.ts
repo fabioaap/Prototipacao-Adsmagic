@@ -40,7 +40,7 @@ export async function sendToGoogle(
     const accountMetadata = account.account_metadata || {}
     const googleAdsMetadata = (accountMetadata.google_ads as Record<string, unknown>) || {}
     const eventPayload = event.payload || {}
-    const enhancedConversionsForLeadsEnabled = resolveEnhancedConversionsForLeadsEnabled(accountMetadata)
+    const enhancedConversionsForLeadsEnabled = resolveEnhancedConversionsForLeadsEnabled(accountMetadata) ?? false
 
     const payloadCustomerId =
       typeof eventPayload.google_customer_id === 'string'
@@ -136,7 +136,7 @@ export async function sendToGoogle(
       conversions: [
         {
           conversionAction: `customers/${customerId}/conversionActions/${conversionActionId}`,
-          conversionDateTime: new Date(event.created_at).toISOString().replace(/\.\d{3}Z$/, '+00:00'),
+          conversionDateTime: formatGoogleDateTime(event.created_at),
           conversionValue: event.payload.value as number || 0,
           currencyCode: (event.payload.currency as string) || 'BRL',
           gclid,
@@ -146,7 +146,7 @@ export async function sendToGoogle(
           orderId: event.sale_id || event.contact_id, // Usar sale_id ou contact_id como order_id único
         }
       ],
-      partialFailure: false
+      partialFailure: true
     }
 
     // Enviar para Google Ads API
@@ -175,6 +175,7 @@ export async function sendToGoogle(
       return {
         success: false,
         nonRetryable: failureClassification.nonRetryable,
+        httpStatus: response.status,
         error: apiErrorMessage,
         errorCode: failureClassification.errorCode,
         response: {
@@ -184,6 +185,19 @@ export async function sendToGoogle(
           has_user_identifiers: hasUserIdentifiers,
           enhanced_conversions_for_leads_enabled: enhancedConversionsForLeadsEnabled,
         },
+      }
+    }
+
+    // Check for partial failure errors (HTTP 200 but conversion-level errors)
+    if (responseData.partialFailureError) {
+      const partialError = responseData.partialFailureError
+      const errorMessage = partialError.message || 'Partial failure in Google Ads conversion upload'
+
+      return {
+        success: false,
+        nonRetryable: true,
+        error: errorMessage,
+        response: responseData,
       }
     }
 
@@ -204,4 +218,22 @@ export async function sendToGoogle(
 function normalizeGoogleCustomerId(customerId: unknown): string {
   if (typeof customerId !== 'string') return ''
   return customerId.replace(/-/g, '').trim()
+}
+
+/**
+ * Formats a date string to Google Ads required format: "yyyy-mm-dd hh:mm:ss+|-hh:mm"
+ * Google Ads rejects ISO 8601 format (with "T" separator).
+ */
+function formatGoogleDateTime(dateStr: string): string {
+  const date = new Date(dateStr)
+  const pad = (n: number) => n.toString().padStart(2, '0')
+
+  const year = date.getUTCFullYear()
+  const month = pad(date.getUTCMonth() + 1)
+  const day = pad(date.getUTCDate())
+  const hours = pad(date.getUTCHours())
+  const minutes = pad(date.getUTCMinutes())
+  const seconds = pad(date.getUTCSeconds())
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}+00:00`
 }

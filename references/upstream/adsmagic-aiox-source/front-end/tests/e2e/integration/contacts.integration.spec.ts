@@ -48,17 +48,15 @@ test.describe('UX-CONT: Contatos', () => {
     })
 
     test('UX-CONT-003: Toggle Kanban ↔ Lista funciona sem erro', async ({ page }) => {
-        // Localiza os botões de toggle de visualização (os botões usam aria-label)
+        // Localiza os botões de toggle de visualização
         const listaButton = page.locator(
-            'button[aria-label*="lista" i], button[aria-label*="list" i], ' +
             'button:has-text("Lista"), [role="tab"]:has-text("Lista"), ' +
             '[data-testid*="lista"], [data-testid*="list-view"]'
         ).first()
 
         const kanbanButton = page.locator(
-            'button[aria-label*="kanban" i], ' +
             'button:has-text("Kanban"), [role="tab"]:has-text("Kanban"), ' +
-            '[data-testid*="kanban-view"]'
+            '[data-testid*="kanban"]'
         ).first()
 
         if ((await listaButton.count()) > 0) {
@@ -122,8 +120,8 @@ test.describe('UX-CONT: Contatos', () => {
     test('UX-CONT-005: Kanban exibe colunas de etapa com headers visíveis', async ({ page }) => {
         // Verifica se há colunas do tipo Kanban visíveis
         const kanbanColumns = page.locator(
-            '[data-testid="kanban-column"], [data-testid*="kanban-column"], ' +
-            '[class*="kanban-col"], [class*="stage-column"], [class*="pipeline-col"]'
+            '[data-testid*="kanban-column"], [class*="kanban-col"], ' +
+            '[class*="stage-column"], [class*="pipeline-col"]'
         )
         const count = await kanbanColumns.count()
         if (count === 0) {

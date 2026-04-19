@@ -20,6 +20,8 @@ interface MetaAccount {
   access_token: string | null
   account_metadata: Record<string, unknown>
   status: string
+  pixel_id?: string | null
+  pixel_access_token?: string | null
 }
 
 /**
@@ -31,10 +33,16 @@ export async function sendToMeta(
   account: MetaAccount
 ): Promise<SendEventResult> {
   try {
-    // Obter configurações da integração
+    // Obter pixel_id: coluna dedicada > metadata > platform_config (legado)
     const config = integration.platform_config as Record<string, unknown>
-    const pixelId = config.pixel_id as string | undefined
-    
+    const accountMeta = (account.account_metadata as Record<string, unknown>) || {}
+    const metaAdsMeta = (accountMeta.meta_ads as Record<string, unknown>) || {}
+
+    const pixelId =
+      (account.pixel_id as string) ||
+      (metaAdsMeta.selected_pixel_id as string) ||
+      (config.pixel_id as string)
+
     if (!pixelId) {
       return {
         success: false,
@@ -42,7 +50,8 @@ export async function sendToMeta(
       }
     }
 
-    const accessToken = account.access_token
+    // pixel_access_token é o token dedicado para a Conversions API (CAPI)
+    const accessToken = account.pixel_access_token as string
     if (!accessToken) {
       return {
         success: false,
@@ -50,26 +59,34 @@ export async function sendToMeta(
       }
     }
 
+    // Hash de dados sensíveis (requisito da Meta CAPI)
+    const userData: Record<string, unknown> = {}
+    if (event.payload.email) {
+      userData.em = [await hashEmail(event.payload.email as string)]
+    }
+    if (event.payload.phone) {
+      userData.ph = [await hashPhone(event.payload.phone as string)]
+    }
+    if (event.payload.fbc) userData.fbc = event.payload.fbc
+    if (event.payload.fbp) userData.fbp = event.payload.fbp
+    if (event.payload.client_ip_address) userData.client_ip_address = event.payload.client_ip_address
+    if (event.payload.client_user_agent) userData.client_user_agent = event.payload.client_user_agent
+
     // Montar payload para Meta Conversions API
     const metaPayload = {
       data: [
         {
           event_name: event.event_type,
           event_time: Math.floor(new Date(event.created_at).getTime() / 1000),
-          action_source: 'website',
-          user_data: {
-            // Dados do contato/venda para matching
-            em: event.payload.email ? hashEmail(event.payload.email as string) : undefined,
-            ph: event.payload.phone ? hashPhone(event.payload.phone as string) : undefined,
-          },
+          event_id: event.id,
+          action_source: 'system_generated',
+          user_data: userData,
           custom_data: {
             currency: event.payload.currency || 'BRL',
             value: event.payload.value || 0,
+            content_ids: event.sale_id ? [event.sale_id] : [],
+            content_type: 'product',
           },
-          // Click IDs para atribuição
-          event_source_url: event.payload.url as string | undefined,
-          fbc: event.payload.fbc as string | undefined,
-          fbp: event.payload.fbp as string | undefined,
         }
       ],
       access_token: accessToken,
@@ -111,19 +128,27 @@ export async function sendToMeta(
 }
 
 /**
- * Hash SHA256 de email (requisito da Meta)
+ * Hash SHA256 usando crypto.subtle (requisito da Meta CAPI)
  */
-function hashEmail(email: string): string {
-  // Implementação simplificada - usar crypto.subtle na produção
-  // Por enquanto retorna o email (será hashado pela Meta ou implementar crypto)
-  return email.toLowerCase().trim()
+async function hashSHA256(value: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(value.toLowerCase().trim())
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 /**
- * Hash SHA256 de telefone (requisito da Meta)
+ * Hash SHA256 de email normalizado
  */
-function hashPhone(phone: string): string {
-  // Remove caracteres não numéricos
+async function hashEmail(email: string): Promise<string> {
+  return hashSHA256(email.toLowerCase().trim())
+}
+
+/**
+ * Hash SHA256 de telefone normalizado (apenas dígitos)
+ */
+async function hashPhone(phone: string): Promise<string> {
   const digits = phone.replace(/\D/g, '')
-  return digits
+  return hashSHA256(digits)
 }

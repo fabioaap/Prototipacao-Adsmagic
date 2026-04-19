@@ -83,8 +83,7 @@ test.describe('UX-TRACK: Links rastreáveis', () => {
         await page.keyboard.press('Escape')
     })
 
-    test('UX-TRACK-004: Form de link valida campo obrigatório com erro inline', async ({ page }) => {
-        // O formulário cria links de WhatsApp (nome do link + telefone), não URL
+    test('UX-TRACK-004: Form de link valida URL inválida com erro inline', async ({ page }) => {
         const createButton = page.locator(
             'button:has-text("Criar mensagem"), button:has-text("Nova mensagem"), ' +
             'button:has-text("Criar link"), button:has-text("Novo link"), ' +
@@ -98,45 +97,30 @@ test.describe('UX-TRACK: Links rastreáveis', () => {
 
         await createButton.click()
 
-        // Aguarda modal abrir
-        const form = page.locator('[role="dialog"]').first()
-        if ((await form.count()) === 0) {
-            console.warn('[UX-TRACK-004] Modal não abriu')
-            await page.keyboard.press('Escape')
-            return
-        }
-        await expect(form).toBeVisible({ timeout: 5_000 })
-
-        // Localiza campo de nome do link (campo principal obrigatório)
-        const nameInput = form.locator(
-            'input[placeholder*="nome" i], input[placeholder*="rastreamento" i], ' +
-            'input[name*="name"], input[name*="nome"]'
+        // Localiza campo de URL
+        const urlInput = page.locator(
+            'input[placeholder*="URL"], input[placeholder*="url"], input[name*="url"], ' +
+            'input[type="url"]'
         ).first()
 
-        if ((await nameInput.count()) === 0) {
-            console.warn('[UX-TRACK-004] Campo de nome não encontrado no form de link')
+        if ((await urlInput.count()) === 0) {
+            console.warn('[UX-TRACK-004] Campo URL não encontrado no form')
             await page.keyboard.press('Escape')
             return
         }
 
-        // Tenta submeter sem preencher campos obrigatórios
-        const submitButton = form.locator('button[type="submit"], button:has-text("Criar"), button:has-text("Salvar")').first()
-        if ((await submitButton.count()) > 0) {
-            await submitButton.click()
-            await page.waitForTimeout(500)
+        await urlInput.fill('nao-e-uma-url')
+        await page.keyboard.press('Tab') // Aciona blur
 
-            // Deve aparecer erro inline ou botão permanece desabilitado
-            const errorMsg = form.locator(
-                '[class*="error"]:visible, [class*="invalid"]:visible, ' +
-                'p:has-text("obrigatório"):visible, [role="alert"]:visible'
-            )
-            const hasError = (await errorMsg.count()) > 0
-            const btnDisabled = await submitButton.isDisabled().catch(() => false)
-            if (!hasError && !btnDisabled) {
-                console.warn('[UX-TRACK-004] Sem validação para campos obrigatórios no form — UX gap')
-            }
-        } else {
-            console.warn('[UX-TRACK-004] Botão de submit não encontrado no form')
+        // Deve aparecer erro inline
+        const errorMsg = page.locator(
+            '[class*="error"]:visible, [class*="invalid"]:visible, ' +
+            'p:has-text("URL inválida"):visible, p:has-text("inválida"):visible, ' +
+            '[role="alert"]:visible'
+        )
+        const hasError = (await errorMsg.count()) > 0
+        if (!hasError) {
+            console.warn('[UX-TRACK-004] Sem validação inline para URL inválida — UX gap')
         }
 
         await page.keyboard.press('Escape')

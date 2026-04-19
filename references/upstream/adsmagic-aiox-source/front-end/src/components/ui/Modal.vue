@@ -131,7 +131,7 @@ onUnmounted(() => {
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4"
+        class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 sm:p-4"
         :style="{ zIndex }"
         @click="handleBackdropClick"
       >
@@ -204,7 +204,7 @@ onUnmounted(() => {
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4"
+        class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 sm:p-4"
         :style="{ zIndex }"
         @click="handleBackdropClick"
       >

@@ -22,6 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts", "scripts/**/*.ts"],
-  "exclude": ["scripts/**/*.spec.ts", "playwright*.config.ts", "tests/e2e/**/*.ts"]
+  "include": ["vite.config.ts"]
 }

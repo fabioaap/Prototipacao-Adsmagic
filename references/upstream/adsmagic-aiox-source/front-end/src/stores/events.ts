@@ -51,7 +51,7 @@ export const useEventsStore = defineStore('events', () => {
    */
   const filters = ref<EventFilters>({
     page: 1,
-    pageSize: 20
+    pageSize: 10
   })
 
   /**
@@ -59,7 +59,7 @@ export const useEventsStore = defineStore('events', () => {
    */
   const pagination = ref({
     page: 1,
-    pageSize: 20,
+    pageSize: 10,
     total: 0,
     totalPages: 0
   })
@@ -80,7 +80,6 @@ export const useEventsStore = defineStore('events', () => {
     (newProjectId, oldProjectId) => {
       // Only clear if project actually changed
       if (newProjectId !== oldProjectId) {
-        console.log('[Events Store] Project changed, clearing data:', { oldProjectId, newProjectId })
 
         // Clear all data
         events.value = []
@@ -90,7 +89,7 @@ export const useEventsStore = defineStore('events', () => {
         // Reset pagination
         pagination.value = {
           page: 1,
-          pageSize: 20,
+          pageSize: 10,
           total: 0,
           totalPages: 0
         }
@@ -98,14 +97,10 @@ export const useEventsStore = defineStore('events', () => {
         // Reset filters
         filters.value = {
           page: 1,
-          pageSize: 20
+          pageSize: 10
         }
 
-        // Reload data for new project if project exists
-        if (newProjectId) {
-          console.log('[Events Store] Loading data for new project:', newProjectId)
-          fetchEvents()
-        }
+        // Data will be fetched on demand when the view mounts
       }
     },
     { immediate: false }
@@ -126,7 +121,7 @@ export const useEventsStore = defineStore('events', () => {
    * Retorna apenas eventos falhados
    */
   const failedEvents = computed(() => {
-    return events.value.filter((event) => event.status === 'failed')
+    return events.value.filter((event) => event.status === 'failed' || event.status === 'cancelled')
   })
 
   /**
@@ -381,23 +376,20 @@ export const useEventsStore = defineStore('events', () => {
         filters.value = { ...filters.value, ...newFilters }
       }
 
+      // Inclui project_id nos filtros para garantir isolamento multi-tenant
+      const filtersWithProject = {
+        ...filters.value,
+        ...(currentProjectId.value ? { project_id: currentProjectId.value } : {})
+      }
+
       // Chama o serviço de eventos (que pode usar mocks ou API real)
       // O serviço garante que sempre retorna estrutura válida (SRP: validação no serviço)
-      const result = await eventsService.getAll(filters.value)
+      const result = await eventsService.getAll(filtersWithProject)
 
       // Store apenas gerencia estado, não valida dados (SRP)
       events.value = result.data
       pagination.value = result.pagination
 
-      console.log(
-        '[Events Store] Fetched',
-        result.data.length,
-        'events (page',
-        result.pagination.page,
-        'of',
-        result.pagination.totalPages,
-        ')'
-      )
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar eventos'
       error.value = errorMessage
@@ -426,7 +418,6 @@ export const useEventsStore = defineStore('events', () => {
       const event = events.value.find((e) => e.id === id)
 
       selectedEvent.value = event || null
-      console.log('[Events Store] Selected event:', event?.id)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar evento'
       error.value = errorMessage
@@ -459,23 +450,11 @@ export const useEventsStore = defineStore('events', () => {
         throw new Error('Evento não encontrado')
       }
 
-      if (event.status !== 'failed') {
-        throw new Error('Apenas eventos falhados podem ser reenviados')
+      if (event.status !== 'failed' && event.status !== 'cancelled') {
+        throw new Error('Apenas eventos falhados ou cancelados podem ser reenviados')
       }
 
-      // Simula delay de rede
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // Mock: simula reenvio (50% de chance de sucesso)
-      const success = Math.random() > 0.5
-
-      const updated: Event = {
-        ...event,
-        status: success ? 'sent' : 'failed',
-        errorMessage: success ? undefined : 'Erro simulado ao reenviar',
-        sentAt: success ? new Date().toISOString() : event.sentAt,
-        updatedAt: new Date().toISOString()
-      }
+      const updated = await eventsService.retry(id)
 
       events.value[index] = updated
 
@@ -484,7 +463,6 @@ export const useEventsStore = defineStore('events', () => {
         selectedEvent.value = updated
       }
 
-      console.log('[Events Store] Retried event:', id, success ? 'SUCCESS' : 'FAILED')
       return updated
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao reenviar evento'
@@ -509,7 +487,6 @@ export const useEventsStore = defineStore('events', () => {
       const failedIds = failedEvents.value.map((e) => e.id)
 
       if (failedIds.length === 0) {
-        console.log('[Events Store] No failed events to retry')
         return []
       }
 
@@ -527,7 +504,6 @@ export const useEventsStore = defineStore('events', () => {
         }
       }
 
-      console.log('[Events Store] Retried', updated.length, 'failed events')
       return updated
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao reenviar eventos'
@@ -560,7 +536,7 @@ export const useEventsStore = defineStore('events', () => {
   const clearFilters = async (): Promise<void> => {
     filters.value = {
       page: 1,
-      pageSize: filters.value.pageSize || 20
+      pageSize: filters.value.pageSize || 10
     }
 
     await fetchEvents()
@@ -579,20 +555,16 @@ export const useEventsStore = defineStore('events', () => {
    * Vai para a próxima página
    */
   const nextPage = async (): Promise<void> => {
-    if (hasNextPage.value) {
-      filters.value.page = (filters.value.page || 1) + 1
-      await fetchEvents()
-    }
+    filters.value.page = (filters.value.page || 1) + 1
+    await fetchEvents()
   }
 
   /**
    * Vai para a página anterior
    */
   const previousPage = async (): Promise<void> => {
-    if (hasPreviousPage.value) {
-      filters.value.page = Math.max((filters.value.page || 1) - 1, 1)
-      await fetchEvents()
-    }
+    filters.value.page = Math.max((filters.value.page || 1) - 1, 1)
+    await fetchEvents()
   }
 
   /**
@@ -601,7 +573,7 @@ export const useEventsStore = defineStore('events', () => {
    * @param page - Número da página (1-indexed)
    */
   const goToPage = async (page: number): Promise<void> => {
-    if (page >= 1 && page <= pagination.value.totalPages) {
+    if (page >= 1) {
       filters.value.page = page
       await fetchEvents()
     }

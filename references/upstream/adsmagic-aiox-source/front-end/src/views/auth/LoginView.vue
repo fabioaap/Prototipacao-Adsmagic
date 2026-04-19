@@ -191,19 +191,19 @@ const handlePasswordBlur = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex">
+  <div class="h-screen flex overflow-hidden">
     <!-- Language Selector - Fixed Position -->
     <div class="language-selector-wrapper">
       <LanguageSelector />
     </div>
 
     <!-- Left Side - Login Form -->
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
-      <div class="w-full max-w-md space-y-8">
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-background overflow-y-auto">
+      <div class="w-full max-w-md space-y-4 sm:space-y-6 lg:space-y-8">
         <!-- Logo/Brand -->
         <div class="text-center">
           <BrandLogo :height="48" />
-          <p class="text-muted-foreground mt-4">
+          <p class="text-muted-foreground mt-2 sm:mt-4">
             {{ t('auth.login.welcome') }}
           </p>
         </div>
@@ -327,15 +327,15 @@ const handlePasswordBlur = () => {
     </div>
 
     <!-- Right Side - Visual/Branding -->
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-12">
-      <div class="max-w-md text-primary-foreground space-y-6">
-        <h2 class="text-5xl font-bold leading-tight">
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-8 xl:p-12">
+      <div class="max-w-md text-primary-foreground space-y-4 xl:space-y-6">
+        <h2 class="text-3xl xl:text-5xl font-bold leading-tight">
           {{ t('auth.login.hero.title') }}
         </h2>
-        <p class="text-xl text-primary-foreground/90">
+        <p class="text-lg xl:text-xl text-primary-foreground/90">
           {{ t('auth.login.hero.description') }}
         </p>
-        <div class="space-y-4 pt-8">
+        <div class="space-y-3 pt-4 xl:space-y-4 xl:pt-8">
           <div class="flex items-start gap-3">
             <div class="mt-1">
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">

@@ -6,9 +6,9 @@ import Badge from '@/components/ui/Badge.vue'
 import Alert from '@/components/ui/Alert.vue'
 import Checkbox from '@/components/ui/Checkbox.vue'
 import { useOriginsStore } from '@/stores/origins'
-import { useToast } from '@/components/ui/toast/use-toast'
 import type { Origin } from '@/types/models'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/components/ui/toast/use-toast'
 
 interface Props {
   /**
@@ -57,7 +57,7 @@ watch(customOrigins, (items) => {
 
 // Sincronizar localCustomOrigins com customOrigins quando mudar
 watch(customOrigins, (newCustomOrigins) => {
-  localCustomOrigins.value = newCustomOrigins.map(origin => ({ ...origin }))
+  localCustomOrigins.value = [...newCustomOrigins]
   // Limpar seleções inválidas
   selectedOrigins.value = new Set(
     Array.from(selectedOrigins.value).filter(id => 
@@ -97,7 +97,7 @@ const handleOriginReorder = async () => {
       variant: 'destructive'
     })
     // Reverter para o estado anterior em caso de erro
-    localCustomOrigins.value = customOrigins.value.map(origin => ({ ...origin }))
+    localCustomOrigins.value = [...customOrigins.value]
   }
 }
 

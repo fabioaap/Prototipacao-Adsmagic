@@ -104,7 +104,7 @@ const isValid = computed(() => {
 const helpText = computed(() => {
   const length = props.modelValue.length
   if (length === 0) {
-    return 'Digite o nome da sua primeira franquia'
+    return 'Digite o nome da sua empresa'
   }
   if (length < 2) {
     return 'Nome deve ter pelo menos 2 caracteres'

@@ -67,7 +67,7 @@ onUnmounted(() => {
   <Teleport v-if="!isTestEnv" to="body">
     <div 
       v-if="isOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       @click.self="isOpen = false"
     >
       <div
@@ -81,7 +81,7 @@ onUnmounted(() => {
   </Teleport>
   <!-- In test env, render directly without Teleport -->
   <div v-else-if="isOpen" 
-    class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
     @click.self="isOpen = false"
   >
     <div

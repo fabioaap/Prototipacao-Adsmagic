@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useValidation } from '@/composables/useValidation'
+import { useToast } from '@/components/ui/toast/use-toast'
 import Button from '@/components/ui/Button.vue'
 import Label from '@/components/ui/Label.vue'
 import Card from '@/components/ui/Card.vue'
@@ -20,6 +21,7 @@ const route = useRoute()
 const { t } = useI18n()
 const authStore = useAuthStore()
 const { validatePassword } = useValidation()
+const { success: toastSuccess, error: toastError } = useToast()
 
 // Form state
 const email = ref('')
@@ -49,7 +51,7 @@ onMounted(() => {
   email.value = (typeof queryEmail === 'string' ? queryEmail : '') || ''
 
   if (!email.value) {
-    showToast(t('auth.verifyOtp.errorNoEmail'), 'error')
+    toastError(t('auth.verifyOtp.errorNoEmail'))
     const locale = route.params.locale as string || 'pt'
     setTimeout(() => router.push(`/${locale}/forgot-password`), 2000)
     return
@@ -231,11 +233,11 @@ const handleVerifyOtp = async () => {
     }
 
     isVerified.value = true
-    showToast(t('auth.verifyOtp.successVerified'), 'success')
+    toastSuccess(t('auth.verifyOtp.successVerified'))
   } catch (error) {
     console.error('OTP verification error:', error)
     otpError.value = error instanceof Error ? error.message : t('auth.verifyOtp.errorInvalidCode')
-    showToast(otpError.value, 'error')
+    toastError(otpError.value)
   } finally {
     isVerifying.value = false
   }
@@ -258,7 +260,7 @@ const handleResendOtp = async () => {
     // Reinicia timer
     startTimer()
 
-    showToast(t('auth.verifyOtp.successResent'), 'success')
+    toastSuccess(t('auth.verifyOtp.successResent'))
 
     // Foca no primeiro input
     if (otpInputs.value[0]) {
@@ -266,7 +268,7 @@ const handleResendOtp = async () => {
     }
   } catch (error) {
     console.error('Resend OTP error:', error)
-    showToast(t('auth.verifyOtp.errorResend'), 'error')
+    toastError(t('auth.verifyOtp.errorResend'))
   } finally {
     isResending.value = false
   }
@@ -286,7 +288,7 @@ const handleSubmit = async () => {
     // Reseta a senha usando Supabase Auth
     await authStore.resetPassword(newPassword.value)
 
-    showToast(t('auth.verifyOtp.successReset'), 'success')
+    toastSuccess(t('auth.verifyOtp.successReset'))
 
     // Aguarda 2 segundos e redireciona para login
     setTimeout(() => {
@@ -296,7 +298,7 @@ const handleSubmit = async () => {
   } catch (error) {
     console.error('Reset password error:', error)
     const errorMessage = error instanceof Error ? error.message : t('auth.verifyOtp.errorReset')
-    showToast(errorMessage, 'error')
+    toastError(errorMessage)
   } finally {
     isLoading.value = false
   }
@@ -321,30 +323,22 @@ const handlePasswordBlur = () => {
   }
 }
 
-/**
- * Mock de toast notification
- * TODO: Implementar com biblioteca de toast real
- */
-const showToast = (message: string, type: 'success' | 'error') => {
-  console.log(`[TOAST ${type.toUpperCase()}]:`, message)
-  // TODO: Implementar toast visual
-}
 </script>
 
 <template>
-  <div class="min-h-screen flex">
+  <div class="h-screen flex overflow-hidden">
     <!-- Language Selector - Fixed Position -->
     <div class="language-selector-wrapper">
       <LanguageSelector />
     </div>
 
     <!-- Left Side - OTP Verification Form -->
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
-      <div class="w-full max-w-md space-y-8">
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-background overflow-y-auto">
+      <div class="w-full max-w-md space-y-4 sm:space-y-6 lg:space-y-8">
         <!-- Logo/Brand -->
         <div class="text-center">
           <BrandLogo :height="48" />
-          <p class="text-muted-foreground mt-4">
+          <p class="text-muted-foreground mt-2 sm:mt-4">
             {{ t('auth.verifyOtp.verificationTitle') }}
           </p>
         </div>
@@ -502,15 +496,15 @@ const showToast = (message: string, type: 'success' | 'error') => {
     </div>
 
     <!-- Right Side - Visual/Branding -->
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-12">
-      <div class="max-w-md text-primary-foreground space-y-6">
-        <h2 class="text-5xl font-bold leading-tight">
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-8 xl:p-12">
+      <div class="max-w-md text-primary-foreground space-y-4 xl:space-y-6">
+        <h2 class="text-3xl xl:text-5xl font-bold leading-tight">
           {{ t('auth.verifyOtp.hero.title') }}
         </h2>
-        <p class="text-xl text-primary-foreground/90">
+        <p class="text-lg xl:text-xl text-primary-foreground/90">
           {{ t('auth.verifyOtp.hero.description') }}
         </p>
-        <div class="space-y-4 pt-8">
+        <div class="space-y-3 pt-4 xl:space-y-4 xl:pt-8">
           <div class="flex items-start gap-3">
             <div class="mt-1">
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">

@@ -92,9 +92,6 @@ export async function getStages(): Promise<Result<Stage[], Error>> {
     return { ok: true, value: stages }
   } catch (err) {
     const message = getApiErrorMessage(err)
-    if (import.meta.env.DEV) {
-      console.error('[Stages Service] Error fetching stages:', err)
-    }
     return { ok: false, error: new Error(message) }
   }
 }
@@ -112,9 +109,6 @@ export async function getStageById(id: string): Promise<Result<Stage | null, Err
     const response = await apiClient.get<BackendStageRow>(`/stages/${id}`)
     return { ok: true, value: mapBackendStageToFrontend(response.data) }
   } catch (err: unknown) {
-    if (import.meta.env.DEV) {
-      console.error('[Stages Service] getStageById error:', err)
-    }
     const axiosErr = err as { response?: { status?: number } }
     if (axiosErr.response?.status === 404) {
       return { ok: true, value: null }
@@ -161,9 +155,6 @@ export async function createStage(dto: CreateStageDTO): Promise<Result<Stage, Er
     const response = await apiClient.post<BackendStageRow>('/stages', body)
     return { ok: true, value: mapBackendStageToFrontend(response.data) }
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.error('[Stages Service] createStage error:', err)
-    }
     return { ok: false, error: new Error(getApiErrorMessage(err)) }
   }
 }
@@ -193,9 +184,6 @@ export async function updateStage(
     const response = await apiClient.patch<BackendStageRow>(`/stages/${id}`, body)
     return { ok: true, value: mapBackendStageToFrontend(response.data) }
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.error('[Stages Service] updateStage error:', err)
-    }
     return { ok: false, error: new Error(getApiErrorMessage(err)) }
   }
 }
@@ -212,9 +200,6 @@ export async function deleteStage(id: string): Promise<Result<void, Error>> {
     await apiClient.delete(`/stages/${id}`)
     return { ok: true, value: undefined }
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.error('[Stages Service] deleteStage error:', err)
-    }
     return { ok: false, error: new Error(getApiErrorMessage(err)) }
   }
 }
@@ -240,9 +225,6 @@ export async function reorderStages(stageIds: string[]): Promise<Result<Stage[],
     const list = response.data?.data ?? []
     return { ok: true, value: list.map(mapBackendStageToFrontend) }
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.error('[Stages Service] reorderStages error:', err)
-    }
     return { ok: false, error: new Error(getApiErrorMessage(err)) }
   }
 }

@@ -8,7 +8,7 @@
  */
 
 import {
-  buildDefaultTagScriptUrl,
+  TAG_SCRIPT_URL,
   buildTagSnippet,
 } from '@/services/tagSnippet'
 
@@ -388,11 +388,9 @@ class TrackingService {
    * Gerar código de instalação da tag
    */
   generateInstallationCode(projectId: string): string {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173'
-
     return buildTagSnippet({
       projectId,
-      scriptUrl: buildDefaultTagScriptUrl(origin),
+      scriptUrl: TAG_SCRIPT_URL,
       debug: false,
       autoInit: true,
     })

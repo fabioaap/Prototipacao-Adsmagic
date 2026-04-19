@@ -143,6 +143,13 @@ export async function handleSelectAccounts(
       finalPixelId = pixel.id
     }
 
+    // Desativar contas existentes para evitar conflito com contas antigas após reconexão
+    await supabaseAdmin
+      .from('integration_accounts')
+      .update({ status: 'inactive', is_primary: false, updated_at: new Date().toISOString() })
+      .eq('integration_id', integrationId)
+      .eq('status', 'active')
+
     // Save selected accounts
     const accountRepo = new SupabaseIntegrationAccountRepository()
     const savedAccounts = await accountRepo.saveAccounts(

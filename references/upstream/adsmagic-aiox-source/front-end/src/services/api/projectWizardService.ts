@@ -36,8 +36,6 @@ export const projectWizardService = {
    * Salva progresso do wizard (cria projeto draft se não existir)
    */
   async saveProgress(data: SaveProgressData): Promise<Project> {
-    console.log('[ProjectWizardService] Salvando progresso via API...')
-    console.log('[ProjectWizardService] Dados para salvar:', data)
 
     const wizardProgress: WizardProgress = {
       current_step: data.currentStep,
@@ -48,7 +46,6 @@ export const projectWizardService = {
     try {
       if (data.projectId) {
         // Atualizar projeto existente
-        console.log('[ProjectWizardService] Atualizando projeto existente...')
         const response = await apiClient.patch(`/projects/${data.projectId}`, {
           wizard_progress: wizardProgress,
           wizard_current_step: data.currentStep,
@@ -58,7 +55,6 @@ export const projectWizardService = {
         return response.data
       } else {
         // Criar novo projeto draft
-        console.log('[ProjectWizardService] Criando novo projeto...')
         const response = await apiClient.post('/projects', {
           company_id: data.companyId,
           created_by: data.userId,
@@ -95,7 +91,6 @@ export const projectWizardService = {
    */
   async loadProgress(projectId: string): Promise<Project> {
     try {
-      console.log('[ProjectWizardService] Carregando progresso via API...')
       const response = await apiClient.get(`/projects/${projectId}`)
       return response.data
     } catch (error) {
@@ -110,7 +105,6 @@ export const projectWizardService = {
    */
   async completeWizard(projectId: string): Promise<Project> {
     try {
-      console.log('[ProjectWizardService] Completando wizard via API...')
       const response = await apiClient.patch(`/projects/${projectId}/complete`, {
         status: 'active',
         wizard_completed_at: new Date().toISOString(),
@@ -135,7 +129,6 @@ export const projectWizardService = {
    */
   async listProjects(): Promise<Project[]> {
     try {
-      console.log('[ProjectWizardService] Listando projetos via API...')
       const response = await apiClient.get('/projects')
       return response.data
     } catch (error) {
@@ -150,7 +143,6 @@ export const projectWizardService = {
    */
   async deleteProject(projectId: string): Promise<void> {
     try {
-      console.log('[ProjectWizardService] Deletando projeto via API...')
       await apiClient.delete(`/projects/${projectId}`)
     } catch (error) {
       console.error('[ProjectWizardService] Erro ao deletar projeto:', error)

@@ -3,6 +3,7 @@ import type { RouteLocationNormalizedLoaded } from 'vue-router'
 import { useToast } from '@/components/ui/toast/use-toast'
 import type { Account, Connection, Integration } from '@/types/models'
 import type { AdvertisingPlatform } from '@/types/integrations'
+import { whatsappIntegrationService } from '@/services/api/whatsappIntegrationService'
 
 interface IntegrationsStoreActions {
   initiateOAuth: (platform: string, options: { locale: string }) => Promise<unknown>
@@ -20,10 +21,14 @@ interface IntegrationsStoreActions {
       is_primary: boolean
       status: string
       account_metadata?: Record<string, unknown>
+      token_expires_at?: string
+      external_email?: string
+      permissions?: string[]
     }>
   }>
   generateWhatsAppQR: () => Promise<string | null | undefined>
   checkWhatsAppConnection: (qrCode: string) => Promise<boolean>
+  createShareLink: () => Promise<string | null>
 }
 
 interface UseIntegrationsPlatformActionsOptions {
@@ -50,6 +55,8 @@ export const useIntegrationsPlatformActions = ({
   const { toast } = useToast()
 
   const isWhatsAppQRModalOpen = ref(false)
+  const isWhatsAppConnectionMethodModalOpen = ref(false)
+  const isWhatsAppWebhookModalOpen = ref(false)
   const isMetaConnectionModalOpen = ref(false)
   const isGoogleConnectionModalOpen = ref(false)
   const isAccountSelectorOpen = ref(false)
@@ -63,6 +70,7 @@ export const useIntegrationsPlatformActions = ({
   const isDisconnectDialogOpen = ref(false)
   const disconnectPlatformTarget = ref('')
   const disconnectLoading = ref(false)
+  const connectionDetailsLoading = ref(false)
   const lastWhatsAppFallbackSyncAt = ref(0)
 
   const handlePlatformConnect = async (platform: string) => {
@@ -193,7 +201,9 @@ export const useIntegrationsPlatformActions = ({
     disconnectPlatformTarget.value = ''
   }
 
-  const handleMetaReconnect = () => handlePlatformConnect('meta')
+  const handleMetaReconnect = () => {
+    isMetaConnectionModalOpen.value = true
+  }
   const handleGoogleReconnect = () => {
     isGoogleConnectionModalOpen.value = true
   }
@@ -286,47 +296,6 @@ export const useIntegrationsPlatformActions = ({
     }
   }
 
-  const resolveConnectionDetails = async (platform: string, integration: Integration): Promise<Connection> => {
-    if (integration.connection) {
-      const connection = integration.connection
-      return {
-        id: `${platform}_${Date.now()}`,
-        platform,
-        accountId: connection.accountId || '',
-        accountName: connection.accountName || getPlatformDisplayName(platform),
-        email: connection.email,
-        connectedAt: connection.connectedAt,
-        expiresAt: connection.expiresAt,
-        permissions: [],
-      }
-    }
-
-    try {
-      const response = await integrationsStore.getIntegrationAccounts(integration.id)
-      const primaryAccount =
-        response.accounts.find((account) => account.is_primary) || response.accounts[0]
-
-      if (primaryAccount) {
-        return {
-          id: `${platform}_${Date.now()}`,
-          platform,
-          accountId: primaryAccount.external_account_id || primaryAccount.id,
-          accountName:
-            primaryAccount.external_account_name ||
-            primaryAccount.account_name ||
-            getPlatformDisplayName(platform),
-          connectedAt: integration.lastSync || integration.updatedAt || integration.createdAt,
-          permissions: [],
-          metadata: primaryAccount.account_metadata,
-        }
-      }
-    } catch (error) {
-      console.warn(`[Integrations] Nao foi possivel buscar contas da integracao ${platform}:`, error)
-    }
-
-    return createConnectionFromIntegration(platform, integration)
-  }
-
   const handlePlatformViewDetails = async (platform: string) => {
     const integration = getIntegrationByPlatform(platform)
     if (!integration || integration.status !== 'connected') {
@@ -338,10 +307,40 @@ export const useIntegrationsPlatformActions = ({
       return
     }
 
-    selectedConnection.value = await resolveConnectionDetails(platform, integration)
-
+    // Open modal immediately with basic data
     selectedPlatform.value = platform
+    selectedConnection.value = createConnectionFromIntegration(platform, integration)
     isConnectionInfoOpen.value = true
+
+    // Always fetch fresh details from API (avoid stale cache after reconnection)
+    // Fetch full details in background
+    connectionDetailsLoading.value = true
+    try {
+      const response = await integrationsStore.getIntegrationAccounts(integration.id)
+      const primaryAccount =
+        response.accounts.find((account) => account.is_primary) || response.accounts[0]
+
+      if (primaryAccount) {
+        selectedConnection.value = {
+          id: `${platform}_${Date.now()}`,
+          platform,
+          accountId: primaryAccount.external_account_id || primaryAccount.id,
+          accountName:
+            primaryAccount.external_account_name ||
+            primaryAccount.account_name ||
+            getPlatformDisplayName(platform),
+          email: primaryAccount.external_email,
+          connectedAt: integration.lastSync || integration.updatedAt || integration.createdAt,
+          expiresAt: primaryAccount.token_expires_at,
+          permissions: primaryAccount.permissions || [],
+          metadata: primaryAccount.account_metadata,
+        }
+      }
+    } catch (error) {
+      console.warn(`[Integrations] Nao foi possivel buscar contas da integracao ${platform}:`, error)
+    } finally {
+      connectionDetailsLoading.value = false
+    }
   }
 
   const handleMetaViewDetails = () => handlePlatformViewDetails('meta')
@@ -350,48 +349,92 @@ export const useIntegrationsPlatformActions = ({
 
   const handleTikTokViewDetails = () => handlePlatformViewDetails('tiktok')
 
-  const handleWhatsAppViewDetails = () => {
+  const enrichWithWebhookUrl = async (connection: Connection): Promise<Connection> => {
+    const projectId = route.params.projectId as string
+    if (!projectId || !connection.accountId) return connection
+
+    try {
+      const result = await whatsappIntegrationService.getConnectedAccount(connection.accountId)
+      if (result.success && result.data.brokerType === 'official_whatsapp') {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const webhookUrl = `${supabaseUrl}/functions/v1/messaging-webhooks/webhook/official_whatsapp/${result.data.accountId}`
+        return {
+          ...connection,
+          metadata: { ...connection.metadata, webhookUrl },
+        }
+      }
+    } catch {
+      // Silently fail — webhook URL is informational only
+    }
+
+    return connection
+  }
+
+  const handleWhatsAppViewDetails = async () => {
     const integration = getIntegrationByPlatform('whatsapp')
-    if (!integration?.connection) {
+    if (!integration) {
+      toast({
+        title: 'Detalhes indisponíveis',
+        description: 'Não foi possível localizar uma conexão do WhatsApp para este projeto.',
+        variant: 'destructive',
+      })
       return
     }
 
-    const connection = integration.connection
-    selectedConnection.value = {
-      id: `whatsapp_${Date.now()}`,
-      platform: 'whatsapp',
-      accountId: connection.accountId || '',
-      accountName: connection.accountName || 'WhatsApp Business',
-      email: connection.email,
-      connectedAt: connection.connectedAt,
-      expiresAt: connection.expiresAt,
-      permissions: [],
+    // Open modal immediately with basic data
+    selectedPlatform.value = 'whatsapp'
+    selectedConnection.value = createConnectionFromIntegration('whatsapp', integration)
+    isConnectionInfoOpen.value = true
+
+    // If connection details already available, use them directly
+    if (integration.connection) {
+      const connection: Connection = {
+        id: `whatsapp_${Date.now()}`,
+        platform: 'whatsapp',
+        accountId: integration.connection.accountId || '',
+        accountName: integration.connection.accountName || getPlatformDisplayName('whatsapp'),
+        email: integration.connection.email,
+        connectedAt: integration.connection.connectedAt,
+        expiresAt: integration.connection.expiresAt,
+        permissions: [],
+      }
+      selectedConnection.value = connection
+
+      // Enrich with webhook URL in background (non-blocking)
+      enrichWithWebhookUrl(connection).then((enriched) => {
+        if (isConnectionInfoOpen.value && selectedPlatform.value === 'whatsapp') {
+          selectedConnection.value = enriched
+        }
+      })
+      return
     }
 
-    selectedPlatform.value = 'whatsapp'
-    isConnectionInfoOpen.value = true
-  }
-
-  const handleViewConnectionLogs = () => {
-    toast({
-      title: 'Logs',
-      description: 'Funcionalidade de logs será implementada em breve',
-    })
-  }
-
-  const handleRefreshConnection = async () => {
+    // Fetch full details in background
+    connectionDetailsLoading.value = true
     try {
-      await integrationsStore.refreshConnection(selectedPlatform.value)
-      toast({
-        title: 'Atualizado',
-        description: 'Conexão foi atualizada com sucesso',
-      })
-    } catch {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível atualizar a conexão',
-        variant: 'destructive',
-      })
+      const response = await integrationsStore.getIntegrationAccounts(integration.id)
+      const primaryAccount =
+        response.accounts.find((account) => account.is_primary) || response.accounts[0]
+
+      if (primaryAccount) {
+        const connection: Connection = {
+          id: `whatsapp_${Date.now()}`,
+          platform: 'whatsapp',
+          accountId: primaryAccount.external_account_id || primaryAccount.id,
+          accountName:
+            primaryAccount.external_account_name ||
+            primaryAccount.account_name ||
+            getPlatformDisplayName('whatsapp'),
+          connectedAt: integration.lastSync || integration.updatedAt || integration.createdAt,
+          permissions: [],
+          metadata: primaryAccount.account_metadata,
+        }
+        selectedConnection.value = await enrichWithWebhookUrl(connection)
+      }
+    } catch (error) {
+      console.warn('[Integrations] Nao foi possivel buscar contas da integracao whatsapp:', error)
+    } finally {
+      connectionDetailsLoading.value = false
     }
   }
 
@@ -411,7 +454,23 @@ export const useIntegrationsPlatformActions = ({
       return
     }
 
+    isWhatsAppConnectionMethodModalOpen.value = true
+  }
+
+  const handleSelectQR = () => {
     isWhatsAppQRModalOpen.value = true
+  }
+
+  const handleSelectWebhook = () => {
+    isWhatsAppWebhookModalOpen.value = true
+  }
+
+  const handleWebhookConnected = async () => {
+    await loadWhatsAppAccounts()
+    toast({
+      title: 'Conectado!',
+      description: 'WhatsApp foi conectado via webhook com sucesso',
+    })
   }
 
   const handleGenerateWhatsAppQR = async () => {
@@ -430,6 +489,32 @@ export const useIntegrationsPlatformActions = ({
       toast({
         title: 'Erro',
         description: 'Não foi possível gerar o QR Code',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleShareWhatsAppQR = async () => {
+    try {
+      const shareUrl = await integrationsStore.createShareLink()
+      if (!shareUrl) {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível criar o link de compartilhamento',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      await navigator.clipboard.writeText(shareUrl)
+      toast({
+        title: 'Link copiado!',
+        description: 'Envie este link para quem irá escanear o QR Code',
+      })
+    } catch {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível copiar o link',
         variant: 'destructive',
       })
     }
@@ -473,6 +558,8 @@ export const useIntegrationsPlatformActions = ({
 
   return {
     isWhatsAppQRModalOpen,
+    isWhatsAppConnectionMethodModalOpen,
+    isWhatsAppWebhookModalOpen,
     isMetaConnectionModalOpen,
     isGoogleConnectionModalOpen,
     isAccountSelectorOpen,
@@ -484,6 +571,7 @@ export const useIntegrationsPlatformActions = ({
     isDisconnectDialogOpen,
     disconnectPlatformTarget,
     disconnectLoading,
+    connectionDetailsLoading,
     handleMetaConnect,
     handleMetaConnectionSuccess,
     handleGoogleConnect,
@@ -509,11 +597,13 @@ export const useIntegrationsPlatformActions = ({
     handleGoogleViewDetails,
     handleTikTokViewDetails,
     handleWhatsAppViewDetails,
-    handleViewConnectionLogs,
-    handleRefreshConnection,
     handleDisconnectConnection,
     handleWhatsAppConnect,
+    handleSelectQR,
+    handleSelectWebhook,
+    handleWebhookConnected,
     handleGenerateWhatsAppQR,
     handleCheckWhatsAppConnection,
+    handleShareWhatsAppQR,
   }
 }

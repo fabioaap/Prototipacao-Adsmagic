@@ -37,6 +37,7 @@ export const useTagVerification = ({
   const activeTagVerificationId = ref<string | null>(null)
   const activeTagVerificationStatus = ref<TagVerificationStatus | null>(null)
   const cancelTagVerificationPolling = ref(false)
+  const hasPollingTimedOut = ref(false)
 
   const parseAndValidateSiteUrl = (rawUrl: string): string => {
     const trimmed = rawUrl.trim()
@@ -59,6 +60,7 @@ export const useTagVerification = ({
     activeTagVerificationId.value = null
     activeTagVerificationStatus.value = null
     cancelTagVerificationPolling.value = false
+    hasPollingTimedOut.value = false
     isTagVerificationModalOpen.value = true
   }
 
@@ -160,9 +162,10 @@ export const useTagVerification = ({
         return
       }
 
+      hasPollingTimedOut.value = true
       toast({
         title: 'Verificação pendente',
-        description: 'Aguardando ping de validação da tag. Consulte novamente em instantes.',
+        description: 'Verifique se a tag está instalada corretamente no site e tente novamente.',
       })
     } catch (error) {
       if (popup && !popup.closed && !popupNavigated) {
@@ -197,6 +200,7 @@ export const useTagVerification = ({
     isTagVerificationSubmitting,
     isTagVerificationPolling,
     activeTagVerificationStatus,
+    hasPollingTimedOut,
     openTagVerificationModal,
     closeTagVerificationModal,
     handleStartTagVerification,

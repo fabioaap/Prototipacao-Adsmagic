@@ -2,7 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getSessionForConfirmation, resendVerificationEmail } from '@/services/api/authService'
+import { verifyEmailToken, getSessionForConfirmation, resendVerificationEmail } from '@/services/api/authService'
+import type { GetSessionForConfirmationResult } from '@/services/api/authService'
 import { supabase, supabaseEnabled } from '@/services/api/supabaseClient'
 import { useAuthStore } from '@/stores/auth'
 import Button from '@/components/ui/Button.vue'
@@ -52,11 +53,21 @@ const forceExplicitLogin = async () => {
  */
 onMounted(async () => {
   try {
-    const { session, error: sessionError } = await getSessionForConfirmation()
+    const tokenHash = route.query.token_hash as string | undefined
+    const type = route.query.type as string | undefined
 
-    if (sessionError) throw sessionError
+    let result: GetSessionForConfirmationResult
 
-    if (session) {
+    if (tokenHash && type) {
+      result = await verifyEmailToken(tokenHash, type)
+    } else {
+      // Fallback para links antigos que usam hash na URL
+      result = await getSessionForConfirmation()
+    }
+
+    if (result.error) throw result.error
+
+    if (result.session) {
       verificationStatus.value = 'success'
       await forceExplicitLogin()
     } else {
@@ -125,10 +136,10 @@ const goToLogin = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-8 bg-background">
+  <div class="h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-background overflow-hidden">
     <div class="w-full max-w-md">
       <!-- Logo -->
-      <div class="text-center mb-8">
+      <div class="text-center mb-4 sm:mb-8">
         <BrandLogo :height="48" />
       </div>
 

@@ -11,7 +11,7 @@ import type {
 import { integrationsService } from '@/services/api/integrations'
 import { whatsappIntegrationService } from '@/services/api/whatsappIntegrationService'
 import {
-  buildDefaultTagScriptUrl,
+  TAG_SCRIPT_URL,
   buildTagSnippet,
 } from '@/services/tagSnippet'
 import { openOAuthPopup } from '@/composables/useOAuthPopup'
@@ -75,18 +75,17 @@ export const useIntegrationsStore = defineStore('integrations', () => {
     (newProjectId, oldProjectId) => {
       // Only clear if project actually changed
       if (newProjectId !== oldProjectId) {
-        console.log('[Integrations Store] Project changed, clearing data:', { oldProjectId, newProjectId })
         
         // Clear all data
         integrations.value = []
         tagInstallation.value = null
         whatsappQR.value = null
         qrExpiresAt.value = null
+        whatsappAccountId.value = null
         error.value = null
         
         // Reload data for new project if project exists
         if (newProjectId) {
-          console.log('[Integrations Store] Loading data for new project:', newProjectId)
           fetchIntegrations()
         }
       }
@@ -220,7 +219,6 @@ export const useIntegrationsStore = defineStore('integrations', () => {
       }
 
       integrations.value = mergedIntegrations
-      console.log('[Integrations Store] Loaded integrations:', mergedIntegrations.length, 'connected:', mergedIntegrations.filter(i => i.status === 'connected').length)
     } catch (err) {
       console.error('[Integrations Store] Error fetching integrations:', err)
       error.value = err instanceof Error ? err.message : 'Erro ao buscar integrações'
@@ -246,29 +244,23 @@ export const useIntegrationsStore = defineStore('integrations', () => {
       const redirectUri =
         options?.redirectUri ?? getOAuthRedirectUri(options?.locale ?? 'pt')
 
-      console.log(`[Integrations Store] Iniciando OAuth para ${platform}`)
-
       // 1. Obter URL de autorização da API (envia redirectUri para backend incluir na URL do Meta)
       const { authUrl } = await integrationsService.startOAuth(
         platform as 'meta' | 'google' | 'tiktok',
         redirectUri
       )
 
-      console.log(`[Integrations Store] URL de autorização recebida`)
-
       // 2. Abrir popup OAuth
       await openOAuthPopup({
         authUrl,
         redirectUri,
         onSuccess: async (token: string) => {
-          console.log(`[Integrations Store] Token recebido, processando callback`)
 
           try {
             // 3. Processar callback (backend troca por long-lived e salva)
             const result = await integrationsService.handleOAuthCallback(platform, token)
 
             if (result.success) {
-              console.log(`[Integrations Store] OAuth concluído com sucesso`, result)
 
               // 4. Atualizar integração local
               const integration = integrations.value.find(i => i.platform === platform)
@@ -336,7 +328,6 @@ export const useIntegrationsStore = defineStore('integrations', () => {
         integration.error = undefined
       }
 
-      console.log(`Conectando ${platform}:`, data)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Erro ao conectar plataforma'
       throw err
@@ -374,8 +365,10 @@ export const useIntegrationsStore = defineStore('integrations', () => {
           localStorage.removeItem(getWhatsAppAccountStorageKey(projectId))
         }
       } else {
-        // Simular delay da API para outras plataformas
-        await new Promise(resolve => setTimeout(resolve, 500))
+        const integration = integrations.value.find(i => i.platform === platform)
+        if (integration?.id) {
+          await integrationsService.disconnect(integration.id)
+        }
       }
 
       // Atualizar integração local
@@ -387,7 +380,6 @@ export const useIntegrationsStore = defineStore('integrations', () => {
         integration.error = undefined
       }
 
-      console.log(`[Integrations Store] Desconectado: ${platform}`)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Erro ao desconectar plataforma'
       throw err
@@ -400,25 +392,30 @@ export const useIntegrationsStore = defineStore('integrations', () => {
    * Atualiza conexão de uma plataforma
    */
   const refreshConnection = async (platform: string): Promise<void> => {
-    try {
-      const integration = integrations.value.find(i => i.platform === platform)
-      if (!integration) return
+    const integration = integrations.value.find(i => i.platform === platform)
+    if (!integration || !integration.id || integration.id.startsWith('placeholder-')) return
 
+    try {
       integration.status = 'syncing'
-      
-      // Simular sincronização
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      integration.status = 'connected'
-      integration.lastSync = new Date().toISOString()
-    } catch (err) {
-      const integration = integrations.value.find(i => i.platform === platform)
-      if (integration) {
+
+      const result = await integrationsService.refreshToken(integration.id)
+
+      if (result.success) {
+        integration.status = 'connected'
+        integration.lastSync = new Date().toISOString()
+        integration.error = undefined
+      } else {
         integration.status = 'error'
         integration.error = {
-          message: err instanceof Error ? err.message : 'Erro na sincronização',
-          timestamp: new Date().toISOString()
+          message: 'Falha ao renovar token',
+          timestamp: new Date().toISOString(),
         }
+      }
+    } catch (err) {
+      integration.status = 'error'
+      integration.error = {
+        message: err instanceof Error ? err.message : 'Erro na sincronização',
+        timestamp: new Date().toISOString(),
       }
       throw err
     }
@@ -620,24 +617,29 @@ export const useIntegrationsStore = defineStore('integrations', () => {
         throw new Error('Project ID é obrigatório para gerar o script da tag')
       }
 
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173'
       const scriptCode = buildTagSnippet({
         projectId,
-        scriptUrl: buildDefaultTagScriptUrl(origin),
+        scriptUrl: TAG_SCRIPT_URL,
         debug: false,
         autoInit: true,
       })
 
-      const current = tagInstallation.value
-      const isSameProject = current?.projectId === projectId
+      // Buscar status real do backend (isInstalled, lastPing, eventsReceived)
+      let apiStatus: Partial<TagInstallation> = {}
+      try {
+        apiStatus = await integrationsService.getTagStatus()
+      } catch {
+        // Silenciar — fallback para defaults se API falhar
+      }
 
       const installation: TagInstallation = {
         projectId,
         scriptCode,
-        isInstalled: isSameProject ? (current?.isInstalled ?? false) : false,
-        status: isSameProject ? current?.status : 'inactive',
-        lastPing: isSameProject ? current?.lastPing : undefined,
-        eventsReceived: isSameProject ? (current?.eventsReceived ?? 0) : 0,
+        isInstalled: apiStatus.isInstalled ?? false,
+        status: apiStatus.isInstalled ? 'active' : 'inactive',
+        lastPing: apiStatus.lastPing,
+        eventsReceived: apiStatus.eventsReceived ?? 0,
+        lastVerifiedUrl: apiStatus.lastVerifiedUrl,
       }
 
       tagInstallation.value = installation
@@ -661,14 +663,13 @@ export const useIntegrationsStore = defineStore('integrations', () => {
       const installation = await integrationsService.checkTagInstallation()
       const resolvedProjectId = projectId || installation.projectId || currentProjectId.value || ''
       const snippetProjectId = resolvedProjectId || 'PROJECT_ID_AQUI'
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173'
       const sameProjectFromApi = !installation.projectId || installation.projectId === resolvedProjectId
 
       const scriptCode = sameProjectFromApi && installation.scriptCode?.trim()
         ? installation.scriptCode
         : buildTagSnippet({
             projectId: snippetProjectId,
-            scriptUrl: buildDefaultTagScriptUrl(origin),
+            scriptUrl: TAG_SCRIPT_URL,
             debug: false,
             autoInit: true,
           })
@@ -785,7 +786,6 @@ export const useIntegrationsStore = defineStore('integrations', () => {
         integration.lastSync = new Date().toISOString()
       }
 
-      console.log(`Salvando contas para ${platform}:`, accountIds)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Erro ao salvar contas'
       throw err
@@ -809,10 +809,96 @@ export const useIntegrationsStore = defineStore('integrations', () => {
   }
 
   /**
+   * Cria conta WhatsApp via webhook (API Oficial Meta)
+   * Usado pelo fluxo "Via Webhook" no modal de conexão
+   */
+  const createOfficialWebhookAccount = async (params: {
+    phoneNumberId: string
+    accessToken?: string
+    accountName?: string
+  }): Promise<{ accountId: string; webhookUrl: string }> => {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const projectId = localStorage.getItem('current_project_id') || ''
+      if (!projectId) {
+        throw new Error('Projeto atual não encontrado')
+      }
+
+      const result = await whatsappIntegrationService.createOfficialWebhookAccount({
+        projectId,
+        phoneNumberId: params.phoneNumberId,
+        accessToken: params.accessToken,
+        accountName: params.accountName,
+      })
+
+      if (!result.success) {
+        throw new Error(result.error.message)
+      }
+
+      // Atualizar estado da integração WhatsApp para connected
+      const integration = integrations.value.find(i => i.platform === 'whatsapp')
+      if (integration) {
+        integration.status = 'connected'
+        integration.connection = {
+          connectedAt: new Date().toISOString(),
+          accountId: result.data.accountId,
+          accountName: result.data.accountName || 'WhatsApp Business (Webhook)',
+        }
+        integration.lastSync = new Date().toISOString()
+      }
+
+      whatsappAccountId.value = result.data.accountId
+      localStorage.setItem(getWhatsAppAccountStorageKey(projectId), result.data.accountId)
+
+      return {
+        accountId: result.data.accountId,
+        webhookUrl: result.data.webhookUrl,
+      }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Erro ao criar conta webhook'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
    * Limpa erro
    */
   const clearError = () => {
     error.value = null
+  }
+
+  /**
+   * Cria link de compartilhamento do QR Code do WhatsApp
+   *
+   * @returns URL de compartilhamento ou null se falhar
+   */
+  const createShareLink = async (): Promise<string | null> => {
+    const projectId = currentProjectId.value
+    if (!projectId) {
+      console.warn('[Integrations Store] Sem projeto ativo para criar share link')
+      return null
+    }
+
+    const accountId = whatsappAccountId.value
+      || localStorage.getItem(getWhatsAppAccountStorageKey(projectId))
+
+    if (!accountId) {
+      console.warn('[Integrations Store] Sem accountId para criar share link')
+      return null
+    }
+
+    const result = await whatsappIntegrationService.createShareToken(accountId)
+    if (!result.success) {
+      console.error('[Integrations Store] Erro ao criar share link:', result.error)
+      return null
+    }
+
+    // Construir URL do frontend (não usar shareUrl do backend que aponta para a Edge Function)
+    return `${window.location.origin}/share/whatsapp/${result.data.token}`
   }
 
   /**
@@ -859,7 +945,9 @@ export const useIntegrationsStore = defineStore('integrations', () => {
     initiateOAuth,
     handleOAuthCallback,
     saveAccounts,
+    createOfficialWebhookAccount,
     clearError,
-    clearWhatsAppQR
+    clearWhatsAppQR,
+    createShareLink,
   }
 })

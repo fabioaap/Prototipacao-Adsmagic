@@ -6,14 +6,14 @@ const AD_TRACKING_TEMPLATES: readonly AdTrackingTemplate[] = [
     platform: 'google',
     title: 'Google Ads',
     template:
-      '{lpurl}?utm_source=google&campaign_id={campaignid}&adgroup_id={adgroupid}&ad_id={creative}&utm_term={placement}::{keyword}&keyword={keyword}&device={device}&network={network}',
+      '{lpurl}?utm_source=google&utm_medium=cpc&utm_campaign={campaignid}&utm_term={keyword}&utm_content={adid}&campaign_id={campaignid}&adgroup_id={adgroupid}&ad_id={adid}',
     copyEnabled: true,
   },
   {
     platform: 'meta',
     title: 'Meta Ads',
     template:
-      'utm_source=meta&campaign_id={{campaign.id}}&adgroup_id={{adset.id}}&ad_id={{ad.id}}&utm_term={{placement}}',
+      'utm_source=meta&utm_medium=paid_social&utm_campaign={{campaign.id}}&utm_adgroup={{adset.id}}&utm_content={{ad.id}}&utm_term={{placement}}&campaign_id={{campaign.id}}&adgroup_id={{adset.id}}&ad_id={{ad.id}}',
     copyEnabled: true,
   },
   {

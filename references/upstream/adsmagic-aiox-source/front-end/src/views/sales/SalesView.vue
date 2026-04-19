@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Filter, RefreshCcw, Download } from '@/composables/useIcons'
 import Button from '@/components/ui/Button.vue'
 import AppShell from '@/components/layout/AppShell.vue'
@@ -20,13 +20,17 @@ import { useContactsStore } from '@/stores/contacts'
 import { useStagesStore } from '@/stores/stages'
 import { useOriginsStore } from '@/stores/origins'
 import { salesService } from '@/services/api/sales'
-import type { Sale } from '@/types/models'
+import type { Sale, MarkSaleLostDTO } from '@/types'
 import { useToast } from '@/components/ui/toast/use-toast'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
+import { useI18n } from 'vue-i18n'
+import Input from '@/components/ui/Input.vue'
 
 // ============================================================================
 // TOAST
 // ============================================================================
 const { toast } = useToast()
+const { t } = useI18n()
 
 // ============================================================================
 // STORES
@@ -35,6 +39,7 @@ const salesStore = useSalesStore()
 const contactsStore = useContactsStore()
 const stagesStore = useStagesStore()
 const originsStore = useOriginsStore()
+const confirmDialog = useConfirmDialog()
 
 // ============================================================================
 // STATE
@@ -52,11 +57,11 @@ const filters = ref<SaleFilters>({
   device: '',
 })
 
-const statusOptions = [
-  { value: 'all', label: 'Todas' },
-  { value: 'completed', label: 'Realizadas' },
-  { value: 'lost', label: 'Perdidas' },
-]
+const statusOptions = computed(() => [
+  { value: 'all', label: t('sales.statusAll') },
+  { value: 'completed', label: t('sales.statusCompleted') },
+  { value: 'lost', label: t('sales.statusLost') },
+])
 
 const isFiltersModalOpen = ref(false)
 const isDeleteConfirmModalOpen = ref(false)
@@ -76,39 +81,36 @@ const isLoading = computed(
     originsStore.isLoading
 )
 
+const debouncedSearch = ref('')
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+watch(searchQuery, (val) => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    debouncedSearch.value = val
+  }, 300)
+})
+
 const filteredSales = computed(() => {
-  console.log('[SalesView] Filtrando vendas...')
-  console.log('[SalesView] Total de vendas:', salesStore.sales.length)
-  console.log('[SalesView] Vendas confirmadas:', salesStore.confirmedSales.length)
-  console.log('[SalesView] Vendas perdidas:', salesStore.lostSales.length)
-  console.log('[SalesView] Status filter:', statusFilter.value)
-  
-  let sales: Sale[] = []
-  
-  // Filtro por status
+  let sales: Sale[]
+
   if (statusFilter.value === 'completed') {
-    sales = Array.from(salesStore.confirmedSales)
+    sales = salesStore.confirmedSales as Sale[]
   } else if (statusFilter.value === 'lost') {
-    sales = Array.from(salesStore.lostSales)
+    sales = salesStore.lostSales as Sale[]
   } else {
-    sales = Array.from(salesStore.sales)
+    sales = salesStore.sales as Sale[]
   }
-  
-  console.log('[SalesView] Vendas após filtro de status:', sales.length)
-  
-  // Filtro por busca (nome, telefone, status)
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    sales = sales.filter(sale => {
-      const contactName = sale.contactName?.toLowerCase() || ''
-      const contactPhone = sale.contactPhone?.toLowerCase() || ''
-      const status = sale.status?.toLowerCase() || ''
-      return contactName.includes(query) || contactPhone.includes(query) || status.includes(query)
-    })
+
+  const query = debouncedSearch.value.toLowerCase()
+  if (query) {
+    sales = sales.filter(sale =>
+      (sale.contactName?.toLowerCase().includes(query)) ||
+      (sale.contactPhone?.toLowerCase().includes(query)) ||
+      (sale.status?.toLowerCase().includes(query))
+    )
   }
-  
-  console.log('[SalesView] Vendas após busca:', sales.length)
-  
+
   return sales
 })
 
@@ -129,23 +131,18 @@ const hasActiveFilters = computed(() => {
 // METHODS
 // ============================================================================
 const fetchAllData = async () => {
-  console.log('[SalesView] Carregando dados...')
   try {
     const promises: Promise<void>[] = [
       salesStore.fetchSales(),
       stagesStore.fetchStages(),
       originsStore.fetchOrigins(),
     ]
-    // Skip contacts fetch if already loaded for same project
     if (contactsStore.contacts.length === 0) {
       promises.push(contactsStore.fetchContacts())
     }
     await Promise.all(promises)
-    console.log('[SalesView] Dados carregados com sucesso')
-    console.log('[SalesView] Vendas carregadas:', salesStore.sales.length)
-    console.log('[SalesView] Contatos carregados:', contactsStore.contacts.length)
   } catch (error) {
-    console.error('Erro ao carregar dados iniciais:', error)
+    console.error('[SalesView] Failed to load data:', error)
     toast({
       title: 'Erro',
       description: 'Não foi possível carregar os dados das vendas. Tente novamente.',
@@ -173,7 +170,7 @@ const handleApplyFilters = async (newFilters: SaleFilters) => {
   try {
     await salesStore.setFilters(apiFilters)
   } catch (error) {
-    console.error('Erro ao aplicar filtros:', error)
+    console.error('[SalesView] Failed to apply filters:', error)
     toast({
       title: 'Erro',
       description: 'Erro ao aplicar filtros. Tente novamente.',
@@ -197,7 +194,7 @@ const handleClearFilters = async () => {
   try {
     await salesStore.clearFilters()
   } catch (error) {
-    console.error('Erro ao limpar filtros:', error)
+    console.error('[SalesView] Failed to clear filters:', error)
   }
 }
 
@@ -223,7 +220,7 @@ const handleConfirmDelete = async () => {
     isDeleteConfirmModalOpen.value = false
     fetchAllData()
   } catch (error) {
-    console.error('Erro ao excluir venda:', error)
+    console.error('[SalesView] Failed to delete sale:', error)
     toast({
       title: 'Erro',
       description: 'Não foi possível excluir a venda. Tente novamente.',
@@ -274,7 +271,7 @@ const handleExport = async () => {
       description: 'Arquivo CSV baixado com sucesso'
     })
   } catch (error) {
-    console.error('Erro ao exportar vendas:', error)
+    console.error('[SalesView] Failed to export:', error)
     toast({
       title: 'Erro ao exportar',
       description: 'Não foi possível exportar as vendas',
@@ -282,6 +279,72 @@ const handleExport = async () => {
     })
   } finally {
     isExporting.value = false
+  }
+}
+
+// ============================================================================
+// BULK ACTIONS
+// ============================================================================
+const isBulkMarkLostModalOpen = ref(false)
+const bulkMarkLostIds = ref<string[]>([])
+const bulkLostReason = ref('')
+
+const handleBulkDelete = async (saleIds: string[]) => {
+  const confirmed = await confirmDialog.confirm({
+    title: 'Excluir Vendas',
+    description: `Tem certeza que deseja excluir ${saleIds.length} venda(s)? Esta ação é irreversível.`,
+    confirmText: 'Excluir',
+    cancelText: 'Cancelar',
+    variant: 'destructive'
+  })
+
+  if (!confirmed) return
+
+  try {
+    await Promise.all(saleIds.map(id => salesStore.deleteSale(id)))
+    toast({
+      title: 'Sucesso!',
+      description: `${saleIds.length} venda(s) excluída(s).`,
+    })
+    fetchAllData()
+  } catch (error) {
+    console.error('[SalesView] Failed to bulk delete sales:', error)
+    toast({
+      title: 'Erro',
+      description: 'Não foi possível excluir todas as vendas. Tente novamente.',
+      variant: 'destructive',
+    })
+  }
+}
+
+const handleBulkMarkLost = (saleIds: string[]) => {
+  bulkMarkLostIds.value = saleIds
+  bulkLostReason.value = ''
+  isBulkMarkLostModalOpen.value = true
+}
+
+const handleConfirmBulkMarkLost = async () => {
+  if (!bulkLostReason.value.trim()) return
+
+  const dto: MarkSaleLostDTO = {
+    lostReason: bulkLostReason.value.trim(),
+  }
+
+  try {
+    await Promise.all(bulkMarkLostIds.value.map(id => salesStore.markSaleLost(id, dto)))
+    toast({
+      title: 'Sucesso!',
+      description: `${bulkMarkLostIds.value.length} venda(s) marcada(s) como perdida(s).`,
+    })
+    isBulkMarkLostModalOpen.value = false
+    fetchAllData()
+  } catch (error) {
+    console.error('[SalesView] Failed to bulk mark sales as lost:', error)
+    toast({
+      title: 'Erro',
+      description: 'Não foi possível marcar todas as vendas como perdidas.',
+      variant: 'destructive',
+    })
   }
 }
 
@@ -383,6 +446,8 @@ onMounted(() => {
         @sale-view-details="handleViewDetails"
         @sale-edit="handleEditSale"
         @sale-delete="handleDeleteSale"
+        @bulk-delete="handleBulkDelete"
+        @bulk-mark-lost="handleBulkMarkLost"
         @export="handleExport"
       />
 
@@ -420,6 +485,37 @@ onMounted(() => {
         @update:model-value="isDeleteConfirmModalOpen = $event"
         @confirm="handleConfirmDelete"
       />
+
+      <!-- Confirm Dialog (bulk delete) -->
+      <AlertDialog
+        v-model="confirmDialog.isOpen.value"
+        :title="confirmDialog.title.value"
+        :description="confirmDialog.description.value"
+        :confirm-text="confirmDialog.confirmText.value"
+        :cancel-text="confirmDialog.cancelText.value"
+        :variant="confirmDialog.variant.value"
+        @confirm="confirmDialog.handleConfirm"
+        @cancel="confirmDialog.handleCancel"
+      />
+
+      <!-- Bulk Mark as Lost Modal -->
+      <AlertDialog
+        :model-value="isBulkMarkLostModalOpen"
+        :title="`Marcar ${bulkMarkLostIds.length} venda(s) como perdida(s)`"
+        description="Informe o motivo da perda."
+        confirm-text="Confirmar"
+        cancel-text="Cancelar"
+        variant="warning"
+        @update:model-value="isBulkMarkLostModalOpen = $event"
+        @confirm="handleConfirmBulkMarkLost"
+      >
+        <div class="mt-3">
+          <Input
+            v-model="bulkLostReason"
+            placeholder="Ex: Cliente desistiu, preço alto..."
+          />
+        </div>
+      </AlertDialog>
     </div>
   </AppShell>
 </template>

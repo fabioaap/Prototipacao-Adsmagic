@@ -73,42 +73,32 @@ test.describe('UX-SALE: Vendas', () => {
     })
 
     test('UX-SALE-004: Filtro de data está acessível e abre picker sem erro', async ({ page }) => {
-        // Na UI de Vendas, o filtro avançado (incluindo datas) fica atrás do botão "Filtros"
-        const filtersButton = page.locator(
-            'button:has-text("Filtros"), [data-testid*="filters-button"], ' +
-            '[data-testid*="date-filter"], button:has-text("Filtrar")'
+        const dateFilter = page.locator(
+            '[data-testid*="date-range"], [data-testid*="date-filter"], button:has-text("Período"), ' +
+            'button:has-text("Data"), button:has-text("Filtrar"), [class*="date-picker"], ' +
+            'input[type="date"]'
         ).first()
 
-        if ((await filtersButton.count()) === 0) {
-            console.warn('[UX-SALE-004] Botão de filtros não encontrado — verificar UI da página de vendas')
+        if ((await dateFilter.count()) === 0) {
+            console.warn('[UX-SALE-004] Filtro de data não encontrado — verificar UI da página de vendas')
             return
         }
 
-        await expect(filtersButton).toBeVisible({ timeout: 10_000 })
-        await filtersButton.click()
+        await expect(dateFilter).toBeVisible({ timeout: 10_000 })
+        await dateFilter.click()
 
-        // Modal de filtros deve abrir
-        const filtersModal = page.locator(
-            '[role="dialog"], [data-testid*="filters-modal"], [class*="filters-modal"]'
+        // Picker deve abrir (calendário ou dropdown)
+        const picker = page.locator(
+            '[data-testid*="calendar"], [class*="calendar"], [class*="datepicker"], ' +
+            '[role="dialog"], [data-testid*="dropdown"]'
         ).first()
 
-        if ((await filtersModal.count()) > 0) {
-            await expect(filtersModal).toBeVisible({ timeout: 5_000 })
-
-            // Dentro do modal deve haver campos de data
-            const dateInput = filtersModal.locator(
-                'input[type="date"], input[placeholder*="data" i], ' +
-                '[data-testid*="date"], [class*="date-picker"]'
-            ).first()
-            const hasDateInput = (await dateInput.count()) > 0
-            if (!hasDateInput) {
-                console.warn('[UX-SALE-004] Campo de data não encontrado dentro do modal de filtros — possível UX gap')
-            }
-
-            // Fecha o modal
+        if ((await picker.count()) > 0) {
+            await expect(picker).toBeVisible({ timeout: 5_000 })
+            // Fecha o picker
             await page.keyboard.press('Escape')
         } else {
-            console.warn('[UX-SALE-004] Modal de filtros não abriu após click — possível UX gap')
+            console.warn('[UX-SALE-004] Picker de data não abriu após click — possível UX gap')
         }
     })
 

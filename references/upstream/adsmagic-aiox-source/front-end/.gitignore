@@ -26,6 +26,8 @@ dist-ssr
 # Environment variables
 .env.local
 .env.*.local
+.env.development
+.env.test
 
 # Testes de integração — arquivos com credenciais e tokens reais
 .env.integration
@@ -44,6 +46,3 @@ playwright-integration-report/
 tests/e2e/playwright-report/
 tests/e2e/usability-report/
 spike-canary-screenshot.png
-
-# Dev-only pages (não publicar em produção — apenas para tools internas de dev)
-# src/views/dev/RoutesMapView.vue  ← tracked no git, protegido por router guard

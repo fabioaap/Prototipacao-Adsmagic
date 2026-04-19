@@ -29,6 +29,16 @@ serve(async (req) => {
   }
 
   try {
+    // Rota pública: POST /events/track (antes do auth check)
+    if (req.method === 'POST') {
+      const url = new URL(req.url)
+      const pathParts = url.pathname.split('/').filter(Boolean)
+      if (pathParts[pathParts.length - 1] === 'track') {
+        const { handleTrack } = await import('./handlers/track.ts')
+        return await handleTrack(req)
+      }
+    }
+
     // Autenticação via JWT
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {

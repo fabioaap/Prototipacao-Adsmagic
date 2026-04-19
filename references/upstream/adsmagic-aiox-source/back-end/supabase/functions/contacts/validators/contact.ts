@@ -68,10 +68,6 @@ export const listContactsQuerySchema = z.object({
   search: z.string().min(1).optional(),
   origin_id: z.string().uuid('Invalid origin ID format').optional(),
   stage_id: z.string().uuid('Invalid stage ID format').optional(),
-  tag_ids: z.string()
-    .transform((value) => value.split(',').map((item) => item.trim()).filter(Boolean))
-    .pipe(z.array(z.string().uuid('Invalid tag ID format')).min(1))
-    .optional(),
   is_favorite: z.string().transform(val => val === 'true').pipe(z.boolean()).optional(),
   sort: z.enum(['created_at', 'name_asc', 'name_desc', 'updated_at']).optional(),
   limit: z.string().transform(val => parseInt(val, 10)).pipe(z.number().int().min(1).max(100)).optional(),

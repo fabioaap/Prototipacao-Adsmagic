@@ -66,7 +66,7 @@
                     />
                     <BrandIcons
                       v-else-if="getBrandPlatformName(event.platform)"
-                      :name="getBrandPlatformName(event.platform)"
+                      :name="getBrandPlatformName(event.platform)!"
                       class="h-4 w-4"
                     />
                     <component
@@ -107,10 +107,18 @@
         </table>
       </div>
 
-      <div v-if="totalPages > 1" class="flex items-center justify-center border-t bg-muted/25 px-4 py-3">
-        <button class="flex h-8 w-8 items-center justify-center rounded-control border border-border bg-background text-sm font-medium hover:bg-muted">
-          1
-        </button>
+      <div v-if="totalPages > 1" class="flex items-center justify-between border-t bg-muted/25 px-4 py-3">
+        <p class="text-sm text-muted-foreground">
+          Mostrando {{ (currentPage - 1) * props.itemsPerPage + 1 }} a
+          {{ Math.min(currentPage * props.itemsPerPage, totalItems) }}
+          de {{ totalItems }} eventos
+        </p>
+        <Pagination
+          :page="currentPage"
+          :page-size="props.itemsPerPage"
+          :total="totalItems"
+          @update:page="handlePageChange"
+        />
       </div>
     </div>
   </div>
@@ -124,6 +132,7 @@ import BrandIcons from '@/components/icons/BrandIcons.vue'
 import GoogleAdsLogoIcon from '@/components/icons/GoogleAdsLogoIcon.vue'
 import MetaAdsLogoIcon from '@/components/icons/MetaAdsLogoIcon.vue'
 import Badge from '@/components/ui/Badge.vue'
+import Pagination from '@/components/ui/Pagination.vue'
 import type { Event } from '@/types/models'
 import { useFormat } from '@/composables/useFormat'
 
@@ -134,14 +143,23 @@ interface Props {
   itemsPerPage?: number
   hasActiveFilters?: boolean
   activeFiltersCount?: number
+  /** When true, pagination is handled server-side (no client slice) */
+  serverPaginated?: boolean
+  /** Current page (server-side mode) */
+  page?: number
+  /** Total items across all pages (server-side mode) */
+  totalItems?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   searchQuery: '',
   loading: false,
-  itemsPerPage: 20,
+  itemsPerPage: 10,
   hasActiveFilters: false,
   activeFiltersCount: 0,
+  serverPaginated: false,
+  page: 1,
+  totalItems: 0,
 })
 
 const emit = defineEmits<{
@@ -149,10 +167,22 @@ const emit = defineEmits<{
   eventRetry: [event: Event]
   export: []
   openFilters: []
+  pageChange: [page: number]
 }>()
 
-const currentPage = ref(1)
+const localPage = ref(1)
 const { formatDate } = useFormat()
+
+const currentPage = computed(() =>
+  props.serverPaginated ? props.page : localPage.value
+)
+
+const handlePageChange = (page: number) => {
+  if (!props.serverPaginated) {
+    localPage.value = page
+  }
+  emit('pageChange', page)
+}
 
 const filteredEvents = computed(() => {
   let events = props.events
@@ -171,13 +201,20 @@ const filteredEvents = computed(() => {
 })
 
 const paginatedEvents = computed(() => {
-  const start = (currentPage.value - 1) * props.itemsPerPage
+  if (props.serverPaginated) {
+    return filteredEvents.value
+  }
+  const start = (localPage.value - 1) * props.itemsPerPage
   const end = start + props.itemsPerPage
   return filteredEvents.value.slice(start, end)
 })
 
+const totalItems = computed(() =>
+  props.serverPaginated ? props.totalItems : filteredEvents.value.length
+)
+
 const totalPages = computed(() => {
-  return Math.ceil(filteredEvents.value.length / props.itemsPerPage)
+  return Math.ceil(totalItems.value / props.itemsPerPage)
 })
 
 const getEventTypeLabel = (type: string) => {
@@ -270,6 +307,7 @@ const getStatusBadge = (status: string) => {
     sent: { variant: 'success', label: 'Enviado' },
     pending: { variant: 'warning', label: 'Pendente' },
     failed: { variant: 'destructive', label: 'Falhou' },
+    cancelled: { variant: 'destructive', label: 'Cancelado' },
     success: { variant: 'success', label: 'Sucesso' },
     error: { variant: 'destructive', label: 'Erro' },
     info: { variant: 'secondary', label: 'Info' },

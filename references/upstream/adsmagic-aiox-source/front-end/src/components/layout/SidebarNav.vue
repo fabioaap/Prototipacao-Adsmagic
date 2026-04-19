@@ -9,7 +9,7 @@
  */
 import { ref, computed, watch, type Component } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { ChevronDown } from 'lucide-vue-next'
+import { ChevronDown } from '@/composables/useIcons'
 import { 
   AccordionRoot, 
   AccordionItem, 
@@ -25,8 +25,13 @@ import {
 export interface NavLink {
   label: string
   icon: Component
-  href: string
+  /** Rota interna (RouterLink) ou URL externa quando `external` for true. */
+  href?: string
   badge?: string | number
+  /** Se definido, o item vira um botão e dispara esta ação no clique. */
+  onClick?: () => void
+  /** Quando true, `href` é aberto em uma nova aba. */
+  external?: boolean
 }
 
 export interface NavSection {
@@ -78,8 +83,13 @@ const initializeOpenSections = () => {
 // COMPUTED
 // ============================================================================
 
-const isActive = (href: string) => {
+const isActive = (href?: string) => {
+  if (!href) return false
   return route.fullPath.startsWith(href)
+}
+
+const isRouterLink = (link: NavLink) => {
+  return !link.onClick && !!link.href && !link.external
 }
 
 // Quando sidebar está colapsado, mostrar apenas ícones sem accordion
@@ -133,19 +143,50 @@ watch(() => route.fullPath, () => {
         </AccordionHeader>
         
         <AccordionContent class="overflow-hidden data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
-          <RouterLink
-            v-for="link in section.links"
-            :key="link.href"
-            :to="link.href"
-            class="flex items-center gap-3 px-3 py-2 pl-4 mx-2 text-sm font-medium text-foreground/70 decoration-0 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            :class="{ 'text-accent-foreground bg-accent font-semibold': isActive(link.href) }"
-          >
-            <component :is="link.icon" :size="20" aria-hidden="true" />
-            <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">{{ link.label }}</span>
-            <span v-if="link.badge" class="inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-semibold text-white bg-primary rounded-full">
-              {{ link.badge }}
-            </span>
-          </RouterLink>
+          <template v-for="link in section.links" :key="link.label + (link.href ?? '')">
+            <!-- Link interno via RouterLink -->
+            <RouterLink
+              v-if="isRouterLink(link)"
+              :to="link.href!"
+              class="flex items-center gap-3 px-3 py-2 pl-4 mx-2 text-sm font-medium text-foreground/70 decoration-0 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              :class="{ 'text-accent-foreground bg-accent font-semibold': isActive(link.href) }"
+            >
+              <component :is="link.icon" :size="20" aria-hidden="true" />
+              <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">{{ link.label }}</span>
+              <span v-if="link.badge" class="inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-semibold text-white bg-primary rounded-full">
+                {{ link.badge }}
+              </span>
+            </RouterLink>
+
+            <!-- Link externo (nova aba) -->
+            <a
+              v-else-if="link.external && link.href"
+              :href="link.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-3 px-3 py-2 pl-4 mx-2 text-sm font-medium text-foreground/70 decoration-0 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <component :is="link.icon" :size="20" aria-hidden="true" />
+              <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">{{ link.label }}</span>
+              <span v-if="link.badge" class="inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-semibold text-white bg-primary rounded-full">
+                {{ link.badge }}
+              </span>
+            </a>
+
+            <!-- Ação via botão (onClick) -->
+            <button
+              v-else
+              type="button"
+              class="flex items-center gap-3 px-3 py-2 pl-4 mx-2 w-[calc(100%-1rem)] text-left text-sm font-medium text-foreground/70 bg-transparent border-0 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+              @click="link.onClick?.()"
+            >
+              <component :is="link.icon" :size="20" aria-hidden="true" />
+              <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">{{ link.label }}</span>
+              <span v-if="link.badge" class="inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-semibold text-white bg-primary rounded-full">
+                {{ link.badge }}
+              </span>
+            </button>
+          </template>
         </AccordionContent>
       </AccordionItem>
     </AccordionRoot>
@@ -153,19 +194,48 @@ watch(() => route.fullPath, () => {
     <!-- Modo Colapsado (apenas ícones) -->
     <div v-else class="flex flex-col items-center gap-1">
       <template v-for="section in sections" :key="section.id">
-        <RouterLink
-          v-for="link in section.links"
-          :key="link.href"
-          :to="link.href"
-          class="relative flex items-center justify-center w-10 h-10 text-muted-foreground decoration-0 rounded-control transition-all duration-150 hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          :class="{ 'text-accent-foreground bg-accent': isActive(link.href) }"
-          :title="link.label"
-        >
-          <component :is="link.icon" :size="20" aria-hidden="true" />
-          <span v-if="link.badge" class="absolute top-0.5 right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-white bg-primary rounded-full">
-            {{ link.badge }}
-          </span>
-        </RouterLink>
+        <template v-for="link in section.links" :key="link.label + (link.href ?? '')">
+          <RouterLink
+            v-if="isRouterLink(link)"
+            :to="link.href!"
+            class="relative flex items-center justify-center w-10 h-10 text-muted-foreground decoration-0 rounded-control transition-all duration-150 hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            :class="{ 'text-accent-foreground bg-accent': isActive(link.href) }"
+            :title="link.label"
+          >
+            <component :is="link.icon" :size="20" aria-hidden="true" />
+            <span v-if="link.badge" class="absolute top-0.5 right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-white bg-primary rounded-full">
+              {{ link.badge }}
+            </span>
+          </RouterLink>
+
+          <a
+            v-else-if="link.external && link.href"
+            :href="link.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="relative flex items-center justify-center w-10 h-10 text-muted-foreground decoration-0 rounded-control transition-all duration-150 hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            :title="link.label"
+          >
+            <component :is="link.icon" :size="20" aria-hidden="true" />
+            <span v-if="link.badge" class="absolute top-0.5 right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-white bg-primary rounded-full">
+              {{ link.badge }}
+            </span>
+          </a>
+
+          <button
+            v-else
+            type="button"
+            class="relative flex items-center justify-center w-10 h-10 bg-transparent border-0 text-muted-foreground rounded-control transition-all duration-150 hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+            :title="link.label"
+            :aria-label="link.label"
+            @click="link.onClick?.()"
+          >
+            <component :is="link.icon" :size="20" aria-hidden="true" />
+            <span v-if="link.badge" class="absolute top-0.5 right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-white bg-primary rounded-full">
+              {{ link.badge }}
+            </span>
+          </button>
+        </template>
       </template>
     </div>
   </nav>

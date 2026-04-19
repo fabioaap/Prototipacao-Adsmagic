@@ -53,23 +53,11 @@ export const companiesService = {
    */
   async getUserCompanies(_userId: string) {
     try {
-      if (import.meta.env.DEV) {
-        console.log('[CompaniesService] 📡 Fetching companies from API...')
-      }
       const response = await apiClient.get('/companies')
       if (import.meta.env.DEV) {
-        console.log('[CompaniesService] 📥 Response received:', {
-          hasData: !!response.data,
-          hasDataData: !!response.data?.data,
-          dataType: Array.isArray(response.data?.data) ? 'array' : typeof response.data?.data,
-          dataLength: Array.isArray(response.data?.data) ? response.data.data.length : 'N/A'
-        })
       }
 
       const companies = response.data?.data || response.data || []
-      if (import.meta.env.DEV) {
-        console.log('[CompaniesService] ✅ Returning companies:', companies.length)
-      }
       return companies
     } catch (error) {
       console.error('[CompaniesService] ❌ Error fetching companies:', error)
@@ -102,14 +90,8 @@ export const companiesService = {
    */
   async createCompany(companyData: CreateCompanyDTO, _userId: string) {
     try {
-      if (import.meta.env.DEV) {
-        console.log('[CompaniesService] Creating company via API...', companyData)
-      }
       const response = await apiClient.post('/companies', companyData)
       const companyResult = response?.data?.data || response?.data || companyData
-      if (import.meta.env.DEV) {
-        console.log('[CompaniesService] Company created successfully:', companyResult?.name)
-      }
       return companyResult
     } catch (error) {
       const normalizedError = normalizeCompaniesApiError(error)
@@ -127,13 +109,7 @@ export const companiesService = {
    */
   async updateCompany(companyId: string, updates: UpdateCompanyDTO) {
     try {
-      if (import.meta.env.DEV) {
-        console.log('[CompaniesService] Updating company via API...', { companyId, updates })
-      }
       const response = await apiClient.patch(`/companies/${companyId}`, updates)
-      if (import.meta.env.DEV) {
-        console.log('[CompaniesService] Company updated successfully:', response.data.data.name)
-      }
       return response.data.data
     } catch (error) {
       console.error('[CompaniesService] Error updating company:', error)
@@ -146,13 +122,7 @@ export const companiesService = {
    */
   async deleteCompany(companyId: string) {
     try {
-      if (import.meta.env.DEV) {
-        console.log('[CompaniesService] Deleting company via API...', companyId)
-      }
       await apiClient.delete(`/companies/${companyId}`)
-      if (import.meta.env.DEV) {
-        console.log('[CompaniesService] Company deleted successfully')
-      }
     } catch (error) {
       console.error('[CompaniesService] Error deleting company:', error)
       throw error

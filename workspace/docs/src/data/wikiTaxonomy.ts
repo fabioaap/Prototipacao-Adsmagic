@@ -109,11 +109,16 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
     ],
   },
   {
-    title: 'Community',
+    title: 'Campanhas de GTM',
     items: [
+      {label: 'Plano de organização GTM', docId: 'marketing/plano-organizacao-campanhas-gtm', to: '/wiki/marketing/plano-organizacao-campanhas-gtm'},
       {label: 'Base de inteligência de conteúdo', docId: 'marketing/base-de-inteligencia-de-conteudo', to: '/wiki/marketing/base-de-inteligencia-de-conteudo'},
       {label: 'Assets e campanhas', docId: 'marketing/assets-e-campanhas', to: '/wiki/marketing/assets-e-campanhas'},
+      {label: 'Copies Meta Ads', docId: 'marketing/copies-meta-ads', to: '/wiki/marketing/copies-meta-ads'},
+      {label: 'Copies Google Ads', docId: 'marketing/copies-google-ads', to: '/wiki/marketing/copies-google-ads'},
       {label: 'Canvas de conteúdo', docId: 'marketing/canvas-de-conteudo-instagram', to: '/wiki/marketing/canvas-de-conteudo-instagram'},
+      {label: 'Arquitetura editorial StoryBrand', docId: 'marketing/arquitetura-editorial-instagram-storybrand', to: '/wiki/marketing/arquitetura-editorial-instagram-storybrand'},
+      {label: 'Copies dos 9 carrosséis StoryBrand', docId: 'marketing/copies-carrosseis-instagram-storybrand', to: '/wiki/marketing/copies-carrosseis-instagram-storybrand'},
       {label: 'Roteiros para reels e carrosséis', docId: 'marketing/roteiros-reels-carrosseis', to: '/wiki/marketing/roteiros-reels-carrosseis'},
       {label: 'Sequência de email outbound', docId: 'marketing/sequencia-email-outbound', to: '/wiki/marketing/sequencia-email-outbound'},
     ],
@@ -125,8 +130,6 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
       {label: 'Módulos', docId: 'modulos/index', to: '/modulos'},
       {label: 'Benchmark competitivo', docId: 'marketing/benchmark-competitivo-tintim', to: '/wiki/marketing/benchmark-competitivo-tintim'},
       {label: 'Dossiê de canal no YouTube', docId: 'marketing/dossie-canal-youtube-bispo-bruno-leonardo', to: '/wiki/marketing/dossie-canal-youtube-bispo-bruno-leonardo'},
-      {label: 'Copies Meta Ads', docId: 'marketing/copies-meta-ads', to: '/wiki/marketing/copies-meta-ads'},
-      {label: 'Copies Google Ads', docId: 'marketing/copies-google-ads', to: '/wiki/marketing/copies-google-ads'},
     ],
   },
 ];

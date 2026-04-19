@@ -231,15 +231,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
    * Avança para o próximo passo ativo
    */
   function nextStep() {
-    console.log('[ProjectWizard Store] nextStep chamado:', {
-      currentStep: currentStep.value,
-      canProceed: canProceed.value,
-      currentIndex: currentStepIndex.value,
-      activeSteps: activeSteps.value,
-      totalSteps: totalSteps.value,
-      platformsMetaAds: projectData.value.platforms.metaAds,
-      metaAdsConnected: projectData.value.metaAds?.connected,
-    })
 
     if (!canProceed.value) {
       console.warn('[ProjectWizard Store] nextStep bloqueado - canProceed é false')
@@ -251,7 +242,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
 
     if (nextIndex < activeSteps.value.length) {
       const nextStepNumber = activeSteps.value[nextIndex]
-      console.log('[ProjectWizard Store] Avançando do step', currentStep.value, 'para', nextStepNumber)
       currentStep.value = nextStepNumber!
     } else {
       console.warn('[ProjectWizard Store] nextStep bloqueado - já está no último step')
@@ -339,7 +329,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
         savedAt: new Date().toISOString()
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-      console.log('[ProjectWizard] 💾 Auto-save localStorage executado')
     } catch (err) {
       console.warn('[ProjectWizard] Erro ao salvar localStorage:', err)
     }
@@ -370,7 +359,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
       if (data.projectData) projectData.value = { ...projectData.value, ...data.projectData }
       if (data.currentProjectId) currentProjectId.value = data.currentProjectId
 
-      console.log('[ProjectWizard] 📦 Dados restaurados do localStorage')
       return true
     } catch (err) {
       console.warn('[ProjectWizard] Erro ao carregar localStorage:', err)
@@ -396,8 +384,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
     // Parar auto-save existente se houver
     stopAutoSave()
 
-    console.log('[ProjectWizard] ⏱️ Iniciando auto-save (30s)')
-
     autoSaveIntervalId = setInterval(async () => {
       // Salvar no localStorage sempre (sync)
       saveToLocalStorage()
@@ -406,7 +392,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
       if (currentProjectId.value && !isSyncing.value) {
         try {
           await saveToBackend()
-          console.log('[ProjectWizard] ☁️ Auto-save backend executado')
         } catch (err) {
           console.warn('[ProjectWizard] Erro no auto-save backend:', err)
         }
@@ -421,7 +406,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
     if (autoSaveIntervalId) {
       clearInterval(autoSaveIntervalId)
       autoSaveIntervalId = null
-      console.log('[ProjectWizard] ⏹️ Auto-save parado')
     }
   }
 
@@ -529,7 +513,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
       // Invalidar cache de projetos para garantir que lista seja atualizada
       if (companiesStore.currentCompanyId) {
         cacheService.invalidatePattern(`projects:${companiesStore.currentCompanyId}`)
-        console.log('[ProjectWizard Store] 🗑️ Cache de projetos invalidado após salvar')
       }
 
       return project
@@ -573,7 +556,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
       const { projectWizardService } = await import('@/services/api/projectWizardService')
       const { projectWizardAdapter } = await import('@/services/adapters/projectWizardAdapter')
 
-      console.log('[ProjectWizard Store] Carregando projeto do backend:', projectId)
       const project = await projectWizardService.loadProgress(projectId)
 
       if (!project) {
@@ -618,7 +600,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
       }
 
       // Dados carregados com sucesso
-      console.log('[ProjectWizard Store] ✅ Dados carregados com sucesso')
       projectData.value = data
       currentStep.value = project.wizard_current_step || inferStepFromProjectData(data)
       currentProjectId.value = project.id
@@ -675,7 +656,6 @@ export const useProjectWizardStore = defineStore('projectWizard', () => {
       const projectId = completedProject.id
       if (projectId) {
         localStorage.setItem('current_project_id', projectId)
-        console.log('[ProjectWizard Store] ✅ Projeto completado, projectId salvo:', projectId)
       }
 
       stopAutoSave() // G2.2: Parar auto-save ao completar

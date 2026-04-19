@@ -78,6 +78,7 @@ async function getActiveAdAccounts(
     accessToken: string
     platform: AdPlatform
     integrationId: string
+    loginCustomerId?: string
   }>
 > {
   // Precisamos usar service role para descriptografar tokens
@@ -94,6 +95,7 @@ async function getActiveAdAccounts(
       external_account_id,
       access_token,
       integration_id,
+      account_metadata,
       integrations!inner(platform, platform_type, status, project_id)
     `
     )
@@ -141,12 +143,16 @@ async function getActiveAdAccounts(
         continue
       }
 
+      const metadata = account.account_metadata as Record<string, unknown> | null
+      const parentMccId = typeof metadata?.parentMccId === 'string' ? metadata.parentMccId : undefined
+
       accountsWithTokens.push({
         id: account.id,
         externalAccountId: account.external_account_id,
         accessToken: decryptedToken,
         platform: integration.platform as AdPlatform,
         integrationId: account.integration_id,
+        loginCustomerId: parentMccId,
       })
     } catch (error) {
       console.error('[Ad Insights Summary] Error decrypting token for account:', account.id, error)
@@ -224,6 +230,7 @@ export async function handleSummary(
     let totalImpressions = 0
     let totalReach = 0
     let totalClicks = 0
+    let hasErrors = false
     const byPlatform: AdInsightsSummary['byPlatform'] = []
 
     // Agrupar por plataforma
@@ -252,7 +259,8 @@ export async function handleSummary(
             metrics = await getGoogleAccountInsights(
               account.externalAccountId,
               account.accessToken,
-              dateRange
+              dateRange,
+              account.loginCustomerId
             )
             break
           case 'tiktok':
@@ -272,6 +280,7 @@ export async function handleSummary(
         platformMetrics[account.platform].impressions += metrics.impressions
         platformMetrics[account.platform].clicks += metrics.clicks
       } catch (error) {
+        hasErrors = true
         console.error(
           '[Ad Insights Summary] Error fetching metrics for account:',
           account.id,
@@ -315,8 +324,10 @@ export async function handleSummary(
       byPlatform,
     }
 
-    // Salvar no cache (TTL: 15 minutos)
-    await setAdInsightsCache(supabaseClient, projectId, 'summary', cacheParams, summary, 15)
+    // Salvar no cache (TTL: 15 minutos) — skip cache when API errors occurred to avoid caching zeros
+    if (!hasErrors) {
+      await setAdInsightsCache(supabaseClient, projectId, 'summary', cacheParams, summary, 15)
+    }
 
     console.log('[Ad Insights Summary] Fetched successfully', {
       projectId,

@@ -58,7 +58,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { CheckCircle, XCircle } from 'lucide-vue-next'
+import { CheckCircle, XCircle } from '@/composables/useIcons'
 import Button from '@/components/ui/Button.vue'
 import { useIntegrationsStore } from '@/stores/integrations'
 import { useToast } from '@/components/ui/toast/use-toast'

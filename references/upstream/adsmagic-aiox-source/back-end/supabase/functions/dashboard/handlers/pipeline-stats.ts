@@ -13,6 +13,7 @@
 
 import { successResponse, errorResponse } from '../utils/response.ts'
 import { getDateRangeFromRequest } from '../utils/dateRange.ts'
+import { calculateAvgDaysForAllStages } from '../services/stage-metrics.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
 
 interface PipelineStage {
@@ -29,62 +30,6 @@ interface PipelineStats {
   stages: PipelineStage[]
   totalDeals: number
   totalValue: number
-}
-
-/**
- * Calcula tempo médio que contatos permanecem em cada estágio (movimentações no intervalo [rangeStart, rangeEnd]).
- */
-async function calculateAvgDaysInStage(
-  supabaseClient: SupabaseDbClient,
-  projectId: string,
-  stageId: string,
-  rangeStart: Date,
-  rangeEnd: Date
-): Promise<number> {
-  try {
-    const startISO = rangeStart.toISOString()
-    const endISO = rangeEnd.toISOString()
-
-    const { data: history, error } = await supabaseClient
-      .from('contact_stage_history')
-      .select(`
-        id,
-        contact_id,
-        stage_id,
-        moved_at,
-        created_at,
-        contacts!inner(project_id)
-      `)
-      .eq('contacts.project_id', projectId)
-      .eq('stage_id', stageId)
-      .gte('moved_at', startISO)
-      .lte('moved_at', endISO)
-
-    if (error) {
-      console.error('[Pipeline Stats] Error fetching stage history:', error)
-      return 0
-    }
-
-    if (!history || history.length === 0) {
-      return 0
-    }
-
-    let totalDays = 0
-    let count = 0
-    for (const entry of history) {
-      const movedAt = entry.moved_at ? new Date(entry.moved_at) : (entry.created_at ? new Date(entry.created_at) : null)
-      if (movedAt) {
-        const days = Math.max(0, (rangeEnd.getTime() - movedAt.getTime()) / (1000 * 60 * 60 * 24))
-        totalDays += days
-        count++
-      }
-    }
-
-    return count > 0 ? totalDays / count : 0
-  } catch (error) {
-    console.error('[Pipeline Stats] Error calculating avg days:', error)
-    return 0
-  }
 }
 
 export async function handlePipelineStats(
@@ -128,26 +73,30 @@ export async function handlePipelineStats(
       }, 200)
     }
 
-    const { data: contacts, error: contactsError } = await supabaseClient
-      .from('contacts')
-      .select('id, current_stage_id')
-      .eq('project_id', projectId)
-      .gte('created_at', startISO)
-      .lte('created_at', endISO)
+    // Paralelizar contacts e sales (independentes)
+    const [contactsResult, salesResult] = await Promise.all([
+      supabaseClient
+        .from('contacts')
+        .select('id, current_stage_id')
+        .eq('project_id', projectId)
+        .gte('created_at', startISO)
+        .lte('created_at', endISO),
+      supabaseClient
+        .from('sales')
+        .select('id, contact_id, value, status, date')
+        .eq('project_id', projectId)
+        .eq('status', 'completed')
+        .gte('date', startISO)
+        .lte('date', endISO),
+    ])
 
+    const { data: contacts, error: contactsError } = contactsResult
     if (contactsError) {
       console.error('[Pipeline Stats] Error fetching contacts:', contactsError)
       return errorResponse('Failed to fetch contacts', 500)
     }
 
-    const { data: sales, error: salesError } = await supabaseClient
-      .from('sales')
-      .select('id, contact_id, value, status, date')
-      .eq('project_id', projectId)
-      .eq('status', 'completed')
-      .gte('date', startISO)
-      .lte('date', endISO)
-
+    const { data: sales, error: salesError } = salesResult
     if (salesError) {
       console.error('[Pipeline Stats] Error fetching sales:', salesError)
     }
@@ -187,7 +136,16 @@ export async function handlePipelineStats(
       }
     }
 
-    // Calcular métricas por estágio
+    // Calcular avgDays para TODOS os estágios em uma única query (elimina N+1)
+    const stageIds = stages.map(s => s.id)
+    const avgDaysByStage = await calculateAvgDaysForAllStages(
+      supabaseClient,
+      projectId,
+      stageIds,
+      start,
+      end
+    )
+
     const pipelineStages: PipelineStage[] = []
 
     for (const stage of stages) {
@@ -196,14 +154,6 @@ export async function handlePipelineStats(
       const stageTotalValue = stats.totalValue || 0
       const avgValue = dealsCount > 0 ? stageTotalValue / dealsCount : 0
 
-      const avgDays = await calculateAvgDaysInStage(
-        supabaseClient,
-        projectId,
-        stage.id,
-        start,
-        end
-      )
-
       pipelineStages.push({
         stageId: stage.id,
         stageName: stage.name,
@@ -211,7 +161,7 @@ export async function handlePipelineStats(
         dealsCount,
         totalValue: stageTotalValue,
         avgValue,
-        avgDays
+        avgDays: avgDaysByStage[stage.id] || 0
       })
     }
 

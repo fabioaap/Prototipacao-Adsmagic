@@ -94,9 +94,6 @@ function isAuthFailureBlocked(): boolean {
  */
 function invalidateAuthStoreCache(): void {
   cachedAuthStore = null
-  if (import.meta.env.DEV) {
-    console.log('[API] Auth store cache invalidated')
-  }
 }
 
 function invalidateSessionCache(): void {
@@ -114,9 +111,6 @@ export function resetSessionStateForUserSwitch(): void {
   authFailureBlockUntil = 0
   isHandlingUnauthorized = false
 
-  if (import.meta.env.DEV) {
-    console.log('[API] Session state reset for user switch')
-  }
 }
 
 function getCachedSession(): SessionLike | null {
@@ -175,9 +169,6 @@ async function getSessionWithTimeout(
  */
 function waitForSessionRestore(timeout = 10000): Promise<{ access_token: string; refresh_token?: string } | null> {
   return new Promise(async (resolve) => {
-    if (import.meta.env.DEV) {
-      console.log('[API] ⏳ Waiting for session restore (checking existing session first)...')
-    }
 
     // 1. VERIFICAR SESSÃO EXISTENTE PRIMEIRO (evitar race condition)
     // Se sessão já existe, retornar imediatamente sem registrar listener
@@ -185,9 +176,6 @@ function waitForSessionRestore(timeout = 10000): Promise<{ access_token: string;
       const { data: { session }, error: sessionError } = await getSessionWithTimeout(1500, 'waitForSessionRestore initial getSession')
 
       if (session?.access_token && !sessionError) {
-        if (import.meta.env.DEV) {
-          console.log('[API] ✅ Session already exists - returning immediately (no listener needed)')
-        }
         resolve({
           access_token: session.access_token,
           refresh_token: session.refresh_token
@@ -195,15 +183,9 @@ function waitForSessionRestore(timeout = 10000): Promise<{ access_token: string;
         return
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.warn('[API] Error checking existing session:', error)
-      }
     }
 
     // 2. Se não há sessão, registrar listener e polling como fallback
-    if (import.meta.env.DEV) {
-      console.log('[API] ⏳ No session found - registering listener and polling fallback...')
-    }
 
     let resolved = false
     const timeoutId = setTimeout(() => {
@@ -225,10 +207,6 @@ function waitForSessionRestore(timeout = 10000): Promise<{ access_token: string;
         unsubscribe()
         stopPolling()
 
-        if (import.meta.env.DEV) {
-          console.log('[API] ✅ Session restored - token available')
-        }
-
         resolve(session)
       }
     }
@@ -237,9 +215,6 @@ function waitForSessionRestore(timeout = 10000): Promise<{ access_token: string;
     // Escutar eventos de mudança de auth state
     // onAuthStateChange retorna { data: { subscription } }
     const authStateChangeResult = supabase.auth.onAuthStateChange((event, session) => {
-      if (import.meta.env.DEV) {
-        console.log('[API] 🔔 Auth state change detected:', event)
-      }
 
       // Sessão foi restaurada
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.access_token) {
@@ -272,9 +247,6 @@ function waitForSessionRestore(timeout = 10000): Promise<{ access_token: string;
         const { data: { session }, error: sessionError } = await getSessionWithTimeout(1200, 'waitForSessionRestore polling getSession')
 
         if (session?.access_token && !sessionError) {
-          if (import.meta.env.DEV) {
-            console.log('[API] ✅ Session found via polling (fallback) - poll #', pollCount)
-          }
           safeResolve({
             access_token: session.access_token,
             refresh_token: session.refresh_token
@@ -287,9 +259,6 @@ function waitForSessionRestore(timeout = 10000): Promise<{ access_token: string;
           stopPolling()
         }
       } catch (error) {
-        if (import.meta.env.DEV) {
-          console.warn('[API] Error during polling:', error)
-        }
       } finally {
         pollingCheckInFlight = false
       }
@@ -300,18 +269,12 @@ function waitForSessionRestore(timeout = 10000): Promise<{ access_token: string;
       const subscription = authStateChangeResult?.data?.subscription
       if (subscription) {
         subscription.unsubscribe()
-        if (import.meta.env.DEV) {
-          console.log('[API] 🧹 Auth state listener unsubscribed')
-        }
       }
     }
 
     // Função para parar polling
     const stopPolling = () => {
       clearInterval(pollingInterval)
-      if (import.meta.env.DEV) {
-        console.log('[API] 🧹 Polling stopped')
-      }
     }
   })
 }
@@ -335,10 +298,6 @@ export async function ensureSession(options?: {
     suppressTimeoutWarning = false,
   } = options || {}
 
-  if (import.meta.env.DEV && waitForRestore) {
-    console.log('[API] 🔍 ensureSession() called with waitForRestore: true')
-  }
-
   const resolveSession = async (): Promise<SessionLike | null> => {
     try {
     if (!waitForRestore) {
@@ -360,15 +319,6 @@ export async function ensureSession(options?: {
           cachedAuthStore = authStore
         }
 
-        if (import.meta.env.DEV) {
-          console.log('[API] 🔍 ensureSession() - Auth store check:', {
-            hasCachedStore: !!cachedAuthStore,
-            hasToken: !!authStore.token,
-            tokenLength: authStore.token?.length || 0,
-            isOAuthCallback: waitForRestore
-          })
-        }
-
         if (authStore.token) {
           if (supabaseEnabled && authStore.token.startsWith('mock-')) {
             console.warn('[API] Ignorando token mock armazenado porque Supabase está habilitado')
@@ -376,10 +326,6 @@ export async function ensureSession(options?: {
             localStorage.removeItem('adsmagic_auth_token')
             localStorage.removeItem('adsmagic_user_data')
           } else {
-            console.log('[API] Using preserved token from auth store')
-            if (import.meta.env.DEV) {
-              console.log('[API] ✅ Using token from auth store (preserved token, works even during SIGNED_OUT)')
-            }
             return {
               access_token: authStore.token,
               refresh_token: undefined
@@ -387,9 +333,6 @@ export async function ensureSession(options?: {
           }
         }
       } catch (authStoreError) {
-        if (import.meta.env.DEV) {
-          console.warn('[API] Error accessing auth store:', authStoreError)
-        }
       }
 
       const savedToken = localStorage.getItem('adsmagic_auth_token')
@@ -399,10 +342,6 @@ export async function ensureSession(options?: {
           localStorage.removeItem('adsmagic_auth_token')
           localStorage.removeItem('adsmagic_user_data')
         } else {
-          if (import.meta.env.DEV) {
-            console.log('[API] ✅ Using preserved token from localStorage (fallback)')
-          }
-          console.log('[API] Using preserved token from localStorage')
           return { access_token: savedToken, refresh_token: undefined }
         }
       }
@@ -410,7 +349,6 @@ export async function ensureSession(options?: {
 
     // Validar sessão ativa via Supabase (com timeout/retry)
     if (API_VERBOSE_LOGS) {
-      console.log('[API] Validating active Supabase session...')
     }
 
     const sessionResult = await getSessionWithTimeout(baseTimeoutMs, 'getSession', suppressTimeoutWarning)
@@ -440,23 +378,10 @@ export async function ensureSession(options?: {
       }
     }
 
-    if (import.meta.env.DEV && waitForRestore) {
-      console.log('[API] 🔍 ensureSession() - Supabase getSession() result:', {
-        hasSession: !!session,
-        hasAccessToken: !!session?.access_token,
-        hasRefreshToken: !!session?.refresh_token,
-        hasError: !!sessionError,
-        errorMessage: sessionError?.message || null
-      })
-    }
-
     // Se waitForRestore está ativado e não há sessão, aguardar restauração
     // Para OAuth callbacks: verificar getSession() novamente antes de aguardar listener
     // Isso evita race condition onde sessão pode ter sido restaurada entre verificações
     if (waitForRestore && !session?.access_token) {
-      if (import.meta.env.DEV) {
-        console.log('[API] ⚠️ Session not found for OAuth callback, checking getSession() again before waiting...')
-      }
 
       // Invalidar cache para garantir dados atualizados após SIGNED_OUT
       invalidateAuthStoreCache()
@@ -466,32 +391,20 @@ export async function ensureSession(options?: {
           const { data: { session: retrySession }, error: retryError } = await getSessionWithTimeout(1000, 'retry getSession')
 
         if (retrySession?.access_token && !retryError) {
-          if (import.meta.env.DEV) {
-            console.log('[API] ✅ Session found in retry getSession() - no need to wait')
-          }
           return {
             access_token: retrySession.access_token,
             refresh_token: retrySession.refresh_token
           }
         }
       } catch (retryError) {
-        if (import.meta.env.DEV) {
-          console.warn('[API] Retry getSession() failed, proceeding to waitForSessionRestore:', retryError)
-        }
       }
 
       // Se ainda não há sessão, aguardar restauração usando listener + polling
-      if (import.meta.env.DEV) {
-        console.log('[API] ⏳ No session found in retry, waiting for restore using listener + polling...')
-      }
 
       const restoredSession = await waitForSessionRestore(10000) // 10 segundos timeout
 
       if (restoredSession) {
         // Sessão foi restaurada via listener
-        if (import.meta.env.DEV) {
-          console.log('[API] ✅ Session restored via listener, verifying auth store...')
-        }
 
         // Verificar auth store novamente (pode ter sido atualizado pelo listener)
         try {
@@ -501,51 +414,33 @@ export async function ensureSession(options?: {
           cachedAuthStore = freshAuthStore
 
           if (freshAuthStore.token) {
-            if (import.meta.env.DEV) {
-              console.log('[API] ✅ Using token from refreshed auth store')
-            }
             return {
               access_token: freshAuthStore.token,
               refresh_token: undefined
             }
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
-            console.warn('[API] Error accessing refreshed auth store:', error)
-          }
         }
 
         // Se auth store não tem token ainda, usar sessão do listener
         return restoredSession
       } else {
         // Timeout - tentar getSession() uma última vez
-        if (import.meta.env.DEV) {
-          console.warn('[API] Session restore timeout, trying getSession() one last time...')
-        }
 
         try {
           const finalSessionResult = await getSessionWithTimeout(1000, 'final getSession')
 
           if (finalSessionResult.data?.session?.access_token) {
-            if (import.meta.env.DEV) {
-              console.log('[API] ✅ Session found in final getSession() attempt')
-            }
             session = finalSessionResult.data.session
             sessionError = finalSessionResult.error
           }
         } catch (error) {
-          if (import.meta.env.DEV) {
-            console.warn('[API] Final getSession() attempt failed:', error)
-          }
         }
       }
     }
 
     // If we got a valid session, use it
     if (session?.access_token && !sessionError) {
-      if (import.meta.env.DEV) {
-        console.log('[API] ✅ Session available from Supabase')
-      }
       const activeSession = {
         access_token: session.access_token,
         refresh_token: session.refresh_token
@@ -556,9 +451,6 @@ export async function ensureSession(options?: {
 
     // Se sessão expirou mas há refresh_token, tentar refresh automático
     if (session?.refresh_token && !session?.access_token) {
-      if (import.meta.env.DEV) {
-        console.log('[API] Session expired but refresh token available, attempting refresh...')
-      }
 
       try {
         // Tentar refresh com retry e backoff exponencial
@@ -583,9 +475,6 @@ export async function ensureSession(options?: {
                 continue
               }
             } else if (refreshData?.session?.access_token) {
-              if (import.meta.env.DEV) {
-                console.log('[API] ✅ Session refreshed successfully')
-              }
               const refreshedSession = {
                 access_token: refreshData.session.access_token,
                 refresh_token: refreshData.session.refresh_token
@@ -613,9 +502,6 @@ export async function ensureSession(options?: {
           console.error('[API] ❌ All refresh attempts failed:', lastError?.message)
         }
       } catch (refreshError) {
-        if (import.meta.env.DEV) {
-          console.error('[API] Error during refresh:', refreshError)
-        }
       }
     }
 
@@ -629,17 +515,10 @@ export async function ensureSession(options?: {
       }
     }
 
-    if (import.meta.env.DEV) {
-      console.warn('[API] No session available')
-    }
       return null
     } catch (error) {
       if (error instanceof Error && error.message === 'SESSION_TIMEOUT' && throwOnTimeout) {
         throw error
-      }
-      // Log error without exposing sensitive information
-      if (import.meta.env.DEV) {
-        console.error('[API] Unexpected error ensuring session:', error instanceof Error ? error.message : 'Unknown error')
       }
       return null
     }
@@ -792,14 +671,6 @@ apiClient.interceptors.request.use(
         }
       }
 
-      if (import.meta.env.DEV) {
-        console.log('[API] 🎭 Mock Mode - Request intercepted:', {
-          url: url,
-          method: config.method,
-          mockData: mockData
-        })
-      }
-
       // Retornar promise rejeitado com resposta especial que será capturada no response interceptor
       // Isso evita o axios tentar fazer request HTTP real
       return Promise.reject({
@@ -820,12 +691,6 @@ apiClient.interceptors.request.use(
 
     // Log TODAS as requisições para debug (apenas DEV)
     if (API_VERBOSE_LOGS) {
-      console.log('[API] 🔵 Request Interceptor - ALL REQUESTS:', {
-        url: config.url,
-        method: config.method,
-        baseURL: config.baseURL,
-        fullURL: config.url?.startsWith('http') ? config.url : `${config.baseURL}${config.url}`
-      })
     }
 
     try {
@@ -842,20 +707,7 @@ apiClient.interceptors.request.use(
       // Log inicial do estado (apenas DEV) - SEMPRE logar se for OAuth callback
       if (API_VERBOSE_LOGS) {
         if (isOAuthCallback) {
-          console.log('[API] 🔍 OAuth Callback Request - Initial State:', {
-            url: config.url,
-            baseURL: config.baseURL,
-            fullURL: config.url?.startsWith('http') ? config.url : `${config.baseURL}${config.url}`,
-            isOAuthCallback: true,
-            urlIncludesOAuth: config.url?.includes('/oauth/'),
-            urlIncludesCallback: config.url?.includes('/callback')
-          })
         } else {
-          // Log para outras requisições somente em modo verbose
-          console.log('[API] 📡 Regular Request:', {
-            url: config.url,
-            isOAuthCallback: false
-          })
         }
       }
 
@@ -897,20 +749,11 @@ apiClient.interceptors.request.use(
 
       // Log estado após ensureSession (apenas DEV)
       if (import.meta.env.DEV && isOAuthCallback) {
-        console.log('[API] 🔍 OAuth Callback Request - After ensureSession():', {
-          hasSession: !!session,
-          hasToken: !!session?.access_token,
-          tokenLength: session?.access_token?.length || 0,
-          tokenPrefix: session?.access_token ? `${session.access_token.substring(0, 20)}...` : null
-        })
       }
 
       // Se é OAuth callback e não há sessão, tentar waitForSessionRestore diretamente
       // Isso garante que aguardamos a restauração antes de fazer a requisição
       if (isOAuthCallback && !session?.access_token) {
-        if (import.meta.env.DEV) {
-          console.log('[API] ⚠️ OAuth callback route - no session found, waiting for restore directly...')
-        }
 
         // Invalidar cache e aguardar restauração
         invalidateAuthStoreCache()
@@ -921,9 +764,6 @@ apiClient.interceptors.request.use(
 
         // 2. Se ainda não há sessão, tentar getSession() com retry
         if (!session?.access_token) {
-          if (import.meta.env.DEV) {
-            console.log('[API] ⚠️ waitForSessionRestore não retornou sessão, tentando getSession() com retry...')
-          }
 
           // Tentar getSession() até 3 vezes com delay crescente
           for (let attempt = 0; attempt < 3; attempt++) {
@@ -934,9 +774,6 @@ apiClient.interceptors.request.use(
               const { data: { session: retrySession }, error: retryError } = await getSessionWithTimeout(SESSION_TIMEOUT_MS, 'oauth retry getSession')
 
               if (retrySession?.access_token && !retryError) {
-                if (import.meta.env.DEV) {
-                  console.log(`[API] ✅ Session found in getSession() retry attempt ${attempt + 1}`)
-                }
                 session = {
                   access_token: retrySession.access_token,
                   refresh_token: retrySession.refresh_token
@@ -958,18 +795,12 @@ apiClient.interceptors.request.use(
             const { useAuthStore } = await import('@/stores/auth')
             const authStore = useAuthStore()
             if (authStore.token) {
-              if (import.meta.env.DEV) {
-                console.log('[API] ✅ Session found in auth store after retries')
-              }
               session = {
                 access_token: authStore.token,
                 refresh_token: undefined
               }
             }
           } catch (error) {
-            if (import.meta.env.DEV) {
-              console.warn('[API] Error checking auth store:', error)
-            }
           }
         }
 
@@ -978,33 +809,16 @@ apiClient.interceptors.request.use(
           const savedToken = localStorage.getItem('adsmagic_auth_token')
           if (savedToken) {
             session = { access_token: savedToken, refresh_token: undefined }
-            // Log crítico (sempre aparece)
-            console.log('[API] ✅ Using preserved token from localStorage for OAuth callback (direct fallback)')
             if (import.meta.env.DEV) {
-              console.log('[API] 🔍 Direct localStorage fallback used:', {
-                tokenLength: savedToken.length,
-                tokenPrefix: `${savedToken.substring(0, 20)}...`
-              })
             }
           }
         }
 
         // Log estado após todas as tentativas (apenas DEV)
         if (import.meta.env.DEV) {
-          console.log('[API] 🔍 OAuth Callback Request - After all restore attempts:', {
-            hasSession: !!session,
-            hasToken: !!session?.access_token,
-            tokenLength: session?.access_token?.length || 0,
-            tokenPrefix: session?.access_token ? `${session.access_token.substring(0, 20)}...` : null
-          })
         }
 
         if (session?.access_token) {
-          // Log crítico (sempre aparece em produção)
-          console.log('[API] Session restored for OAuth callback request')
-          if (import.meta.env.DEV) {
-            console.log('[API] ✅ Session restored for OAuth callback request')
-          }
         } else {
           // Log crítico de erro (sempre aparece)
           console.error('[API] CRITICAL: Session not restored after all attempts - request will fail with 401')
@@ -1023,28 +837,18 @@ apiClient.interceptors.request.use(
         // Verificar explicitamente se o header foi adicionado
         // Type assertion para Authorization header (sempre string quando definido)
         const authHeader = config.headers.Authorization as string | undefined
-        const authHeaderStr = typeof authHeader === 'string' ? authHeader : undefined
-        const authHeaderAdded = !!authHeaderStr
-        const authHeaderLength = authHeaderStr?.length || 0
+        const authHeaderAdded = typeof authHeader === 'string' && !!authHeader
 
         // Log crítico (sempre aparece em produção)
         if (authHeaderAdded) {
           // Log específico para OAuth callbacks, log genérico para outras requisições
           if (isOAuthCallback) {
-            console.log('[API] Authorization header added successfully for OAuth callback')
           } else {
             // Log genérico apenas em modo verbose para outras requisições (evita spam)
             if (API_VERBOSE_LOGS) {
-              console.log('[API] Authorization header added successfully')
             }
           }
           if (API_VERBOSE_LOGS) {
-            console.log('[API] ✅ Authorization header added successfully:', {
-              url: config.url,
-              headerLength: authHeaderLength,
-              headerPrefix: `Bearer ${session.access_token.substring(0, 20)}...`,
-              isOAuthCallback
-            })
           }
         } else {
           // Log de erro crítico apenas para OAuth callbacks (sempre aparece)
@@ -1079,23 +883,6 @@ apiClient.interceptors.request.use(
         }
       }
 
-      // Log final do estado antes de enviar (apenas DEV e OAuth callback)
-      if (import.meta.env.DEV && isOAuthCallback) {
-        // Type assertion para Authorization header (sempre string quando definido)
-        const authHeader = config.headers.Authorization as string | undefined
-        const authHeaderStr = typeof authHeader === 'string' ? authHeader : undefined
-
-        console.log('[API] 🔍 OAuth Callback Request - Final State Before Send:', {
-          url: config.url,
-          hasSession: !!session,
-          hasToken: !!session?.access_token,
-          authHeaderExists: !!authHeaderStr,
-          authHeaderLength: authHeaderStr?.length || 0,
-          authHeaderPrefix: authHeaderStr ?
-            authHeaderStr.substring(0, 30) + '...' : null,
-          requestWillFail: !authHeaderStr
-        })
-      }
     } catch (error) {
       // Log error without exposing sensitive information
       if (import.meta.env.DEV) {
@@ -1117,10 +904,6 @@ apiClient.interceptors.request.use(
 
         // Debug log for development
         if (API_VERBOSE_LOGS) {
-          console.log('[API] Request with project context:', {
-            projectId: currentProjectId,
-            url: config.url
-          })
         }
       } else {
         // Apenas avisar em rotas que realmente precisam de project_id
@@ -1141,10 +924,6 @@ apiClient.interceptors.request.use(
       }
     } catch (error) {
       // Store not available (e.g., during SSR or before app initialization)
-      // Apenas logar em dev para não poluir produção
-      if (import.meta.env.DEV) {
-        console.warn('[API] Projects store not available:', error)
-      }
     }
 
     return config
@@ -1220,12 +999,6 @@ apiClient.interceptors.response.use(
   async (error: any) => {
     // **MOCK MODE: Capturar mock responses e retornar como sucesso**
     if (error.name === 'MockResponse' && error.response) {
-      if (import.meta.env.DEV) {
-        console.log('[API] 🎭 Mock Mode - Returning mock response:', {
-          status: error.response.status,
-          data: error.response.data
-        })
-      }
       // Retornar a resposta mock como sucesso (não reject)
       return Promise.resolve(error.response)
     }
@@ -1245,10 +1018,6 @@ apiClient.interceptors.response.use(
       // Unauthorized: Clear token and redirect to login
       // EXCETO para rotas OAuth que devem tratar o erro localmente
       const isExcludedRoute = shouldExcludeFrom401Redirect(requestUrl)
-
-      if (import.meta.env.DEV && isExcludedRoute) {
-        console.log('[API] 401 em rota OAuth - erro será tratado localmente, sem redirecionamento')
-      }
 
       // Apenas redirecionar se não for rota excluída
       if (!isExcludedRoute) {
@@ -1270,9 +1039,6 @@ apiClient.interceptors.response.use(
             const authStore = useAuthStore()
             authStore.clearAuthData()
           } catch (authStoreError) {
-            if (import.meta.env.DEV) {
-              console.warn('[API] Failed to clear auth store after 401:', authStoreError)
-            }
           }
 
           // Only redirect if not already on login page
@@ -1298,10 +1064,6 @@ apiClient.interceptors.response.use(
           isHandlingUnauthorized = false
         }
       } else {
-        // Log para debug em desenvolvimento
-        if (import.meta.env.DEV) {
-          console.log('[API] Erro 401 em rota OAuth - redirecionamento automático desabilitado')
-        }
       }
     }
 

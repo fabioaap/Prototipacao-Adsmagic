@@ -10,6 +10,7 @@ import { useRoute } from 'vue-router'
 import { useProjectWizardStore } from '@/stores/projectWizard'
 import { useMetaIntegration } from '@/composables/useMetaIntegration'
 import { useGoogleIntegration } from '@/composables/useGoogleIntegration'
+import { eventsService } from '@/services/api/events'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
 import Select from '@/components/ui/Select.vue'
@@ -387,11 +388,16 @@ const createEvent = async () => {
   isCreatingEvent.value = true
 
   try {
-    // TODO: Implementar criação de evento na API
-    await new Promise(resolve => setTimeout(resolve, 500))
+    const createdEvent = await eventsService.create({
+      name: newEventName.value,
+      platform: 'google',
+      type: 'conversion',
+      defaultValue: newEventValue.value,
+      allowMultiplePurchases: newEventMultiple.value,
+    })
 
     const newEvent = {
-      id: `event_${Date.now()}`,
+      id: createdEvent.id,
       name: newEventName.value,
       defaultValue: newEventValue.value,
       allowMultiplePurchases: newEventMultiple.value,

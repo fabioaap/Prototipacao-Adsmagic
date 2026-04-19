@@ -79,7 +79,6 @@ export interface DashboardFilters {
 export interface AdTableConfig {
   projectId: string
   platform: AdPlatform
-  level: AdTableLevel
   selectedColumnIds: string[]
   columnOrder: string[]
   customMetrics?: NorthStarCustomMetricDefinition[]
@@ -303,15 +302,13 @@ export const adInsightsService = {
   },
 
   async getTableConfig(
-    platform: AdPlatform,
-    level: AdTableLevel
+    platform: AdPlatform
   ): Promise<AdTableConfig> {
     if (USE_MOCK) {
       await new Promise((resolve) => setTimeout(resolve, 200))
       return {
         projectId: localStorage.getItem('current_project_id') || 'mock-project',
         platform,
-        level,
         selectedColumnIds: ['name', 'spend', 'impressions', 'clicks', 'ctr', 'contacts', 'sales'],
         columnOrder: ['name', 'spend', 'impressions', 'clicks', 'ctr', 'contacts', 'sales'],
         updatedAt: new Date().toISOString(),
@@ -319,14 +316,13 @@ export const adInsightsService = {
     }
 
     const response = await apiClient.get<AdTableConfig>(
-      `/ad-insights/table-config?platform=${platform}&level=${level}`
+      `/ad-insights/table-config?platform=${platform}`
     )
     return response.data
   },
 
   async updateTableConfig(
     platform: AdPlatform,
-    level: AdTableLevel,
     payload: AdTableConfigUpdatePayload
   ): Promise<AdTableConfig> {
     if (USE_MOCK) {
@@ -334,7 +330,6 @@ export const adInsightsService = {
       return {
         projectId: localStorage.getItem('current_project_id') || 'mock-project',
         platform,
-        level,
         selectedColumnIds: payload.selectedColumnIds,
         columnOrder: payload.columnOrder,
         updatedAt: new Date().toISOString(),
@@ -342,7 +337,7 @@ export const adInsightsService = {
     }
 
     const response = await apiClient.patch<AdTableConfig>(
-      `/ad-insights/table-config?platform=${platform}&level=${level}`,
+      `/ad-insights/table-config?platform=${platform}`,
       payload
     )
     return response.data

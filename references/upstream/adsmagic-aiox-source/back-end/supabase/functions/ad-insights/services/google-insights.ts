@@ -54,17 +54,24 @@ async function executeGoogleAdsQuery(
   customerId: string,
   accessToken: string,
   query: string,
-  developerToken: string
+  developerToken: string,
+  loginCustomerId?: string
 ): Promise<unknown[]> {
   const url = `${GOOGLE_ADS_BASE_URL}/customers/${customerId}/googleAds:searchStream`
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${accessToken}`,
+    'developer-token': developerToken,
+    'Content-Type': 'application/json',
+  }
+
+  if (loginCustomerId) {
+    headers['login-customer-id'] = loginCustomerId.replace(/-/g, '')
+  }
+
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'developer-token': developerToken,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ query }),
   })
 
@@ -97,7 +104,8 @@ async function executeGoogleAdsQuery(
 export async function getAccountInsights(
   customerId: string,
   accessToken: string,
-  dateRange: DateRange
+  dateRange: DateRange,
+  loginCustomerId?: string
 ): Promise<AccountMetrics> {
   console.log('[Google Insights] Fetching account insights', {
     customerId,
@@ -130,7 +138,9 @@ export async function getAccountInsights(
       metrics.impressions,
       metrics.clicks,
       metrics.ctr,
-      metrics.average_cpc
+      metrics.average_cpc,
+      metrics.conversions,
+      metrics.cost_per_conversion
     FROM customer
     WHERE segments.date BETWEEN '${formatDate(dateRange.start)}' AND '${formatDate(dateRange.end)}'
   `
@@ -140,7 +150,8 @@ export async function getAccountInsights(
       customerId,
       accessToken,
       query,
-      developerToken
+      developerToken,
+      loginCustomerId
     )
 
     if (results.length === 0) {
@@ -162,6 +173,7 @@ export async function getAccountInsights(
     let totalSpend = 0
     let totalImpressions = 0
     let totalClicks = 0
+    let totalConversions = 0
     let accountName = `Account ${customerId}`
 
     for (const row of results as Array<{
@@ -170,6 +182,7 @@ export async function getAccountInsights(
         costMicros?: string
         impressions?: string
         clicks?: string
+        conversions?: string
       }
     }>) {
       if (row.customer?.descriptiveName) {
@@ -179,6 +192,7 @@ export async function getAccountInsights(
         totalSpend += microsToValue(row.metrics.costMicros || '0')
         totalImpressions += parseInt(row.metrics.impressions || '0', 10)
         totalClicks += parseInt(row.metrics.clicks || '0', 10)
+        totalConversions += parseFloat(row.metrics.conversions || '0')
       }
     }
 
@@ -221,7 +235,8 @@ export async function getAccountInsights(
 export async function getCampaignsWithInsights(
   customerId: string,
   accessToken: string,
-  dateRange: DateRange
+  dateRange: DateRange,
+  loginCustomerId?: string
 ): Promise<Omit<CampaignMetrics, 'contacts' | 'sales' | 'revenue' | 'roas'>[]> {
   console.log('[Google Insights] Fetching campaigns', {
     customerId,
@@ -245,7 +260,9 @@ export async function getCampaignsWithInsights(
       metrics.impressions,
       metrics.clicks,
       metrics.ctr,
-      metrics.average_cpc
+      metrics.average_cpc,
+      metrics.conversions,
+      metrics.cost_per_conversion
     FROM campaign
     WHERE segments.date BETWEEN '${formatDate(dateRange.start)}' AND '${formatDate(dateRange.end)}'
       AND campaign.status IN ('ENABLED', 'PAUSED')
@@ -256,7 +273,8 @@ export async function getCampaignsWithInsights(
       customerId,
       accessToken,
       query,
-      developerToken
+      developerToken,
+      loginCustomerId
     )
 
     // Agrupar por campanha (resultados vem por dia)
@@ -270,6 +288,7 @@ export async function getCampaignsWithInsights(
         spend: number
         impressions: number
         clicks: number
+        conversions: number
       }
     >()
 
@@ -284,6 +303,7 @@ export async function getCampaignsWithInsights(
         costMicros?: string
         impressions?: string
         clicks?: string
+        conversions?: string
       }
     }>) {
       const campaignId = row.campaign?.id || ''
@@ -293,6 +313,7 @@ export async function getCampaignsWithInsights(
         existing.spend += microsToValue(row.metrics?.costMicros || '0')
         existing.impressions += parseInt(row.metrics?.impressions || '0', 10)
         existing.clicks += parseInt(row.metrics?.clicks || '0', 10)
+        existing.conversions += parseFloat(row.metrics?.conversions || '0')
       } else {
         campaignMap.set(campaignId, {
           id: campaignId,
@@ -302,6 +323,7 @@ export async function getCampaignsWithInsights(
           spend: microsToValue(row.metrics?.costMicros || '0'),
           impressions: parseInt(row.metrics?.impressions || '0', 10),
           clicks: parseInt(row.metrics?.clicks || '0', 10),
+          conversions: parseFloat(row.metrics?.conversions || '0'),
         })
       }
     }
@@ -330,6 +352,10 @@ export async function getCampaignsWithInsights(
         ctr,
         cpc,
         cpm,
+        results: campaign.conversions > 0 ? campaign.conversions : undefined,
+        resultType: campaign.conversions > 0 ? 'Conversões' : undefined,
+        costPerResult: campaign.conversions > 0 ? campaign.spend / campaign.conversions : undefined,
+        costPerResultLabel: campaign.conversions > 0 ? 'Por conversão' : undefined,
       }
     })
   } catch (error) {
@@ -345,7 +371,8 @@ export async function getAdGroupsWithInsights(
   customerId: string,
   campaignId: string,
   accessToken: string,
-  dateRange: DateRange
+  dateRange: DateRange,
+  loginCustomerId?: string
 ): Promise<Omit<AdsetMetrics, 'contacts' | 'sales' | 'revenue' | 'roas'>[]> {
   console.log('[Google Insights] Fetching ad groups', {
     customerId,
@@ -367,7 +394,9 @@ export async function getAdGroupsWithInsights(
       ad_group.campaign,
       metrics.cost_micros,
       metrics.impressions,
-      metrics.clicks
+      metrics.clicks,
+      metrics.conversions,
+      metrics.cost_per_conversion
     FROM ad_group
     WHERE segments.date BETWEEN '${formatDate(dateRange.start)}' AND '${formatDate(dateRange.end)}'
       AND campaign.id = ${campaignId}
@@ -379,7 +408,8 @@ export async function getAdGroupsWithInsights(
       customerId,
       accessToken,
       query,
-      developerToken
+      developerToken,
+      loginCustomerId
     )
 
     // Agrupar por ad group
@@ -393,6 +423,7 @@ export async function getAdGroupsWithInsights(
         spend: number
         impressions: number
         clicks: number
+        conversions: number
       }
     >()
 
@@ -407,6 +438,7 @@ export async function getAdGroupsWithInsights(
         costMicros?: string
         impressions?: string
         clicks?: string
+        conversions?: string
       }
     }>) {
       const adGroupId = row.adGroup?.id || ''
@@ -416,6 +448,7 @@ export async function getAdGroupsWithInsights(
         existing.spend += microsToValue(row.metrics?.costMicros || '0')
         existing.impressions += parseInt(row.metrics?.impressions || '0', 10)
         existing.clicks += parseInt(row.metrics?.clicks || '0', 10)
+        existing.conversions += parseFloat(row.metrics?.conversions || '0')
       } else {
         adGroupMap.set(adGroupId, {
           id: adGroupId,
@@ -425,11 +458,24 @@ export async function getAdGroupsWithInsights(
           spend: microsToValue(row.metrics?.costMicros || '0'),
           impressions: parseInt(row.metrics?.impressions || '0', 10),
           clicks: parseInt(row.metrics?.clicks || '0', 10),
+          conversions: parseFloat(row.metrics?.conversions || '0'),
         })
       }
     }
 
-    return Array.from(adGroupMap.values()).map((adGroup) => {
+    // Debug: log conversion data from Google Ads API
+    const adGroupValues = Array.from(adGroupMap.values())
+    const anyConversions = adGroupValues.some(g => g.conversions > 0)
+    console.log(`[Google Insights] Ad groups: ${adGroupValues.length}, any with conversions: ${anyConversions}`)
+    if (anyConversions) {
+      for (const g of adGroupValues) {
+        if (g.conversions > 0) {
+          console.log(`[Google Insights] Ad group ${g.id} (${g.name}): ${g.conversions} conversions`)
+        }
+      }
+    }
+
+    return adGroupValues.map((adGroup) => {
       const ctr =
         adGroup.impressions > 0
           ? (adGroup.clicks / adGroup.impressions) * 100
@@ -452,6 +498,10 @@ export async function getAdGroupsWithInsights(
         ctr,
         cpc,
         cpm,
+        results: adGroup.conversions > 0 ? adGroup.conversions : undefined,
+        resultType: adGroup.conversions > 0 ? 'Conversões' : undefined,
+        costPerResult: adGroup.conversions > 0 ? adGroup.spend / adGroup.conversions : undefined,
+        costPerResultLabel: adGroup.conversions > 0 ? 'Por conversão' : undefined,
       }
     })
   } catch (error) {
@@ -467,7 +517,8 @@ export async function getAdsWithInsights(
   customerId: string,
   adGroupId: string,
   accessToken: string,
-  dateRange: DateRange
+  dateRange: DateRange,
+  loginCustomerId?: string
 ): Promise<Omit<AdMetrics, 'contacts' | 'sales' | 'revenue' | 'roas'>[]> {
   console.log('[Google Insights] Fetching ads', {
     customerId,
@@ -489,7 +540,9 @@ export async function getAdsWithInsights(
       ad_group_ad.ad_group,
       metrics.cost_micros,
       metrics.impressions,
-      metrics.clicks
+      metrics.clicks,
+      metrics.conversions,
+      metrics.cost_per_conversion
     FROM ad_group_ad
     WHERE segments.date BETWEEN '${formatDate(dateRange.start)}' AND '${formatDate(dateRange.end)}'
       AND ad_group.id = ${adGroupId}
@@ -501,7 +554,8 @@ export async function getAdsWithInsights(
       customerId,
       accessToken,
       query,
-      developerToken
+      developerToken,
+      loginCustomerId
     )
 
     // Agrupar por ad
@@ -515,6 +569,7 @@ export async function getAdsWithInsights(
         spend: number
         impressions: number
         clicks: number
+        conversions: number
       }
     >()
 
@@ -528,6 +583,7 @@ export async function getAdsWithInsights(
         costMicros?: string
         impressions?: string
         clicks?: string
+        conversions?: string
       }
     }>) {
       const adId = row.adGroupAd?.ad?.id || ''
@@ -537,6 +593,7 @@ export async function getAdsWithInsights(
         existing.spend += microsToValue(row.metrics?.costMicros || '0')
         existing.impressions += parseInt(row.metrics?.impressions || '0', 10)
         existing.clicks += parseInt(row.metrics?.clicks || '0', 10)
+        existing.conversions += parseFloat(row.metrics?.conversions || '0')
       } else {
         adMap.set(adId, {
           id: adId,
@@ -546,6 +603,7 @@ export async function getAdsWithInsights(
           spend: microsToValue(row.metrics?.costMicros || '0'),
           impressions: parseInt(row.metrics?.impressions || '0', 10),
           clicks: parseInt(row.metrics?.clicks || '0', 10),
+          conversions: parseFloat(row.metrics?.conversions || '0'),
         })
       }
     }
@@ -568,6 +626,10 @@ export async function getAdsWithInsights(
         ctr,
         cpc,
         cpm,
+        results: ad.conversions > 0 ? ad.conversions : undefined,
+        resultType: ad.conversions > 0 ? 'Conversões' : undefined,
+        costPerResult: ad.conversions > 0 ? ad.spend / ad.conversions : undefined,
+        costPerResultLabel: ad.conversions > 0 ? 'Por conversão' : undefined,
       }
     })
   } catch (error) {
@@ -583,7 +645,8 @@ export async function getCampaignDailyInsights(
   customerId: string,
   campaignId: string,
   accessToken: string,
-  dateRange: DateRange
+  dateRange: DateRange,
+  loginCustomerId?: string
 ): Promise<{
   date: string
   spend: number
@@ -619,7 +682,8 @@ export async function getCampaignDailyInsights(
       customerId,
       accessToken,
       query,
-      developerToken
+      developerToken,
+      loginCustomerId
     )
 
     return (

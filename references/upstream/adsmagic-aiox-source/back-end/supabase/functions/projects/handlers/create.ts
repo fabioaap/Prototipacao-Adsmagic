@@ -77,11 +77,23 @@ export async function handleCreate(
       return errorResponse('Insufficient permissions to create project', 403)
     }
 
-    console.log('[Create Project] Company access verified:', { 
-      companyId: projectData.company_id, 
+    console.log('[Create Project] Company access verified:', {
+      companyId: projectData.company_id,
       role: companyCheck.role,
       userId: user.id
     })
+
+    // Verificar limite de projetos do plano
+    const { data: canCreate, error: limitError } = await supabaseClient
+      .rpc('check_project_limit', { p_company_id: projectData.company_id })
+
+    if (limitError) {
+      console.error('[Create Project] Project limit check failed:', limitError)
+      // Não bloquear se a verificação falhar (graceful degradation)
+    } else if (canCreate === false) {
+      console.log('[Create Project] Project limit reached for company:', projectData.company_id)
+      return errorResponse('Project limit reached for your current plan. Please upgrade or add extra projects.', 403)
+    }
 
     // Usar service_role para INSERT pois a verificação manual já foi feita
     // Isso evita problemas com políticas RLS em subqueries
@@ -164,6 +176,30 @@ export async function handleCreate(
     }
 
     console.log('[Create Project Success]', { projectId: project.id, companyId: project.company_id })
+
+    // Criar etapa default do funil para o projeto
+    const defaultStageName = project.language === 'es'
+      ? 'Contacto iniciado'
+      : project.language === 'en'
+        ? 'Contact started'
+        : 'Contato iniciado'
+
+    const { error: stageError } = await insertClient
+      .from('stages')
+      .insert({
+        project_id: project.id,
+        name: defaultStageName,
+        display_order: 0,
+        type: 'normal',
+        is_active: true,
+        color: '#3b82f6',
+      })
+
+    if (stageError) {
+      console.error('[Create Project] Failed to create default stage:', stageError)
+    } else {
+      console.log('[Create Project] Default stage created:', defaultStageName)
+    }
 
     // Adicionar usuário como owner do projeto em project_users
     // Isso é necessário para que o usuário possa acessar o projeto (política RLS de SELECT)

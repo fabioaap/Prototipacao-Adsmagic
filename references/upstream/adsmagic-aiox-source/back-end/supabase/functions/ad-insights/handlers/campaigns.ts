@@ -82,26 +82,33 @@ export async function handleCampaigns(
     // Buscar campanhas da API
     let campaigns: Omit<CampaignMetrics, 'contacts' | 'sales' | 'revenue' | 'roas'>[]
 
-    switch (platform) {
-      case 'meta':
-        campaigns = await getMetaCampaigns(
-          account.externalAccountId.replace('act_', ''),
-          account.accessToken,
-          dateRange
-        )
-        break
-      case 'google':
-        campaigns = await getGoogleCampaigns(
-          account.externalAccountId,
-          account.accessToken,
-          dateRange
-        )
-        break
-      case 'tiktok':
-        // TODO: Implementar TikTok
-        return errorResponse('TikTok not implemented yet', 501)
-      default:
-        return errorResponse('Invalid platform', 400)
+    try {
+      switch (platform) {
+        case 'meta':
+          campaigns = await getMetaCampaigns(
+            account.externalAccountId.replace('act_', ''),
+            account.accessToken,
+            dateRange
+          )
+          break
+        case 'google':
+          campaigns = await getGoogleCampaigns(
+            account.externalAccountId,
+            account.accessToken,
+            dateRange,
+            account.loginCustomerId
+          )
+          break
+        case 'tiktok':
+          // TODO: Implementar TikTok
+          return errorResponse('TikTok not implemented yet', 501)
+        default:
+          return errorResponse('Invalid platform', 400)
+      }
+    } catch (apiError) {
+      console.error(`[Ad Insights Campaigns] ${platform} API error:`, apiError)
+      // Return empty array instead of 500 when the platform API fails
+      return successResponse([])
     }
 
     // Enriquecer com dados internos (vendas e contatos) usando IDs de contact_origins.

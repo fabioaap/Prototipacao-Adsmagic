@@ -27,6 +27,7 @@ import {
 import { getStorablePhoneParts } from '../utils/phone-quality.ts'
 import { OriginDataNormalizer } from './OriginDataNormalizer.ts'
 import { findCustomOriginByUtmSourceMatch } from './CustomOriginUtmMatcher.ts'
+import { findOrCreateSystemOrProjectOrigin } from '../utils/origin-resolver.ts'
 import {
   type IContactRepository,
   SupabaseContactRepository,
@@ -37,7 +38,7 @@ import type { SupabaseDbClient } from '../types-db.ts'
 export class ContactOriginService {
   private contactRepo: IContactRepository
   private supabaseClient: SupabaseDbClient
-  
+
   constructor(supabaseClient: SupabaseDbClient) {
     this.supabaseClient = supabaseClient
     this.contactRepo = new SupabaseContactRepository(supabaseClient)
@@ -384,85 +385,30 @@ export class ContactOriginService {
       return await this.findOrCreateDefaultOrigin(params.projectId, 'WhatsApp')
     }
     
-    // Buscar origem do sistema primeiro (project_id IS NULL)
-    const systemOrigin = await this.supabaseClient
-      .from('origins')
-      .select('id')
-      .is('project_id', null)
-      .eq('name', originName)
-      .eq('is_active', true)
-      .maybeSingle()
-    
-    if (systemOrigin.data && systemOrigin.data !== null) {
-      const originData = systemOrigin.data as { id: string }
-      return originData.id
-    }
-    
-    // Se não encontrou origem do sistema, criar customizada para o projeto
+    // Buscar origem sistema ou projeto em query única, priorizando sistema
     return await this.findOrCreateDefaultOrigin(params.projectId, originName)
   }
   
   /**
-   * Busca ou cria origem padrão
+   * Busca ou cria origem padrão.
+   *
+   * Delega para o helper compartilhado `findOrCreateSystemOrProjectOrigin`,
+   * que garante preferência pela origem do sistema (project_id IS NULL) e
+   * protege nomes reservados contra criação de duplicatas custom.
    */
   private async findOrCreateDefaultOrigin(
     projectId: string,
     originName: string
   ): Promise<string> {
-    // Buscar origem existente (sistema ou projeto)
-    // Primeiro tentar origem do sistema
-    const systemOrigin = await this.supabaseClient
-      .from('origins')
-      .select('id')
-      .is('project_id', null)
-      .eq('name', originName)
-      .eq('is_active', true)
-      .maybeSingle()
-    
-    if (systemOrigin.data && systemOrigin.data !== null) {
-      const originData = systemOrigin.data as { id: string }
-      return originData.id
-    }
-    
-    // Depois tentar origem do projeto
-    const projectOrigin = await this.supabaseClient
-      .from('origins')
-      .select('id')
-      .eq('project_id', projectId)
-      .eq('name', originName)
-      .eq('is_active', true)
-      .maybeSingle()
-    
-    if (projectOrigin.data && projectOrigin.data !== null) {
-      const originData = projectOrigin.data as { id: string }
-      return originData.id
-    }
-    
-    // Criar nova origem customizada para o projeto
-    const { data, error } = await this.supabaseClient
-      .from('origins')
-      .insert({
-        project_id: projectId,
-        name: originName,
-        type: 'custom',
+    return await findOrCreateSystemOrProjectOrigin(
+      this.supabaseClient,
+      projectId,
+      originName,
+      {
         color: this.getDefaultColorForOrigin(originName),
         icon: this.getDefaultIconForOrigin(originName),
-        is_active: true,
-      } as never)
-      .select('id')
-      .single()
-    
-    if (error) {
-      console.error('[ContactOriginService] Error creating origin:', error)
-      throw new Error(`Erro ao criar origem: ${error.message}`)
-    }
-    
-    if (!data) {
-      throw new Error('Erro ao criar origem: dados não retornados')
-    }
-    
-    const originData = data as { id: string }
-    return originData.id
+      }
+    )
   }
   
   /**
@@ -521,24 +467,21 @@ export class ContactOriginService {
   }
   
   /**
-   * Busca primeiro estágio ativo do projeto
+   * Busca primeiro estágio ativo do projeto.
+   * Se não existir nenhum, cria estágios padrão automaticamente.
+   * Usa .rpc() para bypassar PostgREST schema cache.
    */
   private async getFirstActiveStage(projectId: string): Promise<{ id: string } | null> {
     const { data, error } = await this.supabaseClient
-      .from('stages')
-      .select('id')
-      .eq('project_id', projectId)
-      .eq('is_active', true)
-      .order('display_order', { ascending: true })
-      .limit(1)
-      .maybeSingle()
-    
+      .rpc('get_or_create_first_active_stage', { p_project_id: projectId })
+
     if (error) {
-      console.error('[ContactOriginService] Error fetching first stage:', error)
+      console.error('[ContactOriginService] Error getting/creating first stage:', error)
       return null
     }
-    
-    return data as { id: string } | null
+
+    if (!data) return null
+    return { id: data as string }
   }
   
   /**

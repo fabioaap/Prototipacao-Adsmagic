@@ -66,6 +66,37 @@ export async function resendVerificationEmail(email: string, locale?: string): P
  *
  * @returns Objeto com session (se existir) e error (em caso de falha)
  */
+/**
+ * Verifica o token de confirmação de email via `verifyOtp`.
+ * Usado quando o link do email contém `token_hash` e `type` como query params.
+ *
+ * @param tokenHash - Hash do token recebido por email
+ * @param type - Tipo de verificação (ex: 'signup', 'email')
+ */
+export async function verifyEmailToken(tokenHash: string, type: string): Promise<GetSessionForConfirmationResult> {
+  if (!supabaseEnabled) {
+    return { session: null, error: null }
+  }
+
+  const { data, error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: type as 'signup' | 'email',
+  })
+
+  if (error) {
+    return { session: null, error: new Error(error.message) }
+  }
+
+  return {
+    session: data.session ?? null,
+    error: null
+  }
+}
+
+/**
+ * @deprecated Mantido como fallback para links antigos que usam hash na URL.
+ * Novos links usam query params e `verifyEmailToken()`.
+ */
 export async function getSessionForConfirmation(): Promise<GetSessionForConfirmationResult> {
   if (!supabaseEnabled) {
     return { session: null, error: null }

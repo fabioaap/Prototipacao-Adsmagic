@@ -264,16 +264,24 @@ export async function createCompanySettings(
  * 
  * @param supabaseClient - Cliente Supabase autenticado
  * @param companyId - ID da empresa a ser removida
- * @param stepsCompleted - Número de passos completados (1=company, 2=company+user, 3=all)
+ * @param stepsCompleted - Número de passos completados (1=company, 2=company+user, 3=settings, 4=subscription)
  */
 export async function rollbackCompanyCreation(
   supabaseClient: SupabaseDbClient,
   companyId: string,
-  stepsCompleted: 1 | 2 | 3
+  stepsCompleted: 1 | 2 | 3 | 4
 ) {
   console.log(`[Rollback] Rolling back company creation (steps: ${stepsCompleted})`, { companyId })
 
   try {
+    // Passo 4: Deletar subscriptions se foram criadas
+    if (stepsCompleted >= 4) {
+      await supabaseClient
+        .from('subscriptions')
+        .delete()
+        .eq('company_id', companyId)
+    }
+
     // Passo 3: Deletar settings se foram criados
     if (stepsCompleted >= 3) {
       await supabaseClient

@@ -156,8 +156,8 @@ import Label from '@/components/ui/Label.vue'
 import { useFormat } from '@/composables/useFormat'
 import { useToast } from '@/components/ui/toast/use-toast'
 import {
-  buildDefaultTagScriptUrl,
   buildTagSnippet,
+  TAG_SCRIPT_URL,
 } from '@/services/tagSnippet'
 
 interface Props {
@@ -216,12 +216,10 @@ const scriptCode = computed(() => {
     return props.scriptCode
   }
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173'
-
   try {
     return buildTagSnippet({
       projectId: props.projectId || 'PROJECT_ID_AQUI',
-      scriptUrl: buildDefaultTagScriptUrl(origin),
+      scriptUrl: TAG_SCRIPT_URL,
       debug: false,
       autoInit: true,
     })

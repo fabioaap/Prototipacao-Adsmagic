@@ -6,7 +6,6 @@ import type { Contact } from '@/types/models'
 import { useStagesStore } from '@/stores/stages'
 import { useOriginsStore } from '@/stores/origins'
 import { formatSafeDate } from '@/utils/formatters'
-import StageBadge from '@/components/ui/StageBadge.vue'
 
 interface Props {
   /**
@@ -61,6 +60,16 @@ const avatarFallback = computed(() => {
     .slice(0, 2)
     .join('')
     .toUpperCase()
+})
+
+// Stage badge color
+const stageBadgeClass = computed(() => {
+  if (!stage.value) return 'bg-muted text-muted-foreground'
+
+  return cn(
+    'text-xs px-2 py-0.5 rounded-full font-medium',
+    stage.value.color
+  )
 })
 
 // Handle card click
@@ -166,18 +175,18 @@ const handleViewDetails = (e: Event) => {
       </div>
 
       <!-- Footer -->
-      <div class="min-w-0 space-y-2 pt-2 border-t border-border">
+      <div class="flex items-center justify-between gap-2 pt-2 border-t border-border">
         <!-- Stage Badge -->
-        <div class="min-w-0">
-          <StageBadge v-if="stage" :stage="stage" size="sm" />
-        </div>
+        <span v-if="stage" :class="stageBadgeClass">
+          {{ stage.name }}
+        </span>
 
         <!-- Origin & Date -->
-        <div class="flex min-w-0 items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span v-if="origin" class="min-w-0 truncate">
+        <div class="flex items-center gap-2 text-xs text-muted-foreground">
+          <span v-if="origin" class="truncate">
             {{ origin.name }}
           </span>
-          <span class="flex flex-shrink-0 items-center gap-1">
+          <span class="flex items-center gap-1">
             <Calendar class="h-3 w-3" />
             {{ formatSafeDate(props.contact.createdAt) }}
           </span>

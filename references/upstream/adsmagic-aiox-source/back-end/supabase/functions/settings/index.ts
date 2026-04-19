@@ -1,14 +1,14 @@
 /**
  * Edge Function para API de Settings
  *
- * Combina dados do projeto (projects table) com dados da empresa (company_settings table)
- * para retornar/atualizar configuracoes consolidadas.
+ * Todas as configuracoes sao armazenadas na tabela projects (por projeto).
+ * A tabela company_settings nao e mais utilizada por este endpoint.
  *
  * Rotas:
- * - GET    /settings            -> Retorna settings consolidados
- * - PATCH  /settings/general    -> Atualiza nome, descricao, attribution_model no projects
- * - PATCH  /settings/currency   -> Atualiza moeda/timezone no company_settings
- * - PATCH  /settings/notifications -> Atualiza notificacoes no company_settings
+ * - GET    /settings            -> Retorna settings do projeto
+ * - PATCH  /settings/general    -> Atualiza nome, descricao, attribution_model
+ * - PATCH  /settings/currency   -> Atualiza moeda, timezone, formatos
+ * - PATCH  /settings/notifications -> Atualiza notificacoes
  */
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
@@ -18,7 +18,7 @@ import { successResponse, errorResponse } from './utils/response.ts'
 import { getSettingsCache, setSettingsCache, invalidateSettingsCache } from './utils/cache.ts'
 
 serve(async (req) => {
-  // CORS preflight - Optimized response (no body, 204 status)
+  // CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders })
   }
@@ -47,10 +47,15 @@ serve(async (req) => {
       return errorResponse('Missing x-project-id header', 400)
     }
 
-    // Verify user has access to the project
+    // Fetch project with all settings columns
     const { data: project, error: projectError } = await supabase
       .from('projects')
-      .select('id, company_id, name, description, attribution_model, revenue_goal, currency, timezone, status, created_at')
+      .select(`
+        id, company_id, name, description, attribution_model, revenue_goal,
+        currency, timezone, date_format, time_format, thousands_separator, decimal_separator,
+        notifications_enabled, notification_email, digest_frequency, digest_time,
+        status, created_at
+      `)
       .eq('id', projectId)
       .single()
 
@@ -62,27 +67,23 @@ serve(async (req) => {
     const url = new URL(req.url)
     const path = url.pathname.replace(/^\/settings\/?/, '').replace(/\/$/, '')
 
-    // GET /settings -> Return consolidated settings
     if (req.method === 'GET' && (!path || path === '')) {
       return await handleGetSettings(supabase, project)
     }
 
-    // PATCH /settings/general
     if (req.method === 'PATCH' && path === 'general') {
       const body = await req.json()
       return await handleUpdateGeneral(supabase, projectId, body)
     }
 
-    // PATCH /settings/currency
     if (req.method === 'PATCH' && path === 'currency') {
       const body = await req.json()
-      return await handleUpdateCurrency(supabase, projectId, project.company_id, body)
+      return await handleUpdateCurrency(supabase, projectId, body)
     }
 
-    // PATCH /settings/notifications
     if (req.method === 'PATCH' && path === 'notifications') {
       const body = await req.json()
-      return await handleUpdateNotifications(supabase, projectId, project.company_id, body)
+      return await handleUpdateNotifications(supabase, projectId, body)
     }
 
     return errorResponse('Not Found', 404)
@@ -100,21 +101,10 @@ serve(async (req) => {
 // ============================================================================
 
 async function handleGetSettings(supabase: any, project: any) {
-  // Try to get from cache first
   const cached = await getSettingsCache(supabase, project.id)
   if (cached) {
-    console.log('[Settings] Cache hit, returning cached data')
     return successResponse(cached)
   }
-
-  console.log('[Settings] Cache miss, fetching from database')
-
-  // Get company_settings for currency/notification data
-  const { data: companySettings } = await supabase
-    .from('company_settings')
-    .select('*')
-    .eq('company_id', project.company_id)
-    .single()
 
   const settings = {
     general: {
@@ -126,24 +116,23 @@ async function handleGetSettings(supabase: any, project: any) {
       createdAt: project.created_at
     },
     currency: {
-      currency: companySettings?.currency || project.currency || 'BRL',
-      timezone: companySettings?.timezone || project.timezone || 'America/Sao_Paulo',
-      dateFormat: companySettings?.date_format || 'DD/MM/YYYY',
-      timeFormat: companySettings?.time_format || '24h',
-      thousandsSeparator: companySettings?.thousands_separator || '.',
-      decimalSeparator: companySettings?.decimal_separator || ','
+      currency: project.currency || 'BRL',
+      timezone: project.timezone || 'America/Sao_Paulo',
+      dateFormat: project.date_format || 'DD/MM/YYYY',
+      timeFormat: project.time_format || '24h',
+      thousandsSeparator: project.thousands_separator || '.',
+      decimalSeparator: project.decimal_separator || ','
     },
     notifications: {
-      enabled: companySettings?.notifications_enabled ?? true,
-      email: companySettings?.notification_email || '',
+      enabled: project.notifications_enabled ?? true,
+      email: project.notification_email || '',
       events: ['contact_created', 'sale_completed'],
-      digestFrequency: companySettings?.digest_frequency || 'daily',
-      digestTime: companySettings?.digest_time || '09:00',
-      timezone: companySettings?.timezone || project.timezone || 'America/Sao_Paulo'
+      digestFrequency: project.digest_frequency || 'daily',
+      digestTime: project.digest_time || '09:00',
+      timezone: project.timezone || 'America/Sao_Paulo'
     }
   }
 
-  // Save to cache asynchronously (fire-and-forget)
   setSettingsCache(supabase, project.id, settings)
 
   return successResponse(settings)
@@ -175,7 +164,6 @@ async function handleUpdateGeneral(supabase: any, projectId: string, body: any) 
     return errorResponse('Failed to update general settings', 500)
   }
 
-  // Invalidate settings cache
   invalidateSettingsCache(supabase, projectId)
 
   return successResponse({
@@ -188,35 +176,34 @@ async function handleUpdateGeneral(supabase: any, projectId: string, body: any) 
   })
 }
 
-async function handleUpdateCurrency(supabase: any, projectId: string, companyId: string, body: any) {
+async function handleUpdateCurrency(supabase: any, projectId: string, body: any) {
   const updates: Record<string, any> = {}
 
-  // Validate currency (ISO 4217 format)
   if (body.currency !== undefined) {
     if (body.currency && !/^[A-Z]{3}$/.test(body.currency)) {
       return errorResponse('Invalid currency format. Use ISO 4217 (e.g., BRL, USD)', 400)
     }
-    updates.currency = body.currency || null
+    updates.currency = body.currency || 'BRL'
   }
 
-  if (body.timezone !== undefined) updates.timezone = body.timezone || null
+  if (body.timezone !== undefined) {
+    updates.timezone = body.timezone || 'America/Sao_Paulo'
+  }
 
-  // Validate date format
   if (body.dateFormat !== undefined) {
     const validDateFormats = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']
     if (body.dateFormat && !validDateFormats.includes(body.dateFormat)) {
       return errorResponse('Invalid date format. Use DD/MM/YYYY, MM/DD/YYYY, or YYYY-MM-DD', 400)
     }
-    updates.date_format = body.dateFormat || null
+    updates.date_format = body.dateFormat || 'DD/MM/YYYY'
   }
 
-  // Validate time format
   if (body.timeFormat !== undefined) {
     const validTimeFormats = ['12h', '24h']
     if (body.timeFormat && !validTimeFormats.includes(body.timeFormat)) {
       return errorResponse('Invalid time format. Use 12h or 24h', 400)
     }
-    updates.time_format = body.timeFormat || null
+    updates.time_format = body.timeFormat || '24h'
   }
 
   if (body.thousandsSeparator !== undefined) updates.thousands_separator = body.thousandsSeparator
@@ -228,28 +215,21 @@ async function handleUpdateCurrency(supabase: any, projectId: string, companyId:
 
   updates.updated_at = new Date().toISOString()
 
-  // Upsert: create if not exists, update if exists
   const { data, error } = await supabase
-    .from('company_settings')
-    .upsert(
-      { company_id: companyId, ...updates },
-      { onConflict: 'company_id' }
-    )
+    .from('projects')
+    .update(updates)
+    .eq('id', projectId)
     .select('currency, timezone, date_format, time_format, thousands_separator, decimal_separator')
     .single()
 
   if (error) {
-    console.error('[Settings] Error updating currency:', error)
-
-    // Return specific error for constraint violations
+    console.error('[Settings] Error updating currency settings:', error)
     if (error.code === '23514') {
       return errorResponse('Invalid field value', 400)
     }
-
     return errorResponse('Failed to update currency settings', 500)
   }
 
-  // Invalidate settings cache
   invalidateSettingsCache(supabase, projectId)
 
   return successResponse({
@@ -262,15 +242,13 @@ async function handleUpdateCurrency(supabase: any, projectId: string, companyId:
   })
 }
 
-async function handleUpdateNotifications(supabase: any, projectId: string, companyId: string, body: any) {
+async function handleUpdateNotifications(supabase: any, projectId: string, body: any) {
   const updates: Record<string, any> = {}
 
   if (body.enabled !== undefined) updates.notifications_enabled = body.enabled
 
-  // Validate and normalize email
   if (body.email !== undefined) {
     if (body.email === '' || body.email === null) {
-      // Convert empty string to null for PostgreSQL constraint
       updates.notification_email = null
     } else {
       const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i
@@ -283,7 +261,6 @@ async function handleUpdateNotifications(supabase: any, projectId: string, compa
 
   if (body.digestFrequency !== undefined) updates.digest_frequency = body.digestFrequency
 
-  // Validate and normalize digest_time
   if (body.digestTime !== undefined) {
     if (body.digestTime === '' || body.digestTime === null) {
       updates.digest_time = null
@@ -292,13 +269,14 @@ async function handleUpdateNotifications(supabase: any, projectId: string, compa
       if (!timeRegex.test(body.digestTime)) {
         return errorResponse('Invalid time format. Use HH:MM or HH:MM:SS', 400)
       }
-      // Ensure HH:MM:SS format for PostgreSQL TIME type
       const parts = body.digestTime.split(':')
       updates.digest_time = parts.length === 2 ? `${body.digestTime}:00` : body.digestTime
     }
   }
 
-  if (body.timezone !== undefined) updates.timezone = body.timezone
+  if (body.timezone !== undefined) {
+    updates.timezone = body.timezone || 'America/Sao_Paulo'
+  }
 
   if (Object.keys(updates).length === 0) {
     return errorResponse('No fields to update', 400)
@@ -307,34 +285,25 @@ async function handleUpdateNotifications(supabase: any, projectId: string, compa
   updates.updated_at = new Date().toISOString()
 
   const { data, error } = await supabase
-    .from('company_settings')
-    .upsert(
-      { company_id: companyId, ...updates },
-      { onConflict: 'company_id' }
-    )
+    .from('projects')
+    .update(updates)
+    .eq('id', projectId)
     .select('notifications_enabled, notification_email, digest_frequency, digest_time, timezone')
     .single()
 
   if (error) {
     console.error('[Settings] Error updating notifications:', error)
-
-    // Return specific error messages for known constraint violations
-    if (error.message?.includes('company_settings_email_format')) {
-      return errorResponse('Invalid email format', 400)
-    }
     if (error.code === '23514') {
       return errorResponse('Invalid field value', 400)
     }
-
     return errorResponse('Failed to update notification settings', 500)
   }
 
-  // Invalidate settings cache
   invalidateSettingsCache(supabase, projectId)
 
   return successResponse({
     enabled: data.notifications_enabled,
-    email: data.notification_email,
+    email: data.notification_email || '',
     events: ['contact_created', 'sale_completed'],
     digestFrequency: data.digest_frequency,
     digestTime: data.digest_time,

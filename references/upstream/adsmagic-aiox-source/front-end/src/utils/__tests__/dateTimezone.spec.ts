@@ -29,18 +29,12 @@ describe('dateTimezone', () => {
 
   it('should parse ISO day preserving calendar day for Sao Paulo', () => {
     const parsed = isoDateToDateInTimezone('2026-02-18', 'America/Sao_Paulo')
-    if (!parsed) {
-      throw new Error('Expected parsed date for Sao Paulo')
-    }
-    expect(toISODateInTimezone(parsed, 'America/Sao_Paulo')).toBe('2026-02-18')
+    expect(toISODateInTimezone(parsed!, 'America/Sao_Paulo')).toBe('2026-02-18')
   })
 
   it('should parse ISO day preserving calendar day for Los Angeles', () => {
     const parsed = isoDateToDateInTimezone('2026-02-18', 'America/Los_Angeles')
-    if (!parsed) {
-      throw new Error('Expected parsed date for Los Angeles')
-    }
-    expect(toISODateInTimezone(parsed, 'America/Los_Angeles')).toBe('2026-02-18')
+    expect(toISODateInTimezone(parsed!, 'America/Los_Angeles')).toBe('2026-02-18')
   })
 
   it('should return undefined for invalid date input', () => {

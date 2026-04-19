@@ -151,7 +151,7 @@ const getLabelClasses = computed(() => {
 <template>
   <div class="w-full">
     <!-- Grid de opções -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
       <button
         v-for="option in options"
         :key="option.id"

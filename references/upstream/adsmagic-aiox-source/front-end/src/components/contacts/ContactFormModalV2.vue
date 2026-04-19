@@ -309,9 +309,9 @@ onMounted(() => {
         </FormField>
       </div>
 
-      <!-- Empresa -->
-      <FormField 
-        label="Empresa" 
+      <!-- Empresa (desativado — será via configuração futura)
+      <FormField
+        label="Empresa"
         :error="errors.company"
         description="Empresa onde trabalha (opcional)"
       >
@@ -322,6 +322,7 @@ onMounted(() => {
           :error="!!errors.company"
         />
       </FormField>
+      -->
 
       <!-- Localização -->
       <FormField 

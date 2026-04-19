@@ -135,8 +135,7 @@ test.describe('UX-SET: Configurações do projeto', () => {
 
         test('UX-SET-004: Página de funil carrega lista de etapas existentes', async ({ page }) => {
             const stageItems = page.locator(
-                '[data-testid="stage-item"], [data-testid*="stage"], ' +
-                '[data-stage-id], [class*="stage-item"], [class*="funnel-stage"], ' +
+                '[data-testid*="stage"], [class*="stage-item"], [class*="funnel-stage"], ' +
                 'li[class*="stage"], [draggable="true"]'
             )
             await page.waitForTimeout(1000)
@@ -197,8 +196,8 @@ test.describe('UX-SET: Configurações do projeto', () => {
 
         test('UX-SET-006: Página de origens carrega lista de origens existentes', async ({ page }) => {
             const originItems = page.locator(
-                '[data-origin-id], [data-testid*="origin"], ' +
-                '[class*="origin-item"], table tbody tr, li[class*="origin"]'
+                '[data-testid*="origin"], [class*="origin-item"], ' +
+                'table tbody tr, li[class*="origin"]'
             )
             await page.waitForTimeout(1000)
             const count = await originItems.count()

@@ -13,7 +13,6 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed, readonly, watch } from 'vue'
-import { MOCK_ORIGINS } from '@/mocks/origins'
 import type { Origin, CreateOriginDTO, UpdateOriginDTO } from '@/types'
 import {
   getOrigins as getOriginsService,
@@ -66,7 +65,6 @@ export const useOriginsStore = defineStore('origins', () => {
     (newProjectId, oldProjectId) => {
       // Only clear if project actually changed
       if (newProjectId !== oldProjectId) {
-        console.log('[Origins Store] Project changed, clearing data:', { oldProjectId, newProjectId })
 
         // Clear all data
         origins.value = []
@@ -74,7 +72,6 @@ export const useOriginsStore = defineStore('origins', () => {
 
         // Reload data for new project if project exists
         if (newProjectId) {
-          console.log('[Origins Store] Loading data for new project:', newProjectId)
           fetchOrigins()
         }
       }
@@ -210,9 +207,6 @@ export const useOriginsStore = defineStore('origins', () => {
 
         // Evita sobrescrever estado quando o usuário trocou de projeto durante o request.
         if (getActiveProjectId() !== projectId) {
-          if (import.meta.env.DEV) {
-            console.log('[Origins Store] Discarding stale fetch result due to project switch:', { projectId })
-          }
           return
         }
 
@@ -220,25 +214,19 @@ export const useOriginsStore = defineStore('origins', () => {
           origins.value = result.value
           lastFetchedProjectId = projectId
           lastFetchedAt = Date.now()
-          console.log('[Origins Store] Fetched', origins.value.length, 'origins')
         } else {
           throw result.error
         }
       } catch (err) {
         // Se trocou de projeto, não aplicar erro/fallback de projeto antigo.
         if (getActiveProjectId() !== projectId) {
-          if (import.meta.env.DEV) {
-            console.log('[Origins Store] Ignoring stale fetch error due to project switch:', { projectId })
-          }
           return
         }
 
         const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar origens'
         error.value = errorMessage
         console.error('[Origins Store] Error fetching origins:', err)
-        // Fallback to mocks on error
-        origins.value = [...MOCK_ORIGINS]
-        console.warn('[Origins Store] Using mock data as fallback')
+        origins.value = []
       } finally {
         if (inFlightProjectId === projectId) {
           isLoading.value = false
@@ -295,7 +283,6 @@ export const useOriginsStore = defineStore('origins', () => {
 
       if (result.ok) {
         origins.value.push(result.value)
-        console.log('[Origins Store] Created origin:', result.value.name)
         return result.value
       } else {
         throw result.error
@@ -342,7 +329,6 @@ export const useOriginsStore = defineStore('origins', () => {
 
       if (result.ok) {
         origins.value[index] = result.value
-        console.log('[Origins Store] Updated origin:', result.value.name)
         return result.value
       } else {
         throw result.error
@@ -386,7 +372,6 @@ export const useOriginsStore = defineStore('origins', () => {
 
       if (result.ok) {
         origins.value = origins.value.filter((o) => o.id !== id)
-        console.log('[Origins Store] Deleted origin:', origin.name)
       } else {
         throw result.error
       }
@@ -409,7 +394,6 @@ export const useOriginsStore = defineStore('origins', () => {
   const toggleActive = async (id: string, active: boolean): Promise<void> => {
     try {
       await updateOrigin(id, { isActive: active })
-      console.log('[Origins Store] Toggled origin active state:', id, active)
     } catch (err) {
       console.error('[Origins Store] Error toggling origin:', err)
       throw err
@@ -452,7 +436,6 @@ export const useOriginsStore = defineStore('origins', () => {
         ...otherCustom
       ]
 
-      console.log('[Origins Store] Reordered', reordered.length, 'origins')
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao reordenar origens'
       error.value = errorMessage

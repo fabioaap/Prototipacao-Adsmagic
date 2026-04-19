@@ -20,6 +20,8 @@ import {
   stripInvisibleProtocolChars,
   stripWhatsAppProtocol,
 } from '../../_shared/whatsapp-protocol.ts'
+import { ConversationPersistenceService } from '../services/ConversationPersistenceService.ts'
+import { SupabaseContactRepository } from '../repositories/ContactRepository.ts'
 import type { StandardizedSourceData } from '../types/contact-origin-types.ts'
 import type { MessagingAccount, NormalizedMessage, WebhookDTO } from '../types.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
@@ -218,9 +220,13 @@ export async function processWebhookCommon(
           } catch (error) {
             // Log erro mas não falha o processamento da mensagem
             // O rastreamento de origem é importante mas não crítico
+            const errorMsg = error instanceof Error ? error.message : String(error)
             logger.error('Error processing contact origin (non-blocking)', error, {
               phone: message.from.phoneNumber,
+              jid: message.from.jid,
+              lid: message.from.lid,
               projectId: account.project_id,
+              errorMessage: errorMsg,
             })
           }
         }
@@ -252,10 +258,6 @@ export async function processWebhookCommon(
             })
           }
         }
-        // TODO: Futuro - função separada para tracking de mensagens enviadas
-        // if (fromMe) {
-        //   await contactOriginService.processOutgoingMessage({...})
-        // }
       }
       
       // Processar mensagem normalmente (fluxo principal)
@@ -316,6 +318,60 @@ export async function processWebhookCommon(
         })
       }
       
+      // Persistir mensagem no histórico de conversas (non-blocking)
+      const conversationPersistence = new ConversationPersistenceService(supabaseClient)
+
+      if (!fromMe && incomingContactId) {
+        // Mensagem recebida (inbound)
+        try {
+          await conversationPersistence.persistMessage({
+            normalizedMessage: message,
+            direction: 'inbound',
+            projectId: account.project_id,
+            contactId: incomingContactId,
+            messagingAccountId: account.id,
+          })
+          logger.info('Inbound message persisted to conversation history', {
+            contactId: incomingContactId,
+            messageId: message.messageId,
+          })
+        } catch (error) {
+          logger.error('Error persisting inbound message (non-blocking)', error, {
+            contactId: incomingContactId,
+            messageId: message.messageId,
+          })
+        }
+      } else if (fromMe) {
+        // Mensagem enviada (outbound) detectada via webhook
+        try {
+          const contactRepo = new SupabaseContactRepository(supabaseClient)
+          const recipientContact = await contactRepo.findByAnyIdentifier({
+            projectId: account.project_id,
+            jid: message.from.jid,
+            lid: message.from.lid,
+            canonicalIdentifier: message.from.canonicalIdentifier,
+          })
+
+          if (recipientContact) {
+            await conversationPersistence.persistMessage({
+              normalizedMessage: message,
+              direction: 'outbound',
+              projectId: account.project_id,
+              contactId: recipientContact.id,
+              messagingAccountId: account.id,
+            })
+            logger.info('Outbound message persisted to conversation history', {
+              contactId: recipientContact.id,
+              messageId: message.messageId,
+            })
+          }
+        } catch (error) {
+          logger.error('Error persisting outbound message (non-blocking)', error, {
+            messageId: message.messageId,
+          })
+        }
+      }
+
       // Atualizar estatísticas
       const accountRepo = new MessagingAccountRepository(supabaseClient)
       await accountRepo.updateStats(account.id, {
@@ -333,7 +389,21 @@ export async function processWebhookCommon(
         () => processor.processStatusUpdate(normalized.status!),
         logger.withContext({ step: 'status_processing' })
       )
-      
+
+      // Atualizar status da mensagem no histórico de conversas (non-blocking)
+      try {
+        const conversationPersistence = new ConversationPersistenceService(supabaseClient)
+        await conversationPersistence.updateStatus(
+          normalized.status.messageId,
+          normalized.status.status as 'sent' | 'delivered' | 'read' | 'failed'
+        )
+      } catch (error) {
+        logger.error('Error updating conversation message status (non-blocking)', error, {
+          messageId: normalized.status.messageId,
+          status: normalized.status.status,
+        })
+      }
+
       logger.metrics('Status update processed successfully', {
         processingTimeMs: processingTime,
         eventType: 'status',

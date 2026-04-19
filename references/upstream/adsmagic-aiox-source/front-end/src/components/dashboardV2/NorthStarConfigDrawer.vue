@@ -224,7 +224,7 @@ function handleSave() {
     <template #content>
       <div class="flex h-full flex-col">
         <div class="border-b border-border px-6 py-4">
-          <h2 class="section-title-sm">Configurar North Star</h2>
+          <h2 class="section-title-sm">Configurar métricas principais</h2>
           <p class="text-sm text-muted-foreground">Escolha até 4 métricas principais e ordene a exibição.</p>
         </div>
 

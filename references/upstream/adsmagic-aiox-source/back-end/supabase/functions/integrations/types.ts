@@ -147,6 +147,28 @@ export interface SaveGoogleConversionActionsResponse {
   selectedCount: number;
 }
 
+export interface GetMetaPixelConfigResponse {
+  accountId: string
+  pixels: Pixel[]
+  selectedPixelId?: string
+  selectedPixelName?: string
+  pixelAccessTokenSet: boolean
+  fetchError?: string
+}
+
+export interface SaveMetaPixelConfigRequest {
+  accountId: string
+  selectedPixelId: string
+  selectedPixelName: string
+  pixelAccessToken?: string
+}
+
+export interface SaveMetaPixelConfigResponse {
+  success: boolean
+  accountId: string
+  selectedPixelId: string
+}
+
 export interface StartTagVerificationRequest {
   siteUrl: string;
 }

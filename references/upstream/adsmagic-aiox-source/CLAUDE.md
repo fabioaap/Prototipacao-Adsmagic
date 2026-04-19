@@ -6,12 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 AdsMagic First AI is a full-stack SaaS platform for marketing attribution and lead management. It uses Vue 3 (frontend) deployed on Cloudflare Pages and Supabase (PostgreSQL + Edge Functions) for the backend. The system follows a multi-tenant architecture with company and project-level isolation.
 
-## Project Constitution
-
-The product-level governance document is [docs/governance/project-constitution.md](docs/governance/project-constitution.md).
-
-When there is tension between framework workflow convenience and product safety, follow the AdsMagic constitution first.
-
 ## Current Branch State (v3 — March 2026)
 
 **Branch:** `v3` (active development) | **Repo:** `kennedyselect/Adsmagic-First-AI`
@@ -22,10 +16,12 @@ When there is tension between framework workflow convenience and product safety,
 | Unit tests | ✅ 969/969 | `pnpm test --run` |
 | E2E Playwright | ✅ 37/37 | `playwright.ci.config.ts` with `build:visual` |
 | Backend (core) | ✅ 100% | Infra, users, projects, contacts, origins, stages |
-| Backend (sales) | 🔴 0% | Issue #6 — not started |
-| Backend (analytics real) | 🟡 20% | Issue #7 — dashboard uses mock data |
-| Backend (integrations) | 🟡 53% | Issue #9 — OAuth partial |
-| Backend (WhatsApp) | 🟡 76% | Issue #10 — missing tests + webhook sig |
+| Backend (sales) | ✅ 100% | 9 endpoints, CRUD completo, validação Zod |
+| Backend (analytics) | ✅ 90%+ | 10 endpoints, dados reais, materialized views, cache |
+| Backend (integrations) | ✅ 95%+ | Meta, Google, TikTok OAuth completo, tag verification |
+| Backend (WhatsApp) | ✅ 95%+ | 15 endpoints, multi-broker (UAZAPI, Gupshup, Official), QR share |
+| Backend (billing) | ✅ Completo | Stripe webhooks, subscriptions, payment tracking |
+| Backend (ad-insights) | ✅ Completo | 8 handlers, métricas por plataforma |
 
 **Open issues (backlog):** https://github.com/kennedyselect/Adsmagic-First-AI/issues
 
@@ -635,8 +631,8 @@ UAZAPI_ADMIN_TOKEN
 11. **Playwright: use `build:visual`** - NEVER use `build:temp` for E2E tests; it crashes because `.env.production` has empty Supabase vars. `build:visual` uses `.env.test` with `VITE_USE_MOCK=true`
 12. **E2E selectors: use aria-label** - Lucide Vue does NOT emit `data-lucide` attributes in production builds; use `getByRole('button', { name: /text/i })` with i18n values
 13. **Dev server ports** - **SEMPRE usar porta 5200** neste projeto (`pnpm dev --port 5200`); outras portas ocupadas por outros projetos
-14. **Dashboard data is mock** - `dashboardV2.ts` store returns mock data until backend analytics (issue #7) is implemented
-15. **Sales backend is missing** - `sales` Edge Function schema not deployed yet (issue #6); frontend UI exists but POST/PATCH will fail against real backend
+14. **Dashboard backend is real** - `dashboard` Edge Function has 10 endpoints with real data, materialized views, and caching
+15. **Sales backend is complete** - `sales` Edge Function has 9 endpoints (CRUD + mark-lost + recover)
 
 ## Troubleshooting
 

@@ -1,7 +1,7 @@
 /**
  * Handler para deleção de projetos (DELETE /projects/:id)
  * 
- * Deleta um projeto draft com validação de permissões
+ * Deleta um projeto com validação de permissões
  */
 
 import { successResponse, errorResponse } from '../utils/response.ts'
@@ -31,11 +31,6 @@ export async function handleDelete(
 
     if (fetchError || !project) {
       return errorResponse('Project not found or access denied', 404)
-    }
-
-    // Verificar se projeto está em status 'draft' (apenas drafts podem ser deletados)
-    if (project.status !== 'draft') {
-      return errorResponse('Only draft projects can be deleted', 400)
     }
 
     // Deletar projeto (RLS validará automaticamente se usuário tem permissão)

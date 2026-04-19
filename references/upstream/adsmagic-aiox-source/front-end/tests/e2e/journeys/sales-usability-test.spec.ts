@@ -490,3 +490,4 @@ test.describe('Performance e Acessibilidade', () => {
     expect(buttonCount).toBeGreaterThan(3)
   })
 })
+})

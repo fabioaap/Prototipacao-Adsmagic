@@ -14,6 +14,7 @@ import { handleGetPixels } from './handlers/integrations/get-pixels.ts'
 import { handleCreatePixel } from './handlers/integrations/create-pixel.ts'
 import { handleValidateToken } from './handlers/integrations/validate-token.ts'
 import { handleRefreshToken } from './handlers/integrations/refresh-token.ts'
+import { handleRenewTokenOAuth } from './handlers/integrations/renew-token-oauth.ts'
 import { handleSyncAccounts } from './handlers/integrations/sync-accounts.ts'
 import { handleDisconnect } from './handlers/integrations/disconnect.ts'
 import { handleGetAuditLogs } from './handlers/integrations/get-audit-logs.ts'
@@ -21,6 +22,8 @@ import { handleGetAccounts } from './handlers/integrations/get-accounts.ts'
 import { handleListIntegrations } from './handlers/integrations/list-integrations.ts'
 import { handleGetGoogleConversionActions } from './handlers/integrations/get-google-conversion-actions.ts'
 import { handleSaveGoogleConversionActions } from './handlers/integrations/save-google-conversion-actions.ts'
+import { handleGetMetaPixelConfig } from './handlers/integrations/get-meta-pixel-config.ts'
+import { handleSaveMetaPixelConfig } from './handlers/integrations/save-meta-pixel-config.ts'
 import { handleStartTagVerification } from './handlers/tag/start-verification.ts'
 import { handleGetTagVerificationStatus } from './handlers/tag/get-verification-status.ts'
 import { handleCheckTagInstallation } from './handlers/tag/check-installation.ts'
@@ -134,6 +137,18 @@ serve(async (req) => {
       const integrationId = pathParts[1]
       return await handleSaveGoogleConversionActions(req, supabaseClient, integrationId)
     }
+
+    // GET /integrations/:id/meta/pixel-config - Get Meta pixel config
+    if (req.method === 'GET' && pathParts.length === 4 && pathParts[2] === 'meta' && pathParts[3] === 'pixel-config') {
+      const integrationId = pathParts[1]
+      return await handleGetMetaPixelConfig(req, supabaseClient, integrationId)
+    }
+
+    // POST /integrations/:id/meta/pixel-config - Save Meta pixel config
+    if (req.method === 'POST' && pathParts.length === 4 && pathParts[2] === 'meta' && pathParts[3] === 'pixel-config') {
+      const integrationId = pathParts[1]
+      return await handleSaveMetaPixelConfig(req, supabaseClient, integrationId)
+    }
     
     // POST /integrations/:id/pixels - Create new pixel
     if (req.method === 'POST' && pathParts.length === 3 && pathParts[2] === 'pixels') {
@@ -151,6 +166,12 @@ serve(async (req) => {
     if (req.method === 'POST' && pathParts.length === 3 && pathParts[2] === 'refresh-token') {
       const integrationId = pathParts[1]
       return await handleRefreshToken(req, supabaseClient, integrationId)
+    }
+
+    // POST /integrations/:id/renew-token-oauth - Renew token via new OAuth flow
+    if (req.method === 'POST' && pathParts.length === 3 && pathParts[2] === 'renew-token-oauth') {
+      const integrationId = pathParts[1]
+      return await handleRenewTokenOAuth(req, supabaseClient, integrationId)
     }
     
     // POST /integrations/:id/sync-accounts - Sync accounts

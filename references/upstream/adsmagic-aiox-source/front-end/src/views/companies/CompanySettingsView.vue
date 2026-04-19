@@ -233,9 +233,8 @@ import { useCompaniesStore } from '@/stores/companies'
 import CompanyFormModal from '@/components/companies/CompanyFormModal.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import Select from '@/components/ui/Select.vue'
-import type { CompanySettings } from '@/types'
 
-interface CompanySettingsFormState {
+interface SettingsForm {
   theme: string
   language: string
   timezone: string
@@ -255,14 +254,14 @@ const companiesStore = useCompaniesStore()
 const isLoading = ref(false)
 const showCompanyModal = ref(false)
 
-const settingsForm = ref<CompanySettingsFormState>({
-  theme: '',
-  language: '',
-  timezone: '',
-  date_format: '',
-  time_format: '',
-  decimal_separator: '',
-  thousands_separator: '',
+const settingsForm = ref<SettingsForm>({
+  theme: 'light',
+  language: 'pt',
+  timezone: 'America/Sao_Paulo',
+  date_format: 'DD/MM/YYYY',
+  time_format: '24h',
+  decimal_separator: ',',
+  thousands_separator: '.',
   notifications_enabled: false,
   notification_email: '',
   auto_track_events: false,
@@ -315,15 +314,15 @@ const thousandsSeparatorOptions = [
 watch(() => companiesStore.companySettings, (settings) => {
   if (settings) {
     settingsForm.value = {
-      theme: settings.theme || '',
-      language: settings.language || '',
-      timezone: settings.timezone || '',
-      date_format: settings.date_format || '',
-      time_format: settings.time_format || '',
-      decimal_separator: settings.decimal_separator || '',
-      thousands_separator: settings.thousands_separator || '',
+      theme: settings.theme ?? 'light',
+      language: settings.language ?? 'pt',
+      timezone: settings.timezone ?? 'America/Sao_Paulo',
+      date_format: settings.date_format ?? 'DD/MM/YYYY',
+      time_format: settings.time_format ?? '24h',
+      decimal_separator: settings.decimal_separator ?? ',',
+      thousands_separator: settings.thousands_separator ?? '.',
       notifications_enabled: settings.notifications_enabled,
-      notification_email: settings.notification_email || '',
+      notification_email: settings.notification_email ?? '',
       auto_track_events: settings.auto_track_events,
       include_company_info: settings.include_company_info,
       include_contact_info: settings.include_contact_info
@@ -354,18 +353,7 @@ const handleSaveSettings = async () => {
   companiesStore.clearError()
 
   try {
-    const payload: Partial<CompanySettings> = {
-      ...settingsForm.value,
-      theme: settingsForm.value.theme || null,
-      language: settingsForm.value.language || null,
-      timezone: settingsForm.value.timezone || null,
-      date_format: settingsForm.value.date_format || null,
-      time_format: settingsForm.value.time_format || null,
-      decimal_separator: settingsForm.value.decimal_separator || null,
-      thousands_separator: settingsForm.value.thousands_separator || null,
-      notification_email: settingsForm.value.notification_email || null,
-    }
-    await companiesStore.updateCompanySettings(payload)
+    await companiesStore.updateCompanySettings(settingsForm.value)
     // Show success message or toast
     console.log('Configurações salvas com sucesso!')
   } catch (error) {

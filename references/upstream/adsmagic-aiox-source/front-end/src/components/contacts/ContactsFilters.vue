@@ -67,21 +67,21 @@ watch(() => props.filters, (newFilters) => {
 }, { deep: true })
 
 // Options para selects
-const stageOptions = computed(() => [
+const stageOptions = [
   { value: '', label: 'Todas as etapas' },
   ...stagesStore.stages.map(stage => ({
     value: stage.id,
     label: stage.name,
   })),
-])
+]
 
-const originOptions = computed(() => [
+const originOptions = [
   { value: '', label: 'Todas as origens' },
   ...originsStore.origins.map(origin => ({
     value: origin.id,
     label: origin.name,
   })),
-])
+]
 
 // Date range computed
 const dateRange = computed(() => {
@@ -271,15 +271,14 @@ const hasActiveFilters = () => {
 
         <!-- Selected Tags -->
         <div v-if="localFilters.tagIds.length > 0" class="flex flex-wrap gap-2">
-          <template v-for="tagId in localFilters.tagIds" :key="tagId">
-            <TagBadge
-              v-if="tagsStore.getTagById(tagId)"
-              :tag="tagsStore.getTagById(tagId)!"
-              size="sm"
-              removable
-              @remove="removeTag"
-            />
-          </template>
+          <TagBadge
+            v-for="tagId in localFilters.tagIds"
+            :key="tagId"
+            :tag="tagsStore.getTagById(tagId)!"
+            size="sm"
+            removable
+            @remove="removeTag"
+          />
         </div>
       </div>
 

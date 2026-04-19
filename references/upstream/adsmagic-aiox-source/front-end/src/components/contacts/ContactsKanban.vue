@@ -48,6 +48,10 @@ const scrollContainer = ref<HTMLElement | null>(null)
 // Instâncias do Sortable (removido - vamos usar abordagem mais simples)
 const sortableInstances = ref<Record<string, any>>({})
 
+// Estado dos indicadores de scroll
+const canScrollLeft = ref(false)
+const canScrollRight = ref(true) // Iniciar true pois geralmente há overflow
+
 // Largura da coluna + gap (320px coluna + 16px gap)
 const COLUMN_WIDTH = 336
 
@@ -56,6 +60,16 @@ const infinitePadding = computed(() => {
   if (typeof window === 'undefined') return '0px'
   return `${Math.max(0, window.innerWidth - COLUMN_WIDTH)}px`
 })
+
+// Handler de scroll para atualizar indicadores
+const handleScroll = () => {
+  if (!scrollContainer.value) return
+  
+  const { scrollLeft, scrollWidth, clientWidth } = scrollContainer.value
+  
+  canScrollLeft.value = scrollLeft > 10 // 10px de margem para evitar flicker
+  canScrollRight.value = scrollLeft < scrollWidth - clientWidth - 10
+}
 
 // Navegação por teclado (← →)
 const handleKeyDown = (event: KeyboardEvent) => {
@@ -293,6 +307,7 @@ const getStageColorClass = () => {
 // Inicializar estado de scroll e teclado
 onMounted(async () => {
   await nextTick()
+  handleScroll() // Verificar estado inicial
   window.addEventListener('keydown', handleKeyDown)
 
   await initializeSortable()
@@ -326,13 +341,21 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <!-- Wrapper com sombras de gradiente para indicar scroll -->
   <div class="relative w-full" data-testid="contacts-kanban">
+    <!-- Sombra esquerda (indica que pode scrollar para esquerda) -->
+    <div class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none z-10 opacity-0 transition-opacity" :class="{ 'opacity-100': canScrollLeft }" />
+    
+    <!-- Sombra direita (indica que pode scrollar para direita) -->
+    <div class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 opacity-100 transition-opacity" :class="{ 'opacity-0': !canScrollRight }" />
+    
     <!-- Container scrollável -->
     <div 
       ref="scrollContainer"
       class="w-full overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent" 
       style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"
       data-testid="contacts-kanban-scroll"
+      @scroll="handleScroll"
     >
       <!-- Padding-right infinito; padding lateral herdado do container externo -->
       <div 
@@ -361,8 +384,7 @@ onUnmounted(() => {
         <div
           v-for="stage in stagesStore.stages"
           :key="stage.id"
-          data-testid="kanban-column"
-          class="flex-shrink-0 w-72 sm:w-80 h-[clamp(24rem,calc(100dvh-18rem),38rem)]"
+          class="flex-shrink-0 w-72 sm:w-80"
         >
           <!-- T010: Surface com bg-card + rounded-lg + padding do DS -->
           <div
@@ -384,23 +406,22 @@ onUnmounted(() => {
               </span>
             </div>
 
-            <div class="flex min-h-0 flex-1 flex-col">
-              <Button
-                variant="outline"
-                size="sm"
-                class="mb-3 w-full border-dashed text-muted-foreground hover:text-foreground"
-                @click="handleAddContact(stage.id)"
+            <div class="flex-1">
+              <p
+                v-if="stage.trackingPhrase"
+                class="mb-3 text-sm text-muted-foreground/80 line-clamp-2"
+                :title="stage.trackingPhrase"
               >
-                <Plus class="h-4 w-4 mr-2" />
-                Adicionar contato
-              </Button>
+                {{ stage.trackingPhrase }}
+              </p>
 
               <div
-                class="min-h-0 flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted/30 scrollbar-track-transparent"
+                class="overflow-y-auto scrollbar-thin scrollbar-thumb-muted/30 scrollbar-track-transparent"
+                style="max-height: calc(100vh - 300px)"
               >
                 <div
                   :id="stage.id"
-                  class="space-y-3 min-h-full pb-2 sortable-container" 
+                  class="space-y-3 min-h-[200px] pb-2 sortable-container" 
                   :data-stage-id="stage.id"
                 >
                   <!-- T012: Espaçamento vertical consistente entre cards (12px = space-y-3) -->
@@ -437,13 +458,34 @@ onUnmounted(() => {
                     Adicione contatos ou mova-os de outras etapas
                   </p>
                 </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  class="w-full"
+                  @click="handleAddContact(stage.id)"
+                >
+                  <Plus class="h-4 w-4 mr-2" />
+                  Adicionar contato
+                </Button>
+              </div>
+
+              <div v-else class="mt-3 pt-3 border-t border-border/30">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="w-full text-sm text-muted-foreground hover:text-foreground"
+                  @click="handleAddContact(stage.id)"
+                >
+                  <Plus class="h-4 w-4 mr-2" />
+                  Adicionar contato
+                </Button>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Botão "Adicionar Etapa" - sempre visível após última coluna -->
-        <div class="flex-shrink-0 w-72 sm:w-80 h-[clamp(24rem,calc(100dvh-18rem),38rem)]">
+        <div class="flex-shrink-0 w-72 sm:w-80">
           <button
             type="button"
             class="w-full h-[120px] rounded-[14.4px] border-2 border-dashed border-border hover:border-primary/50 bg-muted/20 hover:bg-muted/40 transition-all group"
@@ -496,6 +538,15 @@ onUnmounted(() => {
 * {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--primary) / 0.4) hsl(var(--muted) / 0.3);
+}
+
+/* Animação suave para sombras de gradiente */
+.opacity-0 {
+  transition: opacity 300ms ease;
+}
+
+.opacity-100 {
+  transition: opacity 300ms ease;
 }
 
 /* Estilos para SortableJS */

@@ -5,7 +5,9 @@ import Button from '@/components/ui/Button.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Alert from '@/components/ui/Alert.vue'
 import Checkbox from '@/components/ui/Checkbox.vue'
+import { useI18n } from 'vue-i18n'
 import { useStagesStore } from '@/stores/stages'
+import { useToast } from '@/components/ui/toast/use-toast'
 import type { Stage } from '@/types/models'
 import { cn } from '@/lib/utils'
 
@@ -32,6 +34,8 @@ const emit = defineEmits<{
 }>()
 
 const stagesStore = useStagesStore()
+const { t } = useI18n()
+const { error: toastError } = useToast()
 
 // Estado local
 const isDragging = ref(false)
@@ -56,7 +60,7 @@ const allSelected = computed(() =>
 
 // Sincronizar localStages com stages quando mudar
 watch(stages, (newStages) => {
-  localStages.value = newStages.map((stage) => ({ ...stage }) as Stage)
+  localStages.value = JSON.parse(JSON.stringify(newStages)) as Stage[]
   // Limpar seleções inválidas
   selectedStages.value = new Set(
     Array.from(selectedStages.value).filter(id => 
@@ -130,9 +134,9 @@ const handleStageReorder = async () => {
     await stagesStore.reorderStages(localStages.value.map(stage => stage.id))
   } catch (error) {
     console.error('Erro ao reordenar etapas:', error)
-    // TODO: Show toast error
+    toastError(t('settings.stages.reorderError'))
     // Reverter para o estado anterior em caso de erro
-    localStages.value = stages.value.map((stage) => structuredClone(stage) as Stage)
+    localStages.value = JSON.parse(JSON.stringify(stages.value)) as Stage[]
   }
 }
 
@@ -361,7 +365,6 @@ defineExpose({
           v-for="stage in localStages"
           :key="stage.id"
           :data-stage-id="stage.id"
-          data-testid="stage-item"
           :class="cn(
             'group flex items-center gap-3 p-4 border border-border rounded-lg transition-all',
             'hover:shadow-md hover:border-primary/20',

@@ -66,7 +66,6 @@ export const useLinksStore = defineStore('links', () => {
     (newProjectId, oldProjectId) => {
       // Only clear if project actually changed
       if (newProjectId !== oldProjectId) {
-        console.log('[Links Store] Project changed, clearing data:', { oldProjectId, newProjectId })
         
         // Clear all data
         links.value = []
@@ -76,7 +75,6 @@ export const useLinksStore = defineStore('links', () => {
         
         // Reload data for new project if project exists
         if (newProjectId) {
-          console.log('[Links Store] Loading data for new project:', newProjectId)
           fetchLinks()
         }
       }
@@ -203,7 +201,6 @@ export const useLinksStore = defineStore('links', () => {
       // API real: const response = await linksService.getAll()
       // links.value = response.data
 
-      console.log('[Links Store] Fetched', links.value.length, 'links')
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar links'
       error.value = errorMessage
@@ -260,8 +257,6 @@ export const useLinksStore = defineStore('links', () => {
 
       links.value.push(newLink)
 
-      console.log('[Links Store] Created link:', newLink.name)
-      console.log('[Links Store] Full URL:', newLink.trackingUrl)
       return newLink
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao criar link'
@@ -318,7 +313,6 @@ export const useLinksStore = defineStore('links', () => {
         selectedLink.value = updated
       }
 
-      console.log('[Links Store] Updated link:', updated.name)
       return updated
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar link'
@@ -358,7 +352,6 @@ export const useLinksStore = defineStore('links', () => {
         selectedLinkStats.value = null
       }
 
-      console.log('[Links Store] Deleted link:', link.name)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao deletar link'
       error.value = errorMessage
@@ -378,7 +371,6 @@ export const useLinksStore = defineStore('links', () => {
   const toggleActive = async (id: string, active: boolean): Promise<void> => {
     try {
       await updateLink(id, { isActive: active })
-      console.log('[Links Store] Toggled link active state:', id, active)
     } catch (err) {
       console.error('[Links Store] Error toggling link:', err)
       throw err
@@ -414,7 +406,6 @@ export const useLinksStore = defineStore('links', () => {
       }
 
       selectedLinkStats.value = mockStats
-      console.log('[Links Store] Fetched stats for link:', link.name)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar estatísticas'
       error.value = errorMessage

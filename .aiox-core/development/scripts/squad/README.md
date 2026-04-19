@@ -34,7 +34,7 @@ const loader = new SquadLoader({
 const { path, manifestPath } = await loader.resolve('my-squad');
 
 // Load and parse manifest
-const manifest = await loader.loadManifest('./workspace/squads/my-squad');
+const manifest = await loader.loadManifest('./squads/my-squad');
 
 // List all local squads
 const squads = await loader.listLocal();

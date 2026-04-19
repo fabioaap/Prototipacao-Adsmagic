@@ -111,9 +111,6 @@ export interface ContactFilters {
   /** Filter by stage IDs (multiple) */
   stages?: string[]
 
-   /** Filter by tag IDs (multiple) */
-  tags?: string[]
-
   /** Filter contacts with/without sales */
   hasSales?: boolean
 

@@ -39,6 +39,7 @@ export interface BackendSale {
     name: string | null
     phone: string | null
     country_code: string | null
+    main_origin_id: string | null
   } | null
 }
 
@@ -106,7 +107,7 @@ export function adaptSaleFromBackend(backend: BackendSale): Sale {
     currency: backend.currency,
     date: backend.date,
     status: backend.status,
-    origin: backend.origin_id ?? undefined,
+    origin: backend.origin_id ?? backend.contacts?.main_origin_id ?? undefined,
     lostReason: backend.lost_reason ?? undefined,
     lostObservations: backend.lost_observations ?? undefined,
     notes: backend.notes ?? undefined,

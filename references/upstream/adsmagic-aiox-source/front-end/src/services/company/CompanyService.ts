@@ -41,12 +41,10 @@ export class CompanyService implements ICompanyService {
       const cached = this.cache.get<Company>(cacheKey)
       
       if (cached) {
-        console.log(`[CompanyService] Cache hit for company ${companyId}`)
         return cached
       }
 
       // Buscar da API
-      console.log(`[CompanyService] Loading company ${companyId} from API`)
       const company = await this.repository.findById(companyId)
       
       // Validar dados

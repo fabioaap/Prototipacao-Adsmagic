@@ -196,11 +196,10 @@ $: props.open, updateFromProp()
   <teleport to="body">
     <div
       v-if="isOpen"
-      ref="alertDialogRef"
       class="alert-dialog-overlay"
       :class="cn(
         'fixed inset-0 z-50 flex items-center justify-center p-4',
-        'bg-background/80 backdrop-blur-sm',
+        'bg-black/50',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         overlayClass

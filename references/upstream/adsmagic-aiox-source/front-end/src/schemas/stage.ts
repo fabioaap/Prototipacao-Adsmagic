@@ -17,6 +17,8 @@ const stageEventRouteSchema = z.object({
   integrationAccountId: z.string().uuid().optional(),
   conversionActionId: z.string().optional(),
   conversionActionName: z.string().optional(),
+  pixelId: z.string().optional(),
+  pixelName: z.string().optional(),
   value: z.number().optional(),
   currency: z.string().optional(),
   priority: z.number().int().optional(),

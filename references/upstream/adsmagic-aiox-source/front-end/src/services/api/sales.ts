@@ -26,18 +26,11 @@ import {
 // Flag para alternar entre mock e API real baseado em variável de ambiente
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || import.meta.env.VITE_USE_MOCK === true
 
-console.log('[Sales Service] 🚀 Inicializado:', {
-  USE_MOCK,
-  mode: USE_MOCK ? 'MOCK' : 'API REAL',
-  totalMockSales: MOCK_SALES.length
-})
-
 export const salesService = {
   /**
    * Buscar todas as vendas com filtros
    */
   async getAll(filters?: SaleFilters): Promise<PaginatedResponse<Sale>> {
-    console.log('[Sales Service] ⚡ getAll() chamado', { USE_MOCK, filters })
 
     if (USE_MOCK) {
       // Simula delay de rede
@@ -45,16 +38,9 @@ export const salesService = {
 
       // Aplica filtros nos dados mock
       let filtered = [...MOCK_SALES]
-      console.log('[Sales Service] 📦 Vendas antes do filtro:', filtered.length)
 
       // Filter by current project ID
       const currentProjectId = localStorage.getItem('current_project_id')
-      console.log('[Sales Service] 🔍 Debug projectId:', {
-        currentProjectId,
-        totalMockSales: MOCK_SALES.length,
-        sampleProjectIds: MOCK_SALES.slice(0, 3).map(s => s.projectId),
-        filtered: currentProjectId ? filtered.filter(sale => sale.projectId === currentProjectId).length : filtered.length
-      })
       if (currentProjectId) {
         filtered = filtered.filter(sale => sale.projectId === currentProjectId)
       }
@@ -112,7 +98,6 @@ export const salesService = {
       projectId: filters?.projectId || currentProjectId
     })
     
-    console.log('[Sales Service] 📡 API Request GET /sales', { params })
     
     const response = await apiClient.get<BackendSalesListResponse>('/sales', { params })
     
@@ -139,7 +124,6 @@ export const salesService = {
       return MOCK_SALES.find(sale => sale.id === id) || null
     }
 
-    console.log('[Sales Service] 📡 API Request GET /sales/:id', { id })
     const response = await apiClient.get<BackendSale>(`/sales/${id}`)
     return adaptSaleFromBackend(response.data)
   },
@@ -176,7 +160,6 @@ export const salesService = {
       projectId: data.projectId || currentProjectId || ''
     })
     
-    console.log('[Sales Service] 📡 API Request POST /sales', { backendData })
     
     const response = await apiClient.post<BackendSale>('/sales', backendData)
     return adaptSaleFromBackend(response.data)
@@ -207,7 +190,6 @@ export const salesService = {
 
     const backendData = adaptUpdateSaleToBackend(data)
     
-    console.log('[Sales Service] 📡 API Request PATCH /sales/:id', { id, backendData })
     
     const response = await apiClient.patch<BackendSale>(`/sales/${id}`, backendData)
     return adaptSaleFromBackend(response.data)
@@ -237,7 +219,6 @@ export const salesService = {
 
     const backendData = adaptMarkLostToBackend(data)
     
-    console.log('[Sales Service] 📡 API Request PATCH /sales/:id/lost', { id, backendData })
     
     const response = await apiClient.patch<BackendSale>(`/sales/${id}/lost`, backendData)
     return adaptSaleFromBackend(response.data)
@@ -265,8 +246,6 @@ export const salesService = {
       return MOCK_SALES[index]!
     }
 
-    console.log('[Sales Service] 📡 API Request PATCH /sales/:id/recover', { id })
-
     const response = await apiClient.patch<BackendSale>(`/sales/${id}/recover`)
     return adaptSaleFromBackend(response.data)
   },
@@ -285,7 +264,6 @@ export const salesService = {
       return
     }
 
-    console.log('[Sales Service] 📡 API Request DELETE /sales/:id', { id })
     await apiClient.delete(`/sales/${id}`)
   },
 
@@ -298,7 +276,6 @@ export const salesService = {
       return MOCK_SALES.filter(sale => sale.contactId === contactId)
     }
 
-    console.log('[Sales Service] 📡 API Request GET /sales?contact_id=', { contactId })
     
     // Usar filtro de contact_id em vez de endpoint separado
     const response = await apiClient.get<BackendSalesListResponse>('/sales', {

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { DollarSign, Package, Edit, Trash2, Phone } from 'lucide-vue-next'
+import { DollarSign, Package, Edit, Trash2, Phone, XCircle } from '@/composables/useIcons'
 import Pagination from '@/components/ui/Pagination.vue'
 import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
 import type { Sale } from '@/types/models'
 import { useFormat } from '@/composables/useFormat'
 import { formatSafeCurrency } from '@/utils/formatters'
@@ -67,6 +68,8 @@ const getDisplayOrigin = (originId?: string): string => {
 const emit = defineEmits<{
   saleEdit: [sale: Sale]
   saleDelete: [sale: Sale]
+  bulkDelete: [saleIds: string[]]
+  bulkMarkLost: [saleIds: string[]]
 }>()
 
 const { formatDate } = useFormat()
@@ -93,6 +96,35 @@ const handlePageChange = (page: number) => {
   currentPage.value = page
 }
 
+// Selection state
+const selectedSales = ref<Set<string>>(new Set())
+
+const allSelected = computed(() => {
+  return paginatedSales.value.length > 0 &&
+    paginatedSales.value.every(s => selectedSales.value.has(s.id))
+})
+
+const someSelected = computed(() => {
+  return paginatedSales.value.some(s => selectedSales.value.has(s.id)) &&
+    !allSelected.value
+})
+
+const handleSelectAll = () => {
+  if (allSelected.value) {
+    paginatedSales.value.forEach(s => selectedSales.value.delete(s.id))
+  } else {
+    paginatedSales.value.forEach(s => selectedSales.value.add(s.id))
+  }
+}
+
+const handleSelectSale = (saleId: string, selected: boolean) => {
+  if (selected) {
+    selectedSales.value.add(saleId)
+  } else {
+    selectedSales.value.delete(saleId)
+  }
+}
+
 // Handle actions
 const handleEdit = (sale: Sale) => {
   emit('saleEdit', sale)
@@ -100,6 +132,16 @@ const handleEdit = (sale: Sale) => {
 
 const handleDelete = (sale: Sale) => {
   emit('saleDelete', sale)
+}
+
+const handleBulkDelete = () => {
+  emit('bulkDelete', Array.from(selectedSales.value))
+  selectedSales.value.clear()
+}
+
+const handleBulkMarkLost = () => {
+  emit('bulkMarkLost', Array.from(selectedSales.value))
+  selectedSales.value.clear()
 }
 
 // Format status badge
@@ -114,6 +156,36 @@ const getStatusLabel = (status: Sale['status']) => {
 
 <template>
   <div class="space-y-4">
+    <!-- Bulk Actions -->
+    <div
+      v-if="selectedSales.size > 0"
+      class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-muted rounded-[14.4px]"
+    >
+      <span class="text-sm font-medium">
+        {{ selectedSales.size }} venda(s) selecionada(s)
+      </span>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          @click="handleBulkMarkLost"
+        >
+          <XCircle class="h-4 w-4 mr-1" />
+          Marcar como Perdida
+        </Button>
+
+        <Button
+          variant="destructive"
+          size="sm"
+          @click="handleBulkDelete"
+        >
+          <Trash2 class="h-4 w-4 mr-1" />
+          Excluir
+        </Button>
+      </div>
+    </div>
+
     <!-- Empty State -->
     <div v-if="!loading && filteredSales.length === 0" class="flex flex-col items-center justify-center py-16 text-center bg-muted/30 rounded-[14.4px] border border-dashed border-muted-foreground/30">
       <Package class="w-24 h-24 text-muted-foreground/40 mb-6" aria-hidden="true" />
@@ -129,6 +201,15 @@ const getStatusLabel = (status: Sale['status']) => {
         <table class="w-full">
           <thead class="bg-muted/50">
             <tr>
+              <th class="w-12 px-4 py-3">
+                <input
+                  type="checkbox"
+                  :checked="allSelected"
+                  :indeterminate="someSelected"
+                  class="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  @change="handleSelectAll"
+                />
+              </th>
               <th class="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 ID
               </th>
@@ -156,7 +237,7 @@ const getStatusLabel = (status: Sale['status']) => {
             <!-- Loading State -->
             <template v-if="props.loading">
               <tr v-for="i in props.itemsPerPage" :key="i">
-                <td class="px-4 py-3" colspan="7">
+                <td class="px-4 py-3" colspan="8">
                   <div class="flex items-center gap-3">
                     <div class="h-10 w-10 rounded-full bg-muted animate-pulse" />
                     <div class="flex-1 space-y-2">
@@ -170,7 +251,7 @@ const getStatusLabel = (status: Sale['status']) => {
 
             <!-- Empty State -->
             <tr v-else-if="filteredSales.length === 0">
-              <td colspan="7" class="px-4 py-12 text-center">
+              <td colspan="8" class="px-4 py-12 text-center">
                 <div class="flex flex-col items-center justify-center">
                   <Package class="h-12 w-12 text-muted-foreground mb-4" />
                   <p class="text-muted-foreground mb-2">
@@ -186,9 +267,20 @@ const getStatusLabel = (status: Sale['status']) => {
               v-for="sale in paginatedSales"
               :key="sale.id"
               :class="cn(
-                'border-b border-border transition-colors hover:bg-muted/50'
+                'border-b border-border transition-colors hover:bg-muted/50',
+                selectedSales.has(sale.id) && 'bg-muted/30'
               )"
             >
+              <!-- Checkbox -->
+              <td class="w-12 px-4 py-3" @click.stop>
+                <input
+                  type="checkbox"
+                  :checked="selectedSales.has(sale.id)"
+                  class="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  @change="handleSelectSale(sale.id, ($event.target as HTMLInputElement).checked)"
+                />
+              </td>
+
               <!-- ID -->
               <td class="px-4 py-3">
                 <div class="flex items-center gap-3">

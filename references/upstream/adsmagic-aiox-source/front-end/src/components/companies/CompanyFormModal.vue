@@ -155,18 +155,7 @@
 import { ref, computed, watch } from 'vue'
 import { useCompaniesStore } from '@/stores/companies'
 import Select from '@/components/ui/Select.vue'
-import type { Company, CreateCompanyDTO, UpdateCompanyDTO } from '@/types'
-
-interface CompanyFormState {
-  name: string
-  description: string
-  country: string
-  currency: string
-  timezone: string
-  industry: string
-  size: string
-  website: string
-}
+import type { Company, CreateCompanyDTO } from '@/types'
 
 interface Props {
   isOpen: boolean
@@ -237,7 +226,7 @@ const errors = ref<Record<string, string>>({})
 
 const isEditing = computed(() => !!props.company)
 
-const formData = ref<CompanyFormState>({
+const formData = ref<Required<CreateCompanyDTO>>({
   name: '',
   description: '',
   country: '',
@@ -314,23 +303,9 @@ const handleSubmit = async () => {
     let company: Company
     
     if (isEditing.value && props.company) {
-      const payload: UpdateCompanyDTO = {
-        ...formData.value,
-        industry: formData.value.industry || undefined,
-        size: formData.value.size || undefined,
-        website: formData.value.website || undefined,
-        description: formData.value.description || undefined,
-      }
-      company = await companiesStore.updateCompany(props.company.id, payload)
+      company = await companiesStore.updateCompany(props.company.id, formData.value)
     } else {
-      const payload: CreateCompanyDTO = {
-        ...formData.value,
-        industry: formData.value.industry || undefined,
-        size: formData.value.size || undefined,
-        website: formData.value.website || undefined,
-        description: formData.value.description || undefined,
-      }
-      company = await companiesStore.createCompany(payload)
+      company = await companiesStore.createCompany(formData.value)
     }
     
     emit('saved', company)

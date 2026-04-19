@@ -37,7 +37,7 @@ export const eventFiltersSchema = z.object({
   status: z.enum(['pending', 'sent', 'failed', 'cancelled']).optional(),
   contact_id: z.string().uuid().optional(),
   sale_id: z.string().uuid().optional(),
-  limit: z.number().int().min(1).max(100).optional().default(50),
+  limit: z.number().int().min(1).max(100).optional().default(10),
   offset: z.number().int().min(0).optional().default(0),
 })
 

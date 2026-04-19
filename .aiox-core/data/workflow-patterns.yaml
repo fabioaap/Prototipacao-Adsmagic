@@ -794,7 +794,7 @@ cross_context:
     order: "squad-first, core-fallback"
     explanation: |
       When target_context=hybrid, agent references are resolved in this order:
-      1. Check squad agents directory first (workspace/squads/{squad}/agents/)
+      1. Check squad agents directory first (squads/{squad}/agents/)
       2. If not found, fall back to core agents (.aiox-core/development/agents/)
       3. If found in both, emit WF_AGENT_AMBIGUOUS warning
 
@@ -808,7 +808,7 @@ cross_context:
       This avoids ambiguity when an agent exists in both core and squad.
 
   hybrid_workflow_storage:
-    location: "workspace/squads/{squad_name}/workflows/"
+    location: "squads/{squad_name}/workflows/"
     explanation: |
       Hybrid workflows live in the squad directory because they are
       squad-specific (they reference squad agents). The hybrid flag

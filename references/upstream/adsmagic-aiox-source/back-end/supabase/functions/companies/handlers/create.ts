@@ -20,6 +20,7 @@ import {
   rollbackCompanyCreation,
   fetchCreatedCompany
 } from '../utils/company-creation.ts'
+import { createTrialSubscription } from '../utils/trial-subscription.ts'
 
 const DEFAULT_USER_ROLE = 'owner' as const
 const OWNER_ADMIN_ROLES = ['owner', 'admin'] as const
@@ -283,6 +284,12 @@ export async function handleCreate(
     }
 
     console.log('[Create Company] Company settings created')
+
+    // 6.5 Criar trial subscription (non-blocking)
+    const { error: trialError } = await createTrialSubscription(adminClient, company.id)
+    if (trialError) {
+      console.warn('[Create Company] Trial creation failed (non-blocking):', trialError.message)
+    }
 
     // 7. Buscar empresa completa
     const { data: fullCompany, error: fetchError } = await fetchCreatedCompany(

@@ -19,7 +19,7 @@ import {
   mapBackendSummaryToDashboardV2Summary,
   mapBackendTimeSeriesToTimeSeriesPoints,
   mapBackendOriginPerformanceToOriginPerformance,
-  mapBackendFunnelStatsToFunnelStageStats,
+  mapBackendFunnelStatsToFunnelViews,
   mapBackendPipelineStatsToPipelineStageStats,
   mapBackendDrillDownToEntities
 } from './adapters/dashboardV2Adapter'
@@ -34,9 +34,11 @@ import type {
 import type {
   DashboardV2Summary,
   DashboardV2Filters,
+  FunnelCountMode,
   NorthStarConfig,
   NorthStarCustomMetricDefinition,
   FunnelStageStats,
+  FunnelStatsView,
   PipelineStageStats,
   OriginBreakdown,
   TimeSeriesPoint,
@@ -87,51 +89,6 @@ function buildDashboardParams(filters: Partial<DashboardV2Filters> & { period?: 
   return params
 }
 
-function normalizeSequentialFunnelStages(
-  stages: FunnelStageStats[],
-  totalContacts: number
-): { stages: FunnelStageStats[]; overallConversionRate: number } {
-  if (stages.length === 0) {
-    return {
-      stages: [],
-      overallConversionRate: 0
-    }
-  }
-
-  const hasIncreaseBetweenStages = stages.some((stage, index) => {
-    if (index === 0) return false
-    return stage.count > (stages[index - 1]?.count ?? 0)
-  })
-
-  const normalizedCounts = hasIncreaseBetweenStages
-    ? stages.map((_stage, index) =>
-        stages.slice(index).reduce((sum, currentStage) => sum + Math.max(currentStage.count, 0), 0)
-      )
-    : stages.map((stage) => Math.max(stage.count, 0))
-
-  let previousCount = totalContacts > 0 ? totalContacts : Math.max(normalizedCounts[0] ?? 0, 1)
-
-  const normalizedStages = stages.map((stage, index) => {
-    const count = normalizedCounts[index] ?? 0
-    const conversionRate = previousCount > 0 ? (count / previousCount) * 100 : 0
-
-    previousCount = count
-
-    return {
-      ...stage,
-      count,
-      conversionRate
-    }
-  })
-
-  const lastStageCount = normalizedStages[normalizedStages.length - 1]?.count ?? 0
-
-  return {
-    stages: normalizedStages,
-    overallConversionRate: totalContacts > 0 ? (lastStageCount / totalContacts) * 100 : 0
-  }
-}
-
 /**
  * Get dashboard summary (North Star KPIs + insights)
  *
@@ -150,22 +107,10 @@ async function getSummary(filters: DashboardV2Filters): Promise<DashboardV2Summa
       '30d': 1,
       '90d': 2.7
     }
-    const originMultiplier: Record<string, number> = {
-      all: 1,
-      meta_ads: 1.05,
-      google_ads: 0.95,
-      tiktok_ads: 0.9,
-      youtube: 0.85,
-      whatsapp: 0.8,
-      organic: 0.75,
-      referral: 0.7,
-      undefined: 1,
-      null: 1
-    }
-
     const mPeriod = periodMultiplier[period] ?? 1
-    const originKey = (filters.origin ?? 'all') as keyof typeof originMultiplier
-    const mOrigin = originMultiplier[originKey] ?? 1
+    const originKey = filters.origin ?? 'all'
+    // For UUIDs or unknown origins, default multiplier is 0.9
+    const mOrigin = originKey === 'all' ? 1 : 0.9
     // Compare ON não deve alterar os big numbers, apenas as tags/deltas
     const m = mPeriod * mOrigin
     const deltaEnabled = Boolean(filters.compare)
@@ -392,10 +337,11 @@ async function updateNorthStarConfig(payload: NorthStarConfigUpdatePayload): Pro
 }
 
 /** Resultado de getFunnelStats: estágios + totais para a view */
+export interface FunnelStatsResultView extends FunnelStatsView {}
+
 export interface FunnelStatsResult {
-  stages: FunnelStageStats[]
   totalContacts: number
-  overallConversionRate: number
+  views: Record<FunnelCountMode, FunnelStatsResultView>
 }
 
 /**
@@ -408,7 +354,7 @@ async function getFunnelStats(filters: DashboardV2Filters): Promise<FunnelStatsR
   if (USE_MOCK) {
     await new Promise(resolve => setTimeout(resolve, 300))
 
-    const stages: FunnelStageStats[] = [
+    const passedStages: FunnelStageStats[] = [
       {
         stageId: 'stage-1',
         stageName: 'Impressões',
@@ -438,10 +384,50 @@ async function getFunnelStats(filters: DashboardV2Filters): Promise<FunnelStatsR
         avgTimeInStage: 5.2
       }
     ]
+
+    const currentStages: FunnelStageStats[] = [
+      {
+        stageId: 'stage-1',
+        stageName: 'Impressões',
+        count: 232000,
+        conversionRate: 92.8,
+        avgTimeInStage: 0
+      },
+      {
+        stageId: 'stage-2',
+        stageName: 'Cliques',
+        count: 14900,
+        conversionRate: 6.4,
+        avgTimeInStage: 0
+      },
+      {
+        stageId: 'stage-3',
+        stageName: 'Contatos',
+        count: 2160,
+        conversionRate: 14.5,
+        avgTimeInStage: 2.5
+      },
+      {
+        stageId: 'stage-4',
+        stageName: 'Vendas',
+        count: 89,
+        conversionRate: 4.1,
+        avgTimeInStage: 5.2
+      }
+    ]
+
     return {
-      stages,
-      totalContacts: 1250,
-      overallConversionRate: 7.12
+      totalContacts: 250000,
+      views: {
+        current: {
+          stages: currentStages,
+          overallConversionRate: 0.036
+        },
+        passed: {
+          stages: passedStages,
+          overallConversionRate: 0.036
+        }
+      }
     }
   }
 
@@ -449,14 +435,9 @@ async function getFunnelStats(filters: DashboardV2Filters): Promise<FunnelStatsR
     params: buildDashboardParams(filters)
   })
 
-  const totalContacts = response.data.totalContacts ?? 0
-  const mappedStages = mapBackendFunnelStatsToFunnelStageStats(response.data)
-  const normalizedFunnel = normalizeSequentialFunnelStages(mappedStages, totalContacts)
-
   return {
-    stages: normalizedFunnel.stages,
-    totalContacts,
-    overallConversionRate: normalizedFunnel.overallConversionRate
+    totalContacts: response.data.totalContacts ?? 0,
+    views: mapBackendFunnelStatsToFunnelViews(response.data)
   }
 }
 

@@ -54,7 +54,6 @@ export const useSettingsStore = defineStore('settings', () => {
     (newProjectId, oldProjectId) => {
       // Only clear if project actually changed
       if (newProjectId !== oldProjectId) {
-        console.log('[Settings Store] Project changed, clearing data:', { oldProjectId, newProjectId })
         
         // Clear all data
         settings.value = null
@@ -63,7 +62,6 @@ export const useSettingsStore = defineStore('settings', () => {
         
         // Reload data for new project if project exists
         if (newProjectId) {
-          console.log('[Settings Store] Loading data for new project:', newProjectId)
           fetchSettings(newProjectId)
         }
       }
@@ -82,13 +80,11 @@ export const useSettingsStore = defineStore('settings', () => {
     },
     (newCompanyId, oldCompanyId) => {
       if (newCompanyId !== oldCompanyId && newCompanyId) {
-        console.log('[Settings] Company changed, reloading settings...')
         // Carregar configurações da nova empresa
         const companiesStore = useCompaniesStore()
         if (companiesStore.companySettings) {
           // Mapear configurações da empresa para settings do projeto
           // (manter compatibilidade com estrutura existente)
-          console.log('[Settings] Company settings loaded:', companiesStore.companySettings)
         }
       }
     },

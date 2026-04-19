@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { X, Save } from 'lucide-vue-next'
+import { X, Save, AlertCircle } from 'lucide-vue-next'
 import Modal from '@/components/ui/Modal.vue'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
@@ -68,10 +68,23 @@ const currencyOptions = [
  * Em produção, virá filtrado da API
  */
 const contactOptions = computed(() => {
-  return contactsStore.contacts.map(contact => ({
+  const options = contactsStore.contacts.map(contact => ({
     value: contact.id,
     label: `${contact.name}${contact.email ? ' - ' + contact.email : ''}`
   }))
+
+  // Ensure current sale's contact is in the list (might not be in paginated store)
+  if (props.sale?.contactId && props.sale.contactName) {
+    const exists = options.some(opt => opt.value === props.sale!.contactId)
+    if (!exists) {
+      options.unshift({
+        value: props.sale.contactId,
+        label: props.sale.contactName
+      })
+    }
+  }
+
+  return options
 })
 
 // Form data
@@ -297,6 +310,7 @@ const handleSave = async () => {
 
           <!-- Info Alert -->
           <Alert variant="info">
+            <AlertCircle class="h-4 w-4" />
             <p class="text-sm">
               Esta venda será vinculada ao contato selecionado e marcada como "Realizada".
             </p>

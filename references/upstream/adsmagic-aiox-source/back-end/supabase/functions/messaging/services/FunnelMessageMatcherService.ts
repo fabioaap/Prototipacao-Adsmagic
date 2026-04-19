@@ -8,8 +8,11 @@ import {
 } from '../repositories/ContactRepository.ts'
 import { StageRuleRepository, type StageRule } from '../repositories/StageRuleRepository.ts'
 import { ContactStageTransitionRepository } from '../repositories/ContactStageTransitionRepository.ts'
+import { SaleValueUpdateRepository } from '../repositories/SaleValueUpdateRepository.ts'
 import type { NormalizedMessage } from '../types.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
+import { findOrCreateSystemOrProjectOrigin } from '../utils/origin-resolver.ts'
+import { extractMonetaryValue } from '../utils/monetary-value-extractor.ts'
 
 export interface OutgoingMatchResult {
   matched: boolean
@@ -30,12 +33,14 @@ export class FunnelMessageMatcherService {
   private contactRepo: IContactRepository
   private stageRuleRepo: StageRuleRepository
   private stageTransitionRepo: ContactStageTransitionRepository
+  private saleValueUpdateRepo: SaleValueUpdateRepository
 
   constructor(supabaseClient: SupabaseDbClient) {
     this.supabaseClient = supabaseClient
     this.contactRepo = new SupabaseContactRepository(supabaseClient)
     this.stageRuleRepo = new StageRuleRepository(supabaseClient)
     this.stageTransitionRepo = new ContactStageTransitionRepository(supabaseClient)
+    this.saleValueUpdateRepo = new SaleValueUpdateRepository(supabaseClient)
   }
 
   async processOutgoingMessage(params: ProcessOutgoingMessageParams): Promise<OutgoingMatchResult> {
@@ -74,11 +79,47 @@ export class FunnelMessageMatcherService {
       messageId: params.message.messageId,
     })
 
+    if (matchedRule.stageType === 'sale') {
+      await this.tryAttachSaleValueFromMessage({
+        projectId: params.projectId,
+        contactId: contact.id,
+        text,
+        messageId: params.message.messageId,
+      })
+    }
+
     return {
       matched: true,
       contactId: contact.id,
       stageId: matchedRule.stageId,
       matchedPhrase: matchedRule.trackingPhrase,
+    }
+  }
+
+  private async tryAttachSaleValueFromMessage(params: {
+    projectId: string
+    contactId: string
+    text: string
+    messageId: string
+  }): Promise<void> {
+    try {
+      const extracted = extractMonetaryValue(params.text)
+      if (!extracted) {
+        return
+      }
+
+      await this.saleValueUpdateRepo.updateLatestAutoSaleValue({
+        projectId: params.projectId,
+        contactId: params.contactId,
+        value: extracted.value,
+        currency: extracted.currency,
+        rawMatch: extracted.rawMatch,
+        messageId: params.messageId,
+      })
+    } catch (error) {
+      // Nunca propagar: a transição de estágio já foi feita e não pode ser
+      // revertida por uma falha na captura opcional do valor.
+      console.error('[FunnelMessageMatcher] Failed to attach sale value:', error)
     }
   }
 
@@ -182,6 +223,22 @@ export class FunnelMessageMatcherService {
   }
 
   private async getFirstActiveStageId(projectId: string): Promise<string> {
+    // Prefer normal stages over sale/lost to avoid assigning contacts to final stages
+    const { data: normalStage } = await this.supabaseClient
+      .from('stages')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('is_active', true)
+      .eq('type', 'normal')
+      .order('display_order', { ascending: true })
+      .limit(1)
+      .single()
+
+    if (normalStage?.id) {
+      return String(normalStage.id)
+    }
+
+    // Fallback: any active stage
     const { data, error } = await this.supabaseClient
       .from('stages')
       .select('id')
@@ -203,39 +260,13 @@ export class FunnelMessageMatcherService {
   }
 
   private async getDefaultOriginId(projectId: string): Promise<string> {
-    const { data: existing } = await this.supabaseClient
-      .from('origins')
-      .select('id')
-      .eq('project_id', projectId)
-      .eq('name', 'WhatsApp')
-      .limit(1)
-      .maybeSingle()
-
-    if (existing && (existing as { id?: string }).id) {
-      return String((existing as { id?: string }).id)
-    }
-
-    const { data: created, error } = await this.supabaseClient
-      .from('origins')
-      .insert({
-        project_id: projectId,
-        name: 'WhatsApp',
-        color: '#25D366',
-        icon: 'message-circle',
-        type: 'custom',
-      })
-      .select('id')
-      .single()
-
-    if (error || !created) {
-      throw new Error(`Failed to create default WhatsApp origin: ${error?.message || 'unknown error'}`)
-    }
-
-    const originId = String((created as { id?: string }).id || '')
-    if (!originId) {
-      throw new Error('Failed to create default WhatsApp origin')
-    }
-    return originId
+    // Usa helper compartilhado para garantir que a origem de sistema "WhatsApp"
+    // (project_id IS NULL) seja sempre reutilizada, nunca duplicada como custom.
+    return await findOrCreateSystemOrProjectOrigin(
+      this.supabaseClient,
+      projectId,
+      'WhatsApp'
+    )
   }
 }
 

@@ -52,8 +52,10 @@ export function useFormat() {
    * @param options - Opções de formatação (opcional)
    * @returns String formatada (ex: "01/10/2025" ou "10/01/2025")
    */
-  const formatDate = (date: Date | string, options?: Intl.DateTimeFormatOptions): string => {
+  const formatDate = (date: Date | string | undefined | null, options?: Intl.DateTimeFormatOptions): string => {
+    if (!date) return '-'
     const dateObj = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(dateObj.getTime())) return '-'
 
     const defaultOptions: Intl.DateTimeFormatOptions = {
       year: 'numeric',
@@ -80,8 +82,10 @@ export function useFormat() {
    * @param date - Data a ser formatada
    * @returns String formatada (ex: "01/10/2025, 14:30" ou "10/01/2025, 2:30 PM")
    */
-  const formatDateTime = (date: Date | string): string => {
+  const formatDateTime = (date: Date | string | undefined | null): string => {
+    if (!date) return '-'
     const dateObj = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(dateObj.getTime())) return '-'
 
     return new Intl.DateTimeFormat(locale.value, {
       year: 'numeric',

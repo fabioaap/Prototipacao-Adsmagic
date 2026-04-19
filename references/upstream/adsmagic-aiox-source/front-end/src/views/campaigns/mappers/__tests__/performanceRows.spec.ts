@@ -42,7 +42,8 @@ const baseAd: AdMetrics = {
 
 describe('mapCampaignRows', () => {
   it('mapeia campos básicos de campanha corretamente', () => {
-    const [row] = mapCampaignRows([baseCampaign])
+    const rows = mapCampaignRows([baseCampaign])
+    const row = rows[0]!
 
     expect(row.id).toBe('camp-1')
     expect(row.name).toBe('Campanha Teste')
@@ -57,7 +58,8 @@ describe('mapCampaignRows', () => {
   })
 
   it('mapeia results e costPerResult opcionais', () => {
-    const [row] = mapCampaignRows([baseCampaign])
+    const rows = mapCampaignRows([baseCampaign])
+    const row = rows[0]!
 
     expect(row.results).toBe(30)
     expect(row.resultType).toBe('purchase')
@@ -72,13 +74,15 @@ describe('mapCampaignRows', () => {
       'custom:cpl': 66.67,
     } as unknown as CampaignMetrics
 
-    const [row] = mapCampaignRows([campaignWithCustom])
+    const rows = mapCampaignRows([campaignWithCustom])
+    const row = rows[0]!
 
     expect(row.customMetrics).toEqual({ 'custom:leads': 15, 'custom:cpl': 66.67 })
   })
 
   it('retorna customMetrics undefined quando não há campos custom:', () => {
-    const [row] = mapCampaignRows([baseCampaign])
+    const rows = mapCampaignRows([baseCampaign])
+    const row = rows[0]!
 
     expect(row.customMetrics).toBeUndefined()
   })
@@ -92,21 +96,23 @@ describe('mapCampaignRows', () => {
     const rows = mapCampaignRows([baseCampaign, second])
 
     expect(rows).toHaveLength(2)
-    expect(rows[0].id).toBe('camp-1')
-    expect(rows[1].id).toBe('camp-2')
+    expect(rows[0]!.id).toBe('camp-1')
+    expect(rows[1]!.id).toBe('camp-2')
   })
 })
 
 describe('mapAdsetRows', () => {
   it('mapeia adsetId e adsetName como id e name', () => {
-    const [row] = mapAdsetRows([baseAdset])
+    const rows = mapAdsetRows([baseAdset])
+    const row = rows[0]!
 
     expect(row.id).toBe('adset-1')
     expect(row.name).toBe('Público Lookalike')
   })
 
   it('mapeia métricas de performance do adset', () => {
-    const [row] = mapAdsetRows([baseAdset])
+    const rows = mapAdsetRows([baseAdset])
+    const row = rows[0]!
 
     expect(row.spend).toBe(1000)
     expect(row.roas).toBe(5)
@@ -116,21 +122,24 @@ describe('mapAdsetRows', () => {
 
 describe('mapAdRows', () => {
   it('mapeia adId e adName como id e name', () => {
-    const [row] = mapAdRows([baseAd])
+    const rows = mapAdRows([baseAd])
+    const row = rows[0]!
 
     expect(row.id).toBe('ad-1')
     expect(row.name).toBe('Criativo Vídeo A')
   })
 
   it('inclui thumbnailUrl no row do anúncio', () => {
-    const [row] = mapAdRows([baseAd])
+    const rows = mapAdRows([baseAd])
+    const row = rows[0]!
 
     expect(row.thumbnailUrl).toBe('https://example.com/thumb.jpg')
   })
 
   it('thumbnailUrl undefined quando não fornecido', () => {
     const adWithoutThumb: AdMetrics = { ...baseAd, thumbnailUrl: undefined }
-    const [row] = mapAdRows([adWithoutThumb])
+    const rows = mapAdRows([adWithoutThumb])
+    const row = rows[0]!
 
     expect(row.thumbnailUrl).toBeUndefined()
   })
@@ -141,7 +150,8 @@ describe('mapAdRows', () => {
       'custom:view_rate': 0.75,
     } as unknown as AdMetrics
 
-    const [row] = mapAdRows([adWithCustom])
+    const rows = mapAdRows([adWithCustom])
+    const row = rows[0]!
 
     expect(row.customMetrics).toEqual({ 'custom:view_rate': 0.75 })
   })

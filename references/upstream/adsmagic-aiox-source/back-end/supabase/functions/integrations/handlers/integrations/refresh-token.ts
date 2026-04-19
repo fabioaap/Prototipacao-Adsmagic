@@ -205,9 +205,36 @@ export async function handleRefreshToken(
     })
   } catch (error) {
     console.error('[Refresh Token] Error:', error)
-    return errorResponse(
-      error instanceof Error ? error.message : 'Failed to refresh token',
-      500
-    )
+
+    const message = error instanceof Error ? error.message : 'Failed to refresh token'
+    const isTokenInvalid = message.includes('Invalid OAuth') ||
+      message.includes('Error validating access token') ||
+      message.includes('expired') ||
+      message.includes('invalid_token') ||
+      message.includes('OAuthException')
+
+    if (isTokenInvalid) {
+      // Update integration status to error so UI shows reconnect option
+      try {
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+        if (serviceRoleKey) {
+          const supabaseAdmin = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            serviceRoleKey
+          )
+          const integrationRepo = new SupabaseIntegrationRepository()
+          await integrationRepo.updateStatus(integrationId, 'error', supabaseAdmin)
+        }
+      } catch (statusError) {
+        console.error('[Refresh Token] Failed to update status to error:', statusError)
+      }
+
+      return errorResponse(
+        'Token de acesso foi invalidado pela plataforma. Por favor, reconecte sua integração.',
+        401
+      )
+    }
+
+    return errorResponse(message, 500)
   }
 }

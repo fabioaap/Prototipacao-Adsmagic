@@ -67,17 +67,26 @@ export const configureBrokerSchema = z.object({
 
 /**
  * Schema para salvar conta conectada (genérico)
- * 
+ *
  * Valida dados específicos do broker dinamicamente.
+ * Suporta fluxo QR Code (phoneNumber obrigatório) e
+ * fluxo Webhook (phoneNumberId obrigatório, phoneNumber opcional).
  */
 export const saveConnectedAccountSchema = z.object({
   projectId: z.string().uuid('Invalid project ID format'),
   brokerType: z.string().min(1, 'Broker type is required'),
   phoneNumber: z.string()
-    .regex(/^\+?[1-9]\d{1,14}$/, 'Formato de telefone inválido. Use formato internacional (ex: +5511999999999)'),
+    .regex(/^\+?[1-9]\d{1,14}$/, 'Formato de telefone inválido. Use formato internacional (ex: +5511999999999)')
+    .optional(),
+  phoneNumberId: z.string().min(1, 'Phone Number ID is required').optional(),
+  accessToken: z.string().optional(),
+  accountName: z.string().optional(),
   profileName: z.string().optional(),
   brokerSpecificData: z.record(z.unknown()).optional(),
-})
+}).refine(
+  (data) => data.phoneNumber || data.phoneNumberId,
+  { message: 'Either phoneNumber or phoneNumberId must be provided' }
+)
 
 /**
  * Função helper para extrair erros de validação

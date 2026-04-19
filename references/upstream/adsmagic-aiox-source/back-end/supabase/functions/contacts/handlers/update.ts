@@ -4,7 +4,8 @@
  * Atualiza um contato existente
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createWriteClient } from '../utils/writeClient.ts'
+import { insertContactStageHistory } from '../services/contactStageHistory.ts'
 import { successResponse, errorResponse, validationErrorResponse } from '../utils/response.ts'
 import { updateContactSchema, extractValidationErrors, validateUUID } from '../validators/contact.ts'
 import type { Contact, UpdateContactDTO } from '../types.ts'
@@ -137,22 +138,6 @@ function buildUpdatePayload(updateData: UpdateContactDTO): Partial<Contact> {
 }
 
 /**
- * Cria cliente Supabase com service_role se disponível, senão usa o cliente fornecido
- */
-function createUpdateClient(
-  supabaseClient: SupabaseDbClient
-): SupabaseDbClient {
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-  
-  if (serviceRoleKey) {
-    return createClient(supabaseUrl, serviceRoleKey)
-  }
-  
-  return supabaseClient
-}
-
-/**
  * Atualiza um contato
  */
 export async function handleUpdate(
@@ -275,7 +260,7 @@ export async function handleUpdate(
     })
 
     // Criar cliente para UPDATE (usa service_role se disponível)
-    const updateClient = createUpdateClient(supabaseClient)
+    const updateClient = createWriteClient(supabaseClient)
     console.log('[Update Contact] Using service_role:', !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))
 
     // Atualizar contato
@@ -341,6 +326,26 @@ export async function handleUpdate(
       } catch (error) {
         // Log mas não falha a operação se o histórico não puder ser registrado
         console.error('[Update Contact] Exception while logging origin change:', error)
+      }
+    }
+
+    const hasStageChanged =
+      updateData.current_stage_id !== undefined &&
+      updateData.current_stage_id !== existingContact.current_stage_id
+
+    if (hasStageChanged) {
+      try {
+        await insertContactStageHistory(updateClient, {
+          contactId: contact.id,
+          stageId: updateData.current_stage_id!,
+          movedBy: `user:${user.id}`
+        })
+      } catch (stageHistoryError) {
+        console.error('[Update Contact] Failed to log stage change:', {
+          contactId: contact.id,
+          stageId: updateData.current_stage_id,
+          error: stageHistoryError instanceof Error ? stageHistoryError.message : stageHistoryError
+        })
       }
     }
 

@@ -74,7 +74,6 @@ export const useProjectsStore = defineStore('projects', () => {
   async function waitForCompany(maxRetries: number = 10, delayMs: number = 500): Promise<boolean> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`[Projects Store] 🔄 Waiting for company (attempt ${attempt}/${maxRetries})...`)
 
         const { useAuthStore } = await import('@/stores/auth')
         const authStore = useAuthStore()
@@ -87,24 +86,20 @@ export const useProjectsStore = defineStore('projects', () => {
         const companiesStore = useCompaniesStore()
 
         if (companiesStore.currentCompanyId) {
-          console.log('[Projects Store] ✅ Company available:', companiesStore.currentCompanyId)
           return true
         }
 
         // Se não tem empresa, tentar inicializar
         if (attempt === 1) {
-          console.log('[Projects Store] 🚀 Initializing companies store...')
           await companiesStore.initialize()
         }
 
         if (companiesStore.currentCompanyId) {
-          console.log('[Projects Store] ✅ Company loaded after initialization:', companiesStore.currentCompanyId)
           return true
         }
 
         // Aguardar antes da próxima tentativa
         if (attempt < maxRetries) {
-          console.log(`[Projects Store] ⏳ Waiting ${delayMs}ms before retry...`)
           await new Promise(resolve => setTimeout(resolve, delayMs))
         }
       } catch (err) {
@@ -121,8 +116,6 @@ export const useProjectsStore = defineStore('projects', () => {
 
   // Actions
   async function fetchProjects(forceRefresh: boolean = false) {
-    console.log('[Projects Store] 📡 Fetching projects...', forceRefresh ? '(force refresh)' : '')
-    console.log('[Projects Store] 🔍 Filters:', filters.value)
 
     const { useAuthStore } = await import('@/stores/auth')
     const authStore = useAuthStore()
@@ -146,8 +139,6 @@ export const useProjectsStore = defineStore('projects', () => {
     const companiesStore = useCompaniesStore()
     const companyId = companiesStore.currentCompanyId
 
-    console.log('[Projects Store] 🏢 Company ID:', companyId)
-
     // Verificar se há filtros ativos (pesquisa, ordenação ou período de métricas)
     const hasActiveFilters = Boolean(
       filters.value.search ||
@@ -162,7 +153,6 @@ export const useProjectsStore = defineStore('projects', () => {
     const cachedData = shouldUseCache ? cacheService.get<Project[]>(cacheKey) : null
 
     if (cachedData) {
-      console.log('[Projects Store] 💾 Using cached data:', cachedData.length, 'projects')
       projects.value = cachedData
       return
     }
@@ -170,10 +160,8 @@ export const useProjectsStore = defineStore('projects', () => {
     // Se forceRefresh ou houver filtros, invalidar cache antes de buscar
     if (forceRefresh || hasActiveFilters) {
       if (forceRefresh) {
-        console.log('[Projects Store] 🔄 Force refresh: invalidating cache')
       }
       if (hasActiveFilters) {
-        console.log('[Projects Store] 🔍 Active filters detected: bypassing cache')
       }
       cacheService.invalidate(cacheKey)
     }
@@ -182,9 +170,7 @@ export const useProjectsStore = defineStore('projects', () => {
     error.value = null
 
     try {
-      console.log('[Projects Store] 🔄 Calling projectsService.getProjects with filters:', filters.value)
       const result = await projectsService.getProjects(filters.value)
-      console.log('[Projects Store] ✅ Projects fetched:', result.length)
       projects.value = result
 
       // Armazenar no cache apenas se não houver filtros ativos (5 minutos)
@@ -357,7 +343,6 @@ export const useProjectsStore = defineStore('projects', () => {
         cacheService.invalidatePattern(`projects:${companiesStore.currentCompanyId}`)
       }
 
-      console.log('[Projects] ✅ Projeto duplicado com sucesso:', duplicatedName)
       return newProject
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Erro ao duplicar projeto'
@@ -512,21 +497,17 @@ export const useProjectsStore = defineStore('projects', () => {
    * Aguarda empresa estar carregada antes de buscar projetos
    */
   async function initialize() {
-    console.log('[Projects Store] 🚀 Initializing...')
 
     try {
       // Aguardar empresa estar disponível com retry logic
       const companyAvailable = await waitForCompany()
 
       if (companyAvailable) {
-        console.log('[Projects Store] 🏢 Company available, fetching projects...')
         await fetchProjects()
       } else {
         console.warn('[Projects Store] ⚠️ No company available, skipping projects fetch')
         error.value = 'Nenhuma empresa selecionada'
       }
-
-      console.log('[Projects Store] ✅ Initialization complete')
 
       // Restore current project from localStorage
       const savedProjectId = localStorage.getItem('current_project_id')
@@ -546,9 +527,6 @@ export const useProjectsStore = defineStore('projects', () => {
             setCurrentProjectId(null)
           }
         }
-      } else if (projects.value.length > 0) {
-        // Nenhum projeto salvo — auto-seleciona o primeiro disponível
-        await setCurrentProject(projects.value[0])
       }
     } catch (err) {
       console.error('[Projects Store] ❌ Initialization failed:', err)
@@ -567,7 +545,6 @@ export const useProjectsStore = defineStore('projects', () => {
     if (companiesStore.currentCompanyId) {
       const cacheKey = `projects:${companiesStore.currentCompanyId}`
       cacheService.invalidate(cacheKey)
-      console.log('[Projects Store] 🗑️ Cache invalidado manualmente')
     }
   }
 

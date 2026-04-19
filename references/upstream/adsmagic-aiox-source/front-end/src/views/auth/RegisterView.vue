@@ -3,8 +3,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { z } from 'zod'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/components/ui/toast/use-toast'
 import { useLocalizedRoute } from '@/composables/useLocalizedRoute'
 import { supabase, supabaseEnabled } from '@/services/api/supabaseClient'
+import { analytics } from '@/services/analytics'
 import { resendVerificationEmail, buildEmailConfirmationRedirect } from '@/services/api/authService'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
@@ -25,6 +27,7 @@ import { detectUserCountry } from '@/services/geolocation'
 const { t } = useI18n()
 const authStore = useAuthStore()
 const { getLocalizedRoute, getCurrentLocale } = useLocalizedRoute()
+const { success: toastSuccess, error: toastError } = useToast()
 
 /**
  * Schema de validação usando Zod com mensagens traduzidas
@@ -83,9 +86,10 @@ const isResendingEmail = ref(false)
  */
 const validateField = (field: keyof RegisterFormData): boolean => {
   try {
+    // Cria schema parcial para validação do campo específico
     const registerSchema = createRegisterSchema()
-    const fieldSchema = registerSchema.shape[field]
-    fieldSchema.parse(formData.value[field])
+    const fieldSchema = registerSchema.pick({ [field]: true } as Record<keyof RegisterFormData, true>)
+    fieldSchema.parse({ [field]: formData.value[field] })
 
     // Remove erro do campo se válido
     if (errors.value[field]) {
@@ -167,7 +171,7 @@ const handleSubmit = async () => {
     if (!supabaseEnabled) {
       console.warn('[Register] Supabase desabilitado - simulando cadastro')
       registrationSuccess.value = true
-      showToast(t('auth.register.emailConfirmationSent'), 'success')
+      toastSuccess(t('auth.register.emailConfirmationSent'))
       return
     }
 
@@ -193,14 +197,14 @@ const handleSubmit = async () => {
     if (authError) throw authError
 
     if (authData.user) {
-      // Marcar como sucesso e mostrar mensagem de confirmação
+      analytics.track('user_signed_up', { email: formData.value.email })
       registrationSuccess.value = true
-      showToast(t('auth.register.emailConfirmationSent'), 'success')
+      toastSuccess(t('auth.register.emailConfirmationSent'))
     }
   } catch (error) {
     console.error('Registration error:', error)
     const errorMessage = error instanceof Error ? error.message : t('auth.register.errorMessage')
-    showToast(errorMessage, 'error')
+    toastError(errorMessage)
   } finally {
     isLoading.value = false
   }
@@ -239,15 +243,6 @@ const handlePhoneChange = (value: string) => {
 }
 
 /**
- * Mock de toast notification
- * TODO: Implementar com biblioteca de toast real
- */
-const showToast = (message: string, type: 'success' | 'error') => {
-  console.log(`[TOAST ${type.toUpperCase()}]:`, message)
-  // TODO: Implementar toast visual
-}
-
-/**
  * Reenvia o email de confirmação para o email do formulário (após cadastro com sucesso).
  */
 const handleResendConfirmationEmail = async () => {
@@ -257,11 +252,11 @@ const handleResendConfirmationEmail = async () => {
   try {
     const locale = getCurrentLocale()
     await resendVerificationEmail(formData.value.email, locale)
-    showToast(t('auth.register.resendEmailSent'), 'success')
+    toastSuccess(t('auth.register.resendEmailSent'))
   } catch (error) {
     console.error('Resend confirmation error:', error)
     const message = error instanceof Error ? error.message : t('auth.register.resendEmailError')
-    showToast(message, 'error')
+    toastError(message)
   } finally {
     isResendingEmail.value = false
   }
@@ -296,19 +291,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex">
+  <div class="h-screen flex overflow-hidden">
     <!-- Language Selector - Fixed Position -->
     <div class="language-selector-wrapper">
       <LanguageSelector />
     </div>
 
     <!-- Left Side - Register Form -->
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
-      <div class="w-full max-w-md space-y-8">
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-background overflow-y-auto">
+      <div class="w-full max-w-md space-y-4 sm:space-y-6 lg:space-y-8">
         <!-- Logo/Brand -->
         <div class="text-center">
           <BrandLogo :height="48" />
-          <p class="text-muted-foreground mt-4">
+          <p class="text-muted-foreground mt-2 sm:mt-4">
             {{ t('auth.register.createAccount') }}
           </p>
         </div>
@@ -491,15 +486,15 @@ onMounted(() => {
     </div>
 
     <!-- Right Side - Visual/Branding -->
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-12">
-      <div class="max-w-md text-primary-foreground space-y-6">
-        <h2 class="text-5xl font-bold leading-tight">
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-8 xl:p-12">
+      <div class="max-w-md text-primary-foreground space-y-4 xl:space-y-6">
+        <h2 class="text-3xl xl:text-5xl font-bold leading-tight">
           {{ t('auth.register.hero.title') }}
         </h2>
-        <p class="text-xl text-primary-foreground/90">
+        <p class="text-lg xl:text-xl text-primary-foreground/90">
           {{ t('auth.register.hero.description') }}
         </p>
-        <div class="space-y-4 pt-8">
+        <div class="space-y-3 pt-4 xl:space-y-4 xl:pt-8">
           <div class="flex items-start gap-3">
             <div class="mt-1">
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">

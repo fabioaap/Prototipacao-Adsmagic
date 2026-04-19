@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Download, Upload, CheckSquare, X, Plus } from 'lucide-vue-next'
+import { Download, Upload, CheckSquare, X, Plus } from '@/composables/useIcons'
 import Button from '@/components/ui/Button.vue'
 import OriginsList from '@/components/settings/OriginsList.vue'
 import OriginFormModal from '@/components/settings/OriginFormModal.vue'
@@ -12,9 +12,6 @@ import type { Origin } from '@/types/models'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { downloadBlob, generateFilename } from '@/utils/download'
 
-// ============================================================================
-// I18N
-// ============================================================================
 const { toast } = useToast()
 
 // ============================================================================
@@ -164,23 +161,33 @@ const handleBulkDeleteOrigins = async (originIds: string[]) => {
   const blocked: Array<{ id: string; name: string; count: number }> = []
   const toDelete: Array<{ id: string; name: string }> = []
 
-  for (const id of originIds) {
-    const origin = originsStore.origins.find(o => o.id === id)
-    if (!origin) continue
+  // Check dependencies in parallel
+  const checkResults = await Promise.allSettled(
+    originIds.map(async (id) => {
+      const origin = originsStore.origins.find(o => o.id === id)
+      if (!origin) return null
+      const result = await countContactsByOrigin(id)
+      return { id, name: origin.name, result }
+    })
+  )
 
-    const result = await countContactsByOrigin(id)
+  for (const settled of checkResults) {
+    if (settled.status !== 'fulfilled' || !settled.value) continue
+    const { id, name, result } = settled.value
     if (result.ok && result.value > 0) {
-      blocked.push({ id, name: origin.name, count: result.value })
+      blocked.push({ id, name, count: result.value })
     } else {
-      toDelete.push({ id, name: origin.name })
+      toDelete.push({ id, name })
     }
   }
 
-  for (const origin of toDelete) {
-    try {
-      await originsStore.deleteOrigin(origin.id)
-    } catch (error) {
-      console.error(`Erro ao deletar origem ${origin.name}:`, error)
+  // Delete in parallel
+  const deleteResults = await Promise.allSettled(
+    toDelete.map(origin => originsStore.deleteOrigin(origin.id))
+  )
+  for (let i = 0; i < deleteResults.length; i++) {
+    if (deleteResults[i]!.status === 'rejected') {
+      console.error(`Erro ao deletar origem ${toDelete[i]!.name}:`, (deleteResults[i] as PromiseRejectedResult).reason)
     }
   }
 

@@ -185,7 +185,7 @@ dependencies:
 squad_distribution:
   levels:
     local:
-      path: './workspace/squads/'
+      path: './squads/'
       description: 'Private, project-specific squads'
       command: '*create-squad'
     public:
@@ -285,7 +285,7 @@ Type `*help` to see all commands, or `*guide` for detailed usage.
 
 1. **Design squad** → `*design-squad --docs ./docs/prd/my-project.md`
 2. **Review recommendations** → Accept/modify agents and tasks
-3. **Generate blueprint** → Saved to `./workspace/squads/.designs/`
+3. **Generate blueprint** → Saved to `./squads/.designs/`
 4. **Create from blueprint** → `*create-squad my-squad --from-design`
 5. **Validate** → `*validate-squad my-squad`
 
@@ -309,7 +309,7 @@ Type `*help` to see all commands, or `*guide` for detailed usage.
 ### Squad Structure
 
 ```text
-./workspace/squads/my-squad/
+./squads/my-squad/
 ├── squad.yaml              # Manifest (required)
 ├── README.md               # Documentation
 ├── config/

@@ -34,7 +34,7 @@ export const useCompaniesStore = defineStore('companies', () => {
 
   // Actions
   async function fetchCompanies(options: FetchCompaniesOptions = {}): Promise<void> {
-    const { force = false, reason = 'view' } = options
+    const { force = false } = options
     const authStore = useAuthStore()
     const currentUserId = authStore.user?.id ?? null
     const canUseCache =
@@ -45,24 +45,15 @@ export const useCompaniesStore = defineStore('companies', () => {
       Date.now() - lastCompaniesFetchAt < COMPANIES_CACHE_TTL_MS
 
     if (canUseCache) {
-      if (import.meta.env.DEV) {
-        console.log('[Companies Store] ✅ Using cached companies result:', { reason })
-      }
       return
     }
 
     if (!force && inFlightFetchPromise) {
-      if (import.meta.env.DEV) {
-        console.log('[Companies Store] 🔄 Reusing in-flight companies request:', { reason })
-      }
       return await inFlightFetchPromise
     }
 
     const runFetch = async (): Promise<void> => {
       try {
-        if (import.meta.env.DEV) {
-          console.log('[Companies Store] 📡 Fetching companies...', { reason, force })
-        }
         isLoading.value = true
         error.value = null
 
@@ -79,14 +70,8 @@ export const useCompaniesStore = defineStore('companies', () => {
         }
 
         // Buscar empresas via API
-        if (import.meta.env.DEV) {
-          console.log('[Companies Store] 📡 Calling companiesService.getUserCompanies...')
-        }
         const companiesData = await companiesService.getUserCompanies(currentUserId)
 
-        if (import.meta.env.DEV) {
-          console.log('[Companies Store] ✅ Companies fetched:', companiesData.length)
-        }
         companies.value = companiesData
         lastCompaniesFetchAt = Date.now()
         lastCompaniesFetchUserId = currentUserId
@@ -117,9 +102,6 @@ export const useCompaniesStore = defineStore('companies', () => {
         }
       } finally {
         isLoading.value = false
-        if (import.meta.env.DEV) {
-          console.log('[Companies Store] ✅ fetchCompanies completed (isLoading:', isLoading.value, ')')
-        }
       }
     }
 
@@ -339,15 +321,12 @@ export const useCompaniesStore = defineStore('companies', () => {
   async function initializeFromStorage(): Promise<boolean> {
     const storedCompanyId = localStorage.getItem('current_company_id')
     if (!storedCompanyId) {
-      console.log('[Companies Store] ⚠️ No company ID in localStorage')
       return false
     }
 
     try {
-      console.log('[Companies Store] 🔄 Initializing from storage:', storedCompanyId)
 
       // Primeiro, buscar todas as empresas do usuário
-      console.log('[Companies Store] 📡 Fetching user companies to find stored company...')
       await fetchCompanies({ reason: 'bootstrap' })
 
       // Procurar a empresa armazenada na lista
@@ -355,22 +334,18 @@ export const useCompaniesStore = defineStore('companies', () => {
 
       if (company) {
         currentCompany.value = company
-        console.log('[Companies Store] 🏢 Company found and set:', company.name)
 
         // Carregar configurações da empresa
         try {
           await loadCompanySettings(company.id)
-          console.log('[Companies Store] ⚙️ Company settings loaded')
         } catch (settingsError) {
           console.warn('[Companies Store] ⚠️ Could not load company settings:', settingsError)
           // Não falhar por causa das configurações
         }
 
-        console.log('[Companies Store] ✅ Company loaded from storage:', company.name)
         return true
       } else {
         console.warn('[Companies Store] ⚠️ Stored company not found in user companies')
-        console.log('[Companies Store] 📋 Available companies:', companies.value.map(c => ({ id: c.id, name: c.name })))
         localStorage.removeItem('current_company_id')
         return false
       }
@@ -391,35 +366,28 @@ export const useCompaniesStore = defineStore('companies', () => {
    */
   async function initialize(): Promise<void> {
     try {
-      console.log('[Companies Store] 🚀 Initializing...')
 
       // Sempre buscar empresas do backend primeiro
-      console.log('[Companies Store] 📡 Fetching companies from backend...')
       await fetchCompanies({ reason: 'bootstrap' })
-      console.log('[Companies Store] 📡 Fetched', companies.value.length, 'companies from backend')
 
       // Verificar se há empresa armazenada no localStorage
       const storedCompanyId = localStorage.getItem('current_company_id')
       if (storedCompanyId) {
-        console.log('[Companies Store] 🔄 Found stored company ID:', storedCompanyId)
 
         // Procurar a empresa armazenada na lista
         const storedCompany = companies.value.find(c => c.id === storedCompanyId)
 
         if (storedCompany) {
           currentCompany.value = storedCompany
-          console.log('[Companies Store] ✅ Stored company found and set:', storedCompany.name)
 
           // Carregar configurações da empresa
           try {
             await loadCompanySettings(storedCompany.id)
-            console.log('[Companies Store] ⚙️ Company settings loaded')
           } catch (settingsError) {
             console.warn('[Companies Store] ⚠️ Could not load company settings:', settingsError)
           }
         } else {
           console.warn('[Companies Store] ⚠️ Stored company not found in user companies')
-          console.log('[Companies Store] 📋 Available companies:', companies.value.map(c => ({ id: c.id, name: c.name })))
           localStorage.removeItem('current_company_id')
         }
       }
@@ -428,15 +396,12 @@ export const useCompaniesStore = defineStore('companies', () => {
       if (!currentCompany.value && companies.value.length > 0) {
         const firstCompany = companies.value[0]
         if (firstCompany) {
-          console.log('[Companies Store] 🏢 Setting first company as current:', firstCompany.name)
           await setCurrentCompany(firstCompany)
         }
       } else if (companies.value.length === 0) {
         console.warn('[Companies Store] ⚠️ No companies found for user')
       }
 
-      console.log('[Companies Store] ✅ Initialization complete')
-      console.log('[Companies Store] 🏢 Final state - Company:', currentCompany.value?.name, 'ID:', currentCompany.value?.id)
     } catch (err) {
       console.error('[Companies Store] ❌ Initialization failed:', err)
       console.error('[Companies Store] ❌ Error details:', {

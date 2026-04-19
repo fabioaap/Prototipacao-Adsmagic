@@ -13,6 +13,7 @@ const props = withDefaults(defineProps<TabsTriggerProps>(), {
 
 const tabs = inject<{
   activeTab: ComputedRef<string>
+  baseId: string
   orientation: ComputedRef<'horizontal' | 'vertical'>
   updateActiveTab: (value: string) => void
 }>('tabs')
@@ -41,9 +42,10 @@ const triggerClass = computed(() => {
 <template>
   <button
     type="button"
+    :id="`${tabs?.baseId}-tab-${value}`"
     role="tab"
     :aria-selected="isActive"
-    :aria-controls="`panel-${value}`"
+    :aria-controls="`${tabs?.baseId}-panel-${value}`"
     :disabled="disabled"
     :class="triggerClass"
     @click="handleClick"

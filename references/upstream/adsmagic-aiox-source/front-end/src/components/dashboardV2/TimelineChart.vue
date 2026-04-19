@@ -34,8 +34,16 @@ const props = defineProps<Props>()
 const calendarTimezone = computed(() => resolveTimezone(props.timezone || getLocalTimeZone()))
 const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth <= 640 : false)
 
+const MOBILE_BREAKPOINT = 640
+const RESIZE_DEBOUNCE_MS = 150
+
+let resizeTimer: ReturnType<typeof setTimeout> | null = null
+
 function updateViewportState() {
-  isMobile.value = window.innerWidth <= 640
+  if (resizeTimer) clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    isMobile.value = window.innerWidth <= MOBILE_BREAKPOINT
+  }, RESIZE_DEBOUNCE_MS)
 }
 
 const emit = defineEmits<{

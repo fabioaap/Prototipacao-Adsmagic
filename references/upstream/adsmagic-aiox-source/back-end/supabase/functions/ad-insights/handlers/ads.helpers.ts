@@ -150,13 +150,15 @@ async function fetchGoogleAdsTree(
 ): Promise<RawAdsResult> {
   const campaignIdByAdsetId = new Map<string, string>()
   let ads: RawAdMetrics[] = []
+  const loginId = account.loginCustomerId
 
   if (adsetId) {
     ads = await getGoogleAds(
       account.externalAccountId,
       adsetId,
       account.accessToken,
-      dateRange
+      dateRange,
+      loginId
     )
 
     if (campaignId) {
@@ -170,7 +172,8 @@ async function fetchGoogleAdsTree(
       account.externalAccountId,
       campaignId,
       account.accessToken,
-      dateRange
+      dateRange,
+      loginId
     )
     const activeAdgroups = adgroups.filter((adgroup) => adgroup.status === 'ACTIVE')
 
@@ -184,7 +187,8 @@ async function fetchGoogleAdsTree(
           account.externalAccountId,
           adgroup.adsetId,
           account.accessToken,
-          dateRange
+          dateRange,
+          loginId
         )
       )
     )
@@ -195,7 +199,8 @@ async function fetchGoogleAdsTree(
   const campaigns = await getGoogleCampaigns(
     account.externalAccountId,
     account.accessToken,
-    dateRange
+    dateRange,
+    loginId
   )
   const activeCampaigns = campaigns.filter((campaign) => campaign.status === 'ACTIVE')
 
@@ -205,7 +210,8 @@ async function fetchGoogleAdsTree(
         account.externalAccountId,
         campaign.campaignId,
         account.accessToken,
-        dateRange
+        dateRange,
+        loginId
       )
     )
   )
@@ -223,7 +229,8 @@ async function fetchGoogleAdsTree(
         account.externalAccountId,
         adgroup.adsetId,
         account.accessToken,
-        dateRange
+        dateRange,
+        loginId
       )
     )
   )

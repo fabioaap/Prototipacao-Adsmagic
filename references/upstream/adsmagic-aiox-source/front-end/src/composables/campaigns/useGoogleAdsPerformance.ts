@@ -62,23 +62,11 @@ function createSortStateByLevel(): Record<CampaignsTableLevel, CampaignsLevelSor
   }
 }
 
-function createTableConfigByLevelState(): Record<CampaignsTableLevel, CampaignsLevelTableConfigState> {
+function createDefaultTableConfig(): CampaignsLevelTableConfigState {
   return {
-    campaign: {
-      selectedColumnIds: getDefaultColumns('campaign'),
-      columnOrder: getDefaultColumns('campaign'),
-      loaded: false,
-    },
-    adset: {
-      selectedColumnIds: getDefaultColumns('adset'),
-      columnOrder: getDefaultColumns('adset'),
-      loaded: false,
-    },
-    ad: {
-      selectedColumnIds: getDefaultColumns('ad'),
-      columnOrder: getDefaultColumns('ad'),
-      loaded: false,
-    },
+    selectedColumnIds: getDefaultColumns('campaign'),
+    columnOrder: getDefaultColumns('campaign'),
+    loaded: false,
   }
 }
 
@@ -108,10 +96,9 @@ function mergeColumnOrder(
 }
 
 function resolveConfig(
-  level: CampaignsTableLevel,
   config: Pick<AdTableConfig, 'selectedColumnIds' | 'columnOrder'>
 ): CampaignsLevelTableConfigState {
-  const defaultColumns = DEFAULT_COLUMNS_BY_LEVEL[level]
+  const defaultColumns = DEFAULT_COLUMNS_BY_LEVEL['campaign']
   const selectedColumnIds = sanitizeColumnIds(config.selectedColumnIds)
   const resolvedSelected = selectedColumnIds.length > 0
     ? selectedColumnIds
@@ -177,21 +164,21 @@ export function useGoogleAdsPerformance() {
   const sortStateByLevel = reactive<Record<CampaignsTableLevel, CampaignsLevelSortState>>(
     createSortStateByLevel()
   )
-  const tableConfigByLevel = reactive<Record<CampaignsTableLevel, CampaignsLevelTableConfigState>>(
-    createTableConfigByLevelState()
+  const tableConfig = reactive<CampaignsLevelTableConfigState>(
+    createDefaultTableConfig()
   )
 
-  const currentConfigState = computed(() => tableConfigByLevel[activeTab.value])
+  const currentConfigState = computed(() => tableConfig)
 
   const stageOptions = computed(() =>
     stagesStore.activeStages.map((s) => ({ id: s.id, name: s.name }))
   )
 
-  function getColumnsForLevel(level: CampaignsTableLevel): AdsTableColumn[] {
-    const config = tableConfigByLevel[level]
+  function getColumnsForLevel(_level: CampaignsTableLevel): AdsTableColumn[] {
+    const config = tableConfig
     const selected = config.selectedColumnIds.length > 0
       ? config.selectedColumnIds
-      : getDefaultColumns(level)
+      : getDefaultColumns('campaign')
     const order = config.columnOrder.length > 0
       ? config.columnOrder
       : selected
@@ -230,20 +217,20 @@ export function useGoogleAdsPerformance() {
     return filters
   }
 
-  async function loadTableConfig(level: CampaignsTableLevel) {
+  async function loadTableConfig() {
     try {
-      const config = await adInsightsService.getTableConfig('google', level)
-      tableConfigByLevel[level] = resolveConfig(level, config)
+      const config = await adInsightsService.getTableConfig('google')
+      Object.assign(tableConfig, resolveConfig(config))
       if (config.customMetrics && config.customMetrics.length > 0) {
         customMetricDefinitions.value = config.customMetrics
       }
     } catch (error) {
       console.error('[Google Ads Performance] Erro ao carregar configuração:', error)
-      tableConfigByLevel[level] = {
-        selectedColumnIds: getDefaultColumns(level),
-        columnOrder: getDefaultColumns(level),
+      Object.assign(tableConfig, {
+        selectedColumnIds: getDefaultColumns('campaign'),
+        columnOrder: getDefaultColumns('campaign'),
         loaded: true,
-      }
+      })
     }
   }
 
@@ -289,8 +276,8 @@ export function useGoogleAdsPerformance() {
   }
 
   async function ensureLevelReady(level: CampaignsTableLevel) {
-    if (!tableConfigByLevel[level].loaded) {
-      await loadTableConfig(level)
+    if (!tableConfig.loaded) {
+      await loadTableConfig()
     }
 
     if (!loadedByLevel[level]) {
@@ -328,13 +315,13 @@ export function useGoogleAdsPerformance() {
     try {
       const selectedColumnIds = sanitizeColumnIds(payload.selectedColumnIds)
       const columnOrder = sanitizeColumnIds(payload.columnOrder)
-      const updated = await adInsightsService.updateTableConfig('google', activeTab.value, {
+      const updated = await adInsightsService.updateTableConfig('google', {
         selectedColumnIds,
         columnOrder,
         customMetrics: payload.customMetrics,
       })
 
-      tableConfigByLevel[activeTab.value] = resolveConfig(activeTab.value, updated)
+      Object.assign(tableConfig, resolveConfig(updated))
       if (updated.customMetrics) {
         customMetricDefinitions.value = updated.customMetrics
       }

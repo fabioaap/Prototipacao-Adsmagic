@@ -58,16 +58,19 @@ Páginas desta camada:
 - [Alinhamento de Fontes](/wiki/marketing/alinhamento-de-fontes)
 - [Provas e Objeções](/wiki/marketing/provas-e-objecoes)
 
-### Assets
+### Campanhas de GTM
 
-Organiza o que já existe para reaproveitamento e execução.
+Transforma estratégia, narrativa e mensagens em campanhas, conteúdos e ativos operacionais de aquisição e demanda.
 
 Páginas desta camada:
 
+- [Plano de Organização — Campanhas de GTM](/wiki/marketing/plano-organizacao-campanhas-gtm)
 - [Assets e Campanhas](/wiki/marketing/assets-e-campanhas)
 - [Kit de Copies — Meta Ads](/wiki/marketing/copies-meta-ads)
 - [Kit de Copies — Google Ads](/wiki/marketing/copies-google-ads)
 - [Canvas de Conteúdo para Instagram](/wiki/marketing/canvas-de-conteudo-instagram)
+- [Arquitetura Editorial — Série Instagram StoryBrand](/wiki/marketing/arquitetura-editorial-instagram-storybrand)
+- [Copies — Série de 9 Carrosséis Instagram StoryBrand](/wiki/marketing/copies-carrosseis-instagram-storybrand)
 - [Roteiros — Reels e Carrosseis](/wiki/marketing/roteiros-reels-carrosseis)
 - [Sequência de E-mail Outbound](/wiki/marketing/sequencia-email-outbound)
 - [Governança](/wiki/marketing/governanca)
@@ -94,9 +97,15 @@ Se a duvida for sobre preco, unit economics e qual numero deve prevalecer, use P
 
 Se a dúvida for sobre como traduzir isso em discurso, vá para Mensagens-Chave e Provas e Objeções.
 
-Se a dúvida for sobre o que já existe para usar ou adaptar, consulte Assets e Campanhas.
+Se a dúvida for sobre o que já existe para usar ou adaptar dentro das campanhas de GTM, consulte Assets e Campanhas.
+
+Se a dúvida for sobre a ordem de organização dessa frente, os papéis por agente e o plano de execução, use Plano de Organização — Campanhas de GTM.
 
 Se a duvida for sobre como transformar a tese do Adsmagic em calendario, hooks, reels, carrossel e stories, use Canvas de Conteudo para Instagram.
+
+Se a duvida for sobre uma sequencia editorial completa de carrosseis em StoryBrand antes da copy final, use Arquitetura Editorial — Série Instagram StoryBrand.
+
+Se a duvida for sobre a copy completa dos 9 carrosseis, em formato de revisao editorial antes do design, use Copies — Série de 9 Carrosséis Instagram StoryBrand, dentro da frente de Campanhas de GTM.
 
 Se a duvida for sobre conflito entre BP, LP, Notion e docs, consulte Alinhamento de Fontes.
 

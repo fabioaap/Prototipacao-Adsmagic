@@ -173,7 +173,7 @@
         </div>
         <div class="flex items-center justify-end gap-2">
           <Button
-            v-if="event?.status === 'failed'"
+            v-if="event?.status === 'failed' || event?.status === 'cancelled'"
             :disabled="loading"
             @click="handleRetry"
           >
@@ -204,7 +204,6 @@ import {
   XCircle,
   MousePointer,
   MessageSquare,
-  RefreshCw as SyncIcon,
   Facebook,
   Chrome,
   Music,
@@ -213,11 +212,13 @@ import {
   Check,
   Clock,
   Info
-} from 'lucide-vue-next'
+} from '@/composables/useIcons'
 import Drawer from '@/components/ui/Drawer.vue'
 import Button from '@/components/ui/Button.vue'
 import Label from '@/components/ui/Label.vue'
 import Badge from '@/components/ui/Badge.vue'
+import type { Component } from 'vue'
+import type { BadgeVariant } from '@/components/ui/Badge.vue'
 import type { Event } from '@/types/models'
 import { useFormat } from '@/composables/useFormat'
 import { useToast } from '@/components/ui/toast/use-toast'
@@ -241,7 +242,7 @@ const { formatDate } = useFormat()
 const { toast } = useToast()
 
 const getEventIcon = (type?: string) => {
-  const iconMap: Record<string, any> = {
+  const iconMap: Record<string, Component> = {
     contact_created: UserPlus,
     contact_updated: UserCog,
     stage_changed: ArrowRight,
@@ -249,7 +250,7 @@ const getEventIcon = (type?: string) => {
     sale_lost: XCircle,
     link_clicked: MousePointer,
     message_sent: MessageSquare,
-    integration_sync: SyncIcon
+    integration_sync: RefreshCw
   }
   return iconMap[type || ''] || UserPlus
 }
@@ -297,7 +298,7 @@ const getEventTypeLabel = (type?: string) => {
 }
 
 const getPlatformIcon = (platform?: string) => {
-  const iconMap: Record<string, any> = {
+  const iconMap: Record<string, Component> = {
     meta: Facebook,
     google: Chrome,
     tiktok: Music,
@@ -321,7 +322,7 @@ const getPlatformLabel = (platform?: string) => {
 }
 
 const getStatusIcon = (status?: string) => {
-  const iconMap: Record<string, any> = {
+  const iconMap: Record<string, Component> = {
     success: Check,
     pending: Clock,
     failed: XCircle,
@@ -331,7 +332,7 @@ const getStatusIcon = (status?: string) => {
 }
 
 const getStatusBadge = (status?: string) => {
-  const badgeMap: Record<string, { variant: any; label: string }> = {
+  const badgeMap: Record<string, { variant: BadgeVariant; label: string }> = {
     success: { variant: 'success', label: 'Sucesso' },
     pending: { variant: 'warning', label: 'Pendente' },
     failed: { variant: 'destructive', label: 'Falhou' },

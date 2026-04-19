@@ -52,10 +52,13 @@ export async function processJobs(
       const result = await processJob(job, supabaseClient, config)
       results.push(result)
 
-      if (result.status === 'failed' && result.error) {
+      if ((result.status === 'failed' || result.status === 'cancelled') && result.error) {
         errors.push(`Job ${job.id}: ${result.error}`)
       }
     }
+
+    // Warm-up de Edge Functions críticas (fire-and-forget)
+    warmCriticalFunctions().catch(() => {})
 
     return {
       success: true,
@@ -113,6 +116,8 @@ async function fetchRetryReadyJobs(
     .in('queue_name', config.queueNames)
     .eq('status', 'failed')
     .lt('retry_count', 3) // Usar max_retries seria melhor mas precisa de SQL raw
+    .not('retry_after', 'is', null) // Excluir jobs sem retry agendado (nonRetryable)
+    .is('completed_at', null) // Excluir jobs já finalizados
     .lte('retry_after', new Date().toISOString())
     .order('priority', { ascending: false })
     .order('retry_after', { ascending: true })
@@ -184,10 +189,10 @@ async function processJob(
     } else {
       // Não retentar erros definitivos (ex.: configuração ausente de integração/credencial).
       if (result.nonRetryable) {
-        await failJob(job.id, result.error || 'Non-retryable error', supabaseClient)
+        await cancelJob(job.id, result.error || 'Non-retryable error', supabaseClient)
         return {
           jobId: job.id,
-          status: 'failed',
+          status: 'cancelled',
           error: result.error
         }
       }
@@ -313,6 +318,27 @@ async function scheduleRetry(
 }
 
 /**
+ * Marca job como cancelado (erros não-retentáveis)
+ */
+async function cancelJob(
+  jobId: string,
+  errorMessage: string,
+  supabaseClient: SupabaseDbClient
+): Promise<void> {
+  await supabaseClient
+    .from('jobs')
+    .update({
+      status: 'cancelled' as const,
+      error_message: errorMessage,
+      completed_at: new Date().toISOString(),
+      retry_count: 3,
+      locked_at: null,
+      locked_by: null
+    })
+    .eq('id', jobId)
+}
+
+/**
  * Marca job como falho permanentemente
  */
 async function failJob(
@@ -330,6 +356,22 @@ async function failJob(
       locked_by: null
     })
     .eq('id', jobId)
+}
+
+/**
+ * Warm-up de Edge Functions críticas via CORS preflight (OPTIONS)
+ * Reduz cold starts para as próximas chamadas reais.
+ */
+async function warmCriticalFunctions(): Promise<void> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+  if (!supabaseUrl) return
+
+  const targets = ['dashboard', 'events', 'contacts', 'billing', 'ad-insights']
+  await Promise.allSettled(
+    targets.map(fn =>
+      fetch(`${supabaseUrl}/functions/v1/${fn}`, { method: 'OPTIONS' }).catch(() => {})
+    )
+  )
 }
 
 /**

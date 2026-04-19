@@ -33,7 +33,6 @@ const DEFAULT_MENU_WIDTH = 320
 
 const currentProject = computed(() => projectsStore.currentProject)
 const availableProjects = computed(() => projectsStore.projects || [])
-const hasOnlyOneProject = computed(() => availableProjects.value.length === 1)
 const routeProject = computed(() => {
   const projectId = route.params.projectId as string | undefined
   if (!projectId) return null
@@ -107,9 +106,9 @@ const selectProject = async (projectId: string) => {
   isOpen.value = false
 }
 
-const createNewProject = () => {
+const goToProjects = () => {
   const locale = route.params.locale || 'pt'
-  router.push(`/${locale}/project/new`)
+  router.push(`/${locale}/projects`)
   isOpen.value = false
 }
 
@@ -205,16 +204,13 @@ onBeforeUnmount(() => {
         <!-- CTA Criar novo projeto -->
         <button
           class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-          @click="createNewProject"
+          @click="goToProjects"
         >
           <div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
             <Plus class="h-4 w-4 text-primary" />
           </div>
           <div class="flex flex-col items-start flex-1">
-            <span class="font-semibold">Criar novo projeto</span>
-            <span v-if="hasOnlyOneProject" class="text-xs text-muted-foreground">
-              Expanda seu negócio com mais um projeto
-            </span>
+            <span class="font-semibold">Ir para projetos</span>
           </div>
         </button>
       </div>

@@ -44,7 +44,7 @@ function getIntegrationRelation(
   return Array.isArray(relation) ? relation[0] ?? null : relation
 }
 
-const META_API_VERSION = 'v18.0'
+const META_API_VERSION = 'v21.0'
 const META_API_BASE_URL = `https://graph.facebook.com/${META_API_VERSION}`
 
 const GOOGLE_ADS_API_VERSION = 'v23'
@@ -123,7 +123,8 @@ async function getMetaAccountInsights(
 async function getGoogleAccountInsights(
   customerId: string,
   accessToken: string,
-  dateRange: DateRange
+  dateRange: DateRange,
+  loginCustomerId?: string
 ): Promise<GoogleInsightsFetchResult> {
   const developerToken = Deno.env.get('GOOGLE_ADS_DEVELOPER_TOKEN') || ''
 
@@ -141,17 +142,23 @@ async function getGoogleAccountInsights(
     WHERE segments.date BETWEEN '${dateRange.start}' AND '${dateRange.end}'
   `
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${accessToken}`,
+    'developer-token': developerToken,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  }
+
+  if (loginCustomerId) {
+    headers['login-customer-id'] = loginCustomerId.replace(/-/g, '')
+  }
+
   try {
     const response = await fetch(
       `${GOOGLE_ADS_BASE_URL}/customers/${customerId}/googleAds:search`,
       {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'developer-token': developerToken,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
+        headers,
         body: JSON.stringify({ query }),
       }
     )
@@ -387,6 +394,7 @@ export async function getAdMetricsPerPlatform(
         access_token,
         token_expires_at,
         integration_id,
+        account_metadata,
         integrations!inner(id, platform, platform_type, status, project_id, platform_config)
       `
       )
@@ -438,25 +446,37 @@ export async function getAdMetricsPerPlatform(
 
     const refreshedAccessTokenByIntegration = new Map<string, string>()
 
-    for (const account of advertisingAccounts) {
-      const integration = getIntegrationRelation(
-        account.integrations as IntegrationRelation | IntegrationRelation[] | null
-      )
-      if (!integration) {
-        continue
+    // Pre-decrypt tokens in parallel (one per integration_id to avoid duplicates)
+    const uniqueIntegrationIds = [...new Set(advertisingAccounts.map(a => a.integration_id))]
+    const tokenDecryptResults = await Promise.allSettled(
+      uniqueIntegrationIds.map(async (integrationId) => {
+        const account = advertisingAccounts.find(a => a.integration_id === integrationId)!
+        const token = await decryptToken(serviceClient, account.access_token, encryptionKey)
+        return { integrationId, token }
+      })
+    )
+    const decryptedTokenMap = new Map<string, string>()
+    for (const r of tokenDecryptResults) {
+      if (r.status === 'fulfilled') {
+        decryptedTokenMap.set(r.value.integrationId, r.value.token)
       }
-      const originName = PLATFORM_TO_ORIGIN_NAME[integration.platform]
-      if (!originName) continue
+    }
 
-      try {
-        let decryptedToken = refreshedAccessTokenByIntegration.get(account.integration_id)
-        if (!decryptedToken) {
-          decryptedToken = await decryptToken(
-            serviceClient,
-            account.access_token,
-            encryptionKey
-          )
-        }
+    // Fetch metrics in parallel for all accounts
+    const metricsResults = await Promise.allSettled(
+      advertisingAccounts.map(async (account) => {
+        const integration = getIntegrationRelation(
+          account.integrations as IntegrationRelation | IntegrationRelation[] | null
+        )
+        if (!integration) return null
+        const originName = PLATFORM_TO_ORIGIN_NAME[integration.platform]
+        if (!originName) return null
+
+        let decryptedToken = decryptedTokenMap.get(account.integration_id)
+        if (!decryptedToken) return null
+
+        const acctMeta = (account as Record<string, unknown>).account_metadata as Record<string, unknown> | null
+        const loginCustomerId = typeof acctMeta?.parentMccId === 'string' ? acctMeta.parentMccId : undefined
 
         let metrics: AdMetrics = { spend: 0, impressions: 0, clicks: 0 }
 
@@ -490,7 +510,8 @@ export async function getAdMetricsPerPlatform(
             let googleInsights = await getGoogleAccountInsights(
               account.external_account_id,
               decryptedToken!,
-              dateRange
+              dateRange,
+              loginCustomerId
             )
             if (googleInsights.authError && integration.platform_config?.encrypted_refresh_token) {
               const refreshedAccessToken = await refreshGoogleTokenForIntegration(
@@ -505,7 +526,8 @@ export async function getAdMetricsPerPlatform(
                 googleInsights = await getGoogleAccountInsights(
                   account.external_account_id,
                   refreshedAccessToken,
-                  dateRange
+                  dateRange,
+                  loginCustomerId
                 )
               }
             }
@@ -517,14 +539,22 @@ export async function getAdMetricsPerPlatform(
             break
         }
 
+        return { originName, metrics }
+      })
+    )
+
+    // Aggregate results
+    for (const r of metricsResults) {
+      if (r.status === 'fulfilled' && r.value) {
+        const { originName, metrics } = r.value
         if (!result[originName]) {
           result[originName] = { spend: 0, impressions: 0, clicks: 0 }
         }
         result[originName].spend += metrics.spend
         result[originName].impressions += metrics.impressions
         result[originName].clicks += metrics.clicks
-      } catch (err) {
-        console.error('[Ad Metrics Per Platform] Error for account:', account.id, err)
+      } else if (r.status === 'rejected') {
+        console.error('[Ad Metrics Per Platform] Error for account:', r.reason)
       }
     }
 
@@ -564,6 +594,7 @@ export async function getAdMetricsForDashboard(
         access_token,
         token_expires_at,
         integration_id,
+        account_metadata,
         integrations!inner(id, platform, platform_type, status, project_id, platform_config)
       `
       )
@@ -642,6 +673,9 @@ export async function getAdMetricsForDashboard(
           )
         }
 
+        const acctMeta2 = (account as Record<string, unknown>).account_metadata as Record<string, unknown> | null
+        const loginCustomerId2 = typeof acctMeta2?.parentMccId === 'string' ? acctMeta2.parentMccId : undefined
+
         let metrics: AdMetrics = { spend: 0, impressions: 0, clicks: 0 }
 
         switch (integration.platform) {
@@ -674,7 +708,8 @@ export async function getAdMetricsForDashboard(
             let googleInsights = await getGoogleAccountInsights(
               account.external_account_id,
               decryptedToken!,
-              dateRange
+              dateRange,
+              loginCustomerId2
             )
             if (googleInsights.authError && integration.platform_config?.encrypted_refresh_token) {
               const refreshedAccessToken = await refreshGoogleTokenForIntegration(
@@ -689,7 +724,8 @@ export async function getAdMetricsForDashboard(
                 googleInsights = await getGoogleAccountInsights(
                   account.external_account_id,
                   refreshedAccessToken,
-                  dateRange
+                  dateRange,
+                  loginCustomerId2
                 )
               }
             }

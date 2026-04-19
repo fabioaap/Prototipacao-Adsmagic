@@ -429,7 +429,7 @@ function handleRowClick(project: Project) {
         </TableBody>
 
         <!-- Loading State -->
-        <TableBody v-else aria-busy="true">
+        <TableBody v-else>
           <TableRow v-for="i in 5" :key="i">
             <TableCell :colspan="props.selectable ? 10 : 9">
               <div class="h-12 bg-muted/30 animate-pulse rounded"></div>

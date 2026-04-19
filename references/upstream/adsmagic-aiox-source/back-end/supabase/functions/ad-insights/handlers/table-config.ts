@@ -2,15 +2,16 @@
  * Handler de configuração de tabela para Ad Insights.
  *
  * Endpoints:
- * - GET /ad-insights/table-config?platform=google&level=campaign
- * - PATCH /ad-insights/table-config?platform=google&level=campaign
+ * - GET /ad-insights/table-config?platform=google
+ * - PATCH /ad-insights/table-config?platform=google
+ *
+ * Config é por plataforma (não por level). Uma config se aplica a todas as tabs.
  */
 
 import { successResponse, errorResponse } from '../utils/response.ts'
 import type { SupabaseDbClient } from '../types-db.ts'
 import {
   MAX_SELECTED_COLUMNS,
-  resolveLevel,
   resolvePlatform,
   resolveTableColumns,
   sanitizeColumnIds,
@@ -47,14 +48,9 @@ export async function handleTableConfig(
 
     const url = new URL(req.url)
     const platform = resolvePlatform(url.searchParams.get('platform'))
-    const level = resolveLevel(url.searchParams.get('level'))
 
     if (!platform) {
       return errorResponse('Platform is required (meta, google, tiktok)', 400)
-    }
-
-    if (!level) {
-      return errorResponse('Level is required (campaign, adset, ad)', 400)
     }
 
     if (req.method === 'GET') {
@@ -63,7 +59,6 @@ export async function handleTableConfig(
         .select('selected_column_ids, column_order, custom_metrics, updated_at')
         .eq('project_id', projectId)
         .eq('platform', platform)
-        .eq('level', level)
         .maybeSingle()
 
       if (error) {
@@ -72,7 +67,7 @@ export async function handleTableConfig(
       }
 
       const resolvedConfig = resolveTableColumns(
-        level,
+        platform,
         data?.selected_column_ids,
         data?.column_order
       )
@@ -84,7 +79,6 @@ export async function handleTableConfig(
       return successResponse({
         projectId,
         platform,
-        level,
         selectedColumnIds: resolvedConfig.selectedColumnIds,
         columnOrder: resolvedConfig.columnOrder,
         customMetrics,
@@ -112,7 +106,7 @@ export async function handleTableConfig(
       }
 
       const resolvedConfig = resolveTableColumns(
-        level,
+        platform,
         selectedColumnIds,
         body.columnOrder
       )
@@ -137,7 +131,6 @@ export async function handleTableConfig(
       const upsertPayload: Record<string, unknown> = {
         project_id: projectId,
         platform,
-        level,
         selected_column_ids: resolvedConfig.selectedColumnIds,
         column_order: resolvedConfig.columnOrder,
         updated_by: userId,
@@ -149,7 +142,7 @@ export async function handleTableConfig(
 
       const { data, error } = await supabaseClient
         .from('project_ad_insights_table_config')
-        .upsert(upsertPayload, { onConflict: 'project_id,platform,level' })
+        .upsert(upsertPayload, { onConflict: 'project_id,platform' })
         .select('selected_column_ids, column_order, custom_metrics, updated_at')
         .single()
 
@@ -161,7 +154,6 @@ export async function handleTableConfig(
       return successResponse({
         projectId,
         platform,
-        level,
         selectedColumnIds: data.selected_column_ids ?? resolvedConfig.selectedColumnIds,
         columnOrder: data.column_order ?? resolvedConfig.columnOrder,
         customMetrics: Array.isArray(data.custom_metrics) ? data.custom_metrics : [],

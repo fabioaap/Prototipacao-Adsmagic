@@ -1,6 +1,7 @@
 import type { SupabaseDbClient } from '../types-db.ts'
 import type { StandardizedSourceData } from '../types/contact-origin-types.ts'
 import { extractCriticalFields } from '../utils/source-data-helpers.ts'
+import { findOrCreateSystemOrProjectOrigin } from '../utils/origin-resolver.ts'
 
 type AttributionModel = 'first_touch' | 'last_touch' | 'conversion'
 
@@ -198,47 +199,12 @@ export class ContactOriginAttributionWriter {
   }
 
   private async findOrCreateOrigin(projectId: string, originName: string): Promise<string> {
-    const systemOrigin = await this.supabaseClient
-      .from('origins')
-      .select('id')
-      .is('project_id', null)
-      .eq('name', originName)
-      .eq('is_active', true)
-      .maybeSingle()
-
-    if (systemOrigin.data) {
-      return (systemOrigin.data as { id: string }).id
-    }
-
-    const projectOrigin = await this.supabaseClient
-      .from('origins')
-      .select('id')
-      .eq('project_id', projectId)
-      .eq('name', originName)
-      .eq('is_active', true)
-      .maybeSingle()
-
-    if (projectOrigin.data) {
-      return (projectOrigin.data as { id: string }).id
-    }
-
-    const { data, error } = await this.supabaseClient
-      .from('origins')
-      .insert({
-        project_id: projectId,
-        name: originName,
-        type: 'custom',
-        color: '#6B7280',
-        icon: 'help-circle',
-        is_active: true,
-      } as never)
-      .select('id')
-      .single()
-
-    if (error || !data) {
-      throw new Error(`Failed to find or create origin ${originName}: ${error?.message || 'unknown error'}`)
-    }
-
-    return (data as { id: string }).id
+    // Delega ao helper compartilhado — garante que nomes de sistema nunca
+    // sejam duplicados como custom em nível de projeto.
+    return await findOrCreateSystemOrProjectOrigin(
+      this.supabaseClient,
+      projectId,
+      originName
+    )
   }
 }

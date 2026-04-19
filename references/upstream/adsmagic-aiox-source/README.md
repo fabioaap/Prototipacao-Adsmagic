@@ -1,282 +1,261 @@
 # AdsMagic First AI
 
-> Plataforma SaaS de atribuição de marketing e gestão de leads com inteligência artificial.
+Plataforma SaaS multi-tenant para atribuição de marketing, tracking, CRM comercial, mensageria, analytics e billing.
 
-[![Branch](https://img.shields.io/badge/branch-v3-blue)](https://github.com/kennedyselect/Adsmagic-First-AI/tree/v3)
-[![Frontend Build](https://img.shields.io/badge/frontend_build-passing-brightgreen)](#)
-[![E2E Tests](https://img.shields.io/badge/E2E_Playwright-37%2F37-brightgreen)](#testes)
-[![Unit Tests](https://img.shields.io/badge/unit_tests-969%2F969-brightgreen)](#testes)
+> Atualizado em 19 de março de 2026.
+> Este README descreve o estado atual do repositório. Planos, auditorias e rollouts antigos continuam versionados em `doc/`, `docs/` e `back-end/`, mas não substituem a leitura da árvore atual do código.
 
----
+## Visão Geral
 
-## Governança
+O monorepo já reúne partes em produção e módulos em evolução contínua. Hoje ele cobre:
 
-As regras centrais do produto AdsMagic estão em [docs/governance/project-constitution.md](docs/governance/project-constitution.md).
+- autenticação, onboarding, empresas e projetos
+- dashboard V2 com KPIs, funil, pipeline, breakdown por origem e drill-down
+- contatos, atividades, tags, origens, etapas e vendas
+- links rastreáveis, redirect público e captura de UTMs/click IDs
+- eventos de conversão e processamento assíncrono de jobs
+- integrações OAuth e contas de anúncios
+- mensageria/WhatsApp, webhooks e página pública de compartilhamento de QR code
+- billing com Stripe, uso e limites por plano
+- ad insights com campanhas, adsets, ads e configuração de tabela
 
-Esse documento governa segurança, multi-tenant, adapters, OAuth, i18n, boundaries entre frontend e backend e gates mínimos de qualidade.
+## Arquitetura Atual
 
----
-
-## 📋 Visão Geral
-
-O AdsMagic First AI é uma plataforma multi-tenant de SaaS que permite às empresas:
-
-- **Atribuir leads** às origens de tráfego corretas (Meta Ads, Google Ads, WhatsApp, etc.)
-- **Gerenciar o funil de vendas** via Kanban ou lista, com histórico de movimentações
-- **Rastrear conversões** com links UTM e pixels de eventos
-- **Integrar WhatsApp**, Meta Ads e Google Ads em uma única plataforma
-- **Analisar performance** com dashboard de métricas e ROI em tempo real
-
----
-
-## 🏗️ Arquitetura
-
-```
-Adsmagic-First-AI/
-├── front-end/          # Vue 3 + TypeScript → deploy Cloudflare Pages
-├── back-end/           # Supabase (PostgreSQL + Edge Functions Deno)
-└── doc/                # Documentação de banco e arquitetura
+```text
+AdsMagic First AI/
+├── front-end/                    # App Vue 3 + Vite -> Cloudflare Pages
+├── back-end/
+│   ├── supabase/                 # Postgres, RLS, migrations, templates e Edge Functions
+│   ├── redirect-worker/          # Worker de borda para redirects rastreáveis
+│   ├── cron-worker/              # Trigger do job-worker a cada minuto
+│   ├── messaging-webhook-worker/ # Queue/consumer de webhooks externos
+│   └── stripe-webhook-worker/    # Queue/consumer para Stripe
+├── tag-worker/                   # Tag JS pública + fila de eventos web
+├── doc/                          # Documentação técnica e de negócio
+└── docs/                         # Benchmarks, estudos e material complementar
 ```
 
-### Stack
+### Componentes versionados no repo
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Frontend | Vue 3, TypeScript, Vite, Tailwind CSS v3, Pinia, Vue Router, Zod |
-| Backend | Supabase (PostgreSQL), Edge Functions (Deno), Row Level Security |
-| Auth | Supabase Auth (email/password + OAuth) |
-| Deploy FE | Cloudflare Pages |
-| Deploy BE | Supabase Cloud |
-| Testes FE | Vitest (unitários), Playwright (E2E) |
+- `front-end/`: aplicação principal em Vue 3 com rotas de auth, onboarding, projetos, dashboard, contatos, vendas, mensagens, tracking, eventos, integrações, campanhas, pricing e configurações.
+- `back-end/supabase/`: 20 Edge Functions versionadas (sem contar `_shared`) e 81 migrations SQL.
+- `back-end/*worker/`: 4 Workers Cloudflare dedicados para edge/runtime assíncrono.
+- `tag-worker/`: Worker separado para servir `adsmagic-tag.js` por URL estável e enfileirar eventos antes de encaminhá-los ao Supabase.
+- A raiz não possui um orquestrador único; cada módulo tem seus próprios scripts e dependências.
 
----
+## Stack
 
-## 🚦 Status da Branch `v3`
+| Camada | Tecnologias principais |
+| --- | --- |
+| Frontend | Vue 3, TypeScript, Vite, Tailwind CSS v3, Pinia, Vue Router, Zod, ApexCharts |
+| Design System | shadcn-vue, Radix Vue, reka-ui, Storybook |
+| Backend | Supabase Postgres, Supabase Auth, Row Level Security, Edge Functions Deno |
+| Edge e filas | Cloudflare Workers, Cloudflare Queues, Cloudflare KV, Wrangler |
+| Integrações | Meta Ads, Google Ads, TikTok Ads, WhatsApp brokers, Stripe |
+| Testes | Vitest, Playwright, testes de worker, smoke/integration journeys |
 
-<!-- STATUS:START -->
-> **Atualizado em:** 04 de março de 2026 | Branch `v3 (desenvolvimento ativo)` | Frontend ~92% · Backend ~37%
->
-> _Branch de desenvolvimento. Inclui todas as features do master + E2E Playwright, refatorações e backend em andamento._
+## Back-end em Alto Nível
 
-### Frontend
+### Edge Functions principais
 
-| Área | Barra | % | Detalhe |
-|------|-------|---|---------|
-| Rotas & Componentes | `██████████████████░░` | 90% | Build OK, guards OK, todas as rotas principais |
-| Auth (login/register/OAuth) | `████████████████████` | 100% | Fluxo completo com OAuth popup |
-| Contatos (lista + kanban) | `████████████████████` | 100% | CRUD, filtros, exportação CSV |
-| Vendas UI | `████████████████████` | 100% | UI completa, conectada ao backend |
-| Dashboard V2 | `████████████████████` | 100% | UI completa (dados mock até backend analytics) |
-| Links Rastreáveis | `████████████████████` | 100% | UI completa |
-| Integrações | `████████████████████` | 100% | UI OAuth Meta/Google/TikTok completa |
-| WhatsApp (Mensagens) | `████████████████████` | 100% | UI completa |
-| Configurações | `████████████████████` | 100% | Etapas, origens, settings gerais |
-| Campaigns Meta/Google | `████████░░░░░░░░░░░░` | 40% | UI existe, sem dados reais — [#16] |
-| i18n EN/ES | `█████████████░░░░░░░` | 65% | PT completo; EN/ES com gaps em messages/integrations — [#11] |
-| Testes unitários | `███████████████████░` | 97% | 969/969 passando |
-| Testes E2E Playwright | `████████████████████` | 100% | 37/37 passando |
+- Core: `projects`, `companies`, `contacts`, `sales`, `origins`, `stages`, `settings`, `tags`
+- Analytics e atribuição: `dashboard`, `ad-insights`, `events`, `trackable-links`, `redirect`, `analytics-worker`, `job-worker`
+- Integrações e mensageria: `integrations`, `messaging`, `messaging-webhooks`, `whatsapp-share`, `billing`
 
-### Backend
+### Workers Cloudflare
 
-| Sessão | Área | Barra | % | Issue |
-|--------|------|-------|---|-------|
-| 1–3 | Infraestrutura, Usuários, Projetos | `████████████████████` | 100% | — |
-| 4 | Contatos, Origens, Etapas | `████████████████████` | 100% | — |
-| 5 | Vendas e Conversões | `░░░░░░░░░░░░░░░░░░░░` | 0% | [#6] 🔴 |
-| 6 | Links Rastreáveis | `░░░░░░░░░░░░░░░░░░░░` | 0% | [#8] 🔴 |
-| 7/8 | Integrações OAuth | `███████████░░░░░░░░░` | 53% | [#9] 🟡 |
-| 8.5 | WhatsApp Brokers | `███████████████░░░░░` | 76% | [#10] 🟡 |
-| 9 | Analytics e Dashboard real | `████░░░░░░░░░░░░░░░░` | 20% | [#7] 🔴 |
-| 10 | Workers Assíncronos | `███░░░░░░░░░░░░░░░░░` | 17% | [#13] 📦 |
-| 11 | Auditoria e Monitoramento | `░░░░░░░░░░░░░░░░░░░░` | 0% | [#14] 📦 |
-| 12 | Otimização e CI/CD | `░░░░░░░░░░░░░░░░░░░░` | 0% | [#15] 📦 |
+- `back-end/redirect-worker/`: proxy/edge para `r.adsmagic.com.br/*`
+- `back-end/cron-worker/`: dispara o `job-worker` do Supabase a cada minuto
+- `back-end/messaging-webhook-worker/`: consome fila de webhooks de mensageria
+- `back-end/stripe-webhook-worker/`: consome fila de eventos Stripe
+- `tag-worker/`: expõe a tag pública (`/v1/adsmagic-tag.js`) e envia eventos para fila
 
-### Progresso Geral
+## Produção e Runtime
 
-```
-Frontend  ██████████████████░░  ~92%
-Backend   ███████░░░░░░░░░░░░░  ~37%
-Projeto   █████████████░░░░░░░  ~65%
-```
-<!-- STATUS:END -->
+O repositório já contém configuração e código para runtime de produção em múltiplas frentes:
 
----
+- frontend com build Vite e deploy para Cloudflare Pages
+- geração automática de `version.json` no build do frontend
+- redirect rastreável em domínio dedicado via Cloudflare Worker
+- Edge Functions no Supabase para APIs privadas e endpoints públicos controlados
+- processamento assíncrono por cron, filas e workers dedicados
+- tracking web com tag pública e encaminhamento de eventos para a API `events/track`
 
-## 🚀 Como Rodar Localmente
+## Status das Etapas
+
+> Percentuais estimados com base no estado atual do código versionado em 19 de março de 2026.
+> Eles representam maturidade funcional do repositório, não garantia de rollout final, observabilidade ou cobertura total em produção.
+
+### Visão Geral
+
+| Etapa | Conclusão | Situação atual |
+| --- | --- | --- |
+| Fundação, auth, multi-tenancy e onboarding | 100% | Estrutura base estabilizada e operacional |
+| CRM operacional: projetos, contatos, origens, etapas, tags e vendas | 90% | CRUDs e fluxos principais implementados |
+| Tracking e atribuição: links, redirect, tag e eventos | 88% | Base funcional pronta, com hardening pontual ainda aberto |
+| Integrações, WhatsApp e mensageria | 85% | Fluxos principais existem, faltam coberturas e acabamento operacional |
+| Dashboard, analytics e ad insights | 78% | Endpoints, cache e workers existem; falta consolidar consistência de dados em todos os cenários |
+| Billing, limites e Stripe | 80% | Estrutura principal implementada, ainda exige validação operacional completa |
+| Workers, automações, observabilidade e CI/CD | 58% | Há runtime assíncrono ativo, mas ainda com gaps de monitoramento e pipeline |
+| Projeto geral | 82% | Produto já operável, com foco restante em hardening, cobertura e fechamento de lacunas |
+
+### Detalhe por frente
+
+| Frente | Conclusão | Observação |
+| --- | --- | --- |
+| Frontend | 90% | Rotas e módulos principais estão presentes; faltam principalmente i18n completo, refinamentos e hardening |
+| Backend Supabase | 84% | Migrations, funções e domínio principal já existem; faltam consolidação operacional e fechamento de bordas |
+| Edge/Workers | 78% | Redirect, cron, filas e tag worker existem; CI/CD e observabilidade ainda não estão no mesmo nível |
+
+## Módulos de Produto Já Presentes no Código
+
+- Auth e onboarding
+- Gestão de empresas e projetos
+- CRM de contatos com histórico/atividades
+- Funil comercial e vendas
+- Dashboard V2 e analytics
+- Tracking, links rastreáveis e redirect
+- Eventos de conversão
+- Integrações de mídia paga
+- Mensageria e WhatsApp
+- Billing e limites
+- Design system e Storybook
+
+## O Que Ainda Falta
+
+- Consolidar observabilidade e operação: alertas, dashboards, logs centralizados, runbooks e revisão contínua de advisors.
+- Fechar CI/CD além do fluxo já existente do `redirect-worker`, incluindo validações automatizadas para frontend, Edge Functions e workers.
+- Expandir cobertura de testes automatizados nos fluxos mais críticos de billing, tracking, mensageria, integrações e processamento assíncrono.
+- Completar hardening de produção para filas, retries, deduplicação, timeouts e cenários de falha entre Workers e Supabase.
+- Finalizar a consistência de dados reais em todas as telas analíticas e nos módulos de campanhas/ad insights.
+- Fechar lacunas de UX e i18n, especialmente traduções EN/ES e estados vazios/erro/sucesso em alguns fluxos.
+- Revisar e sincronizar documentação histórica por módulo para reduzir divergência entre planos antigos e o estado atual do código.
+
+## Como Rodar Localmente
 
 ### Pré-requisitos
 
 - Node.js 20+
 - pnpm 9+
-- Conta Supabase (ou Supabase CLI + Docker para local)
+- Supabase CLI
+- Docker Desktop para stack local do Supabase
+- Wrangler para os workers Cloudflare
+
+### 1. Frontend
+
+```bash
+cd front-end
+cp .env.example .env.local
+pnpm install
+pnpm dev
+```
+
+Build, preview e deploy:
+
+```bash
+cd front-end
+pnpm build
+pnpm preview
+pnpm deploy:preview
+pnpm deploy:production
+```
+
+### 2. Backend Supabase
+
+```bash
+cd back-end
+supabase start
+supabase db reset
+supabase functions serve
+```
+
+### 3. Workers opcionais
+
+```bash
+cd back-end/redirect-worker
+npm install
+npm run dev
+```
+
+```bash
+cd back-end/cron-worker
+npm install
+npm run dev
+```
+
+```bash
+cd back-end/messaging-webhook-worker
+npm install
+npm run dev
+```
+
+```bash
+cd back-end/stripe-webhook-worker
+npm install
+npm run dev
+```
+
+```bash
+cd tag-worker
+pnpm install
+pnpm dev
+```
+
+## Variáveis de Ambiente
+
+### Frontend
+
+Use `front-end/.env.example` como base. Variáveis mais importantes:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- client IDs OAuth (`VITE_META_CLIENT_ID`, `VITE_GOOGLE_CLIENT_ID`, `VITE_TIKTOK_CLIENT_ID`, etc.)
+- feature flags de polling/mock quando necessário
+
+### Backend
+
+Consulte `back-end/ENV_VARIABLES.md`. Variáveis centrais:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- secrets de OAuth, mensageria, Stripe e workers internos
+
+### Workers
+
+Cada worker usa `wrangler.toml` e secrets configurados com `wrangler secret put`.
+
+## Testes
 
 ### Frontend
 
 ```bash
 cd front-end
-
-# Instalar dependências
-pnpm install
-
-# Desenvolvimento (conecta ao Supabase real via .env.local)
-pnpm dev             # http://localhost:5173
-
-# Build de produção
-pnpm build
-
-# Build para testes E2E (modo mock, sem Supabase)
-pnpm build:visual    # usa .env.test com VITE_USE_MOCK=true
-
-# Preview do build
-pnpm preview         # http://localhost:4173
-```
-
-#### Variáveis de ambiente (`.env.local`)
-
-```bash
-VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-VITE_SUPABASE_ANON_KEY=sua-anon-key
-```
-
-### Backend (Supabase local)
-
-```bash
-cd back-end
-
-# Iniciar stack local (requer Docker)
-supabase start       # Studio em http://localhost:54323
-
-# Aplicar migrações
-supabase db reset
-
-# Servir Edge Functions localmente
-supabase functions serve
-```
-
----
-
-## 🧪 Testes
-
-### Unitários (Vitest)
-
-```bash
-cd front-end
-pnpm test            # modo watch
-pnpm test --run      # modo CI (969 testes)
-pnpm test:coverage   # com cobertura
-```
-
-### E2E (Playwright) — 37 testes
-
-Os testes E2E usam o build com mock (`build:visual`) para não depender do Supabase.
-
-```bash
-cd front-end
-
-# 1. Build com mock
-pnpm build:visual
-
-# 2. Em um terminal: subir o preview
-pnpm preview -- --port 4173 --strictPort
-
-# 3. Em outro terminal: rodar os testes
-pnpm exec playwright test --config=playwright.ci.config.ts --reporter=list
-
-# Ou tudo em um comando só (CI):
+pnpm test
+pnpm test:coverage
+pnpm test:e2e
+pnpm test:integration
 pnpm test:visual:ci
+pnpm storybook
 ```
 
-**Cobertura dos testes E2E:**
-- Formulários de auth (login, register, forgot-password, reset-password)
-- Guards de autenticação (7 rotas protegidas → redirect para login)
-- Novas rotas de campanhas (meta-ads, google-ads)
-- Rota raiz `/` → redirect para login
-- `GET /version.json` — valida buildVersionPlugin
-- Página de contatos (lista, kanban, toggles de view)
-- Navegação por sidebar
+### Redirect Worker
 
----
-
-## 🗂️ Estrutura do Frontend
-
-```
-front-end/src/
-├── views/           # Componentes de página (alvos de rotas)
-├── components/
-│   ├── ui/         # Componentes base (shadcn-vue)
-│   ├── common/     # Componentes compartilhados (AppHeader, AppSidebar...)
-│   └── [feature]/  # Componentes de feature (contacts, sales, dashboard...)
-├── stores/          # Pinia stores
-├── router/          # Vue Router + guards (locale, auth, onboarding, project)
-├── services/
-│   ├── api/        # Clientes HTTP e serviços de API
-│   ├── adapters/   # snake_case ↔ camelCase
-│   └── [feature]/  # Repositórios de domínio
-├── composables/     # Composables Vue reutilizáveis
-├── locales/         # i18n (pt.json, en.json, es.json)
-├── types/           # Definições TypeScript
-├── schemas/         # Schemas Zod
-└── mocks/           # Dados mock para testes
+```bash
+cd back-end/redirect-worker
+npm install
+npm test
 ```
 
----
+## Documentação Relacionada
 
-## 🗂️ Estrutura do Backend
+- [README do frontend](./front-end/README.md)
+- [README do backend](./back-end/README.md)
+- [Documentação técnica e de negócio](./doc/README.md)
+- [Schema do banco](./doc/database-schema.md)
+- [Changelog funcional](./doc/CHANGELOG.md)
 
-```
-back-end/supabase/
-├── migrations/      # 50+ arquivos SQL de migração
-└── functions/       # Edge Functions (runtime Deno)
-    ├── projects/
-    ├── companies/
-    ├── contacts/
-    ├── sales/
-    ├── dashboard/
-    ├── integrations/
-    ├── trackable-links/
-    ├── redirect/
-    ├── messaging/
-    ├── messaging-webhooks/
-    ├── events/
-    ├── origins/
-    ├── stages/
-    ├── tags/
-    └── settings/
-```
+## Observações
 
----
-
-## 📌 Convenções
-
-- **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`, `test:`, `docs:`)
-- **Branches:** `main` (produção), `v3` (desenvolvimento atual), `fix/*` (hotfixes)
-- **Adapters:** sempre converter snake_case → camelCase na borda da API
-- **Ícones:** importar apenas via `src/composables/useIcons.ts`
-- **Tipos:** TypeScript strict, sem `any`
-- **i18n:** todas as strings via `t('chave')`, nunca hardcoded
-
----
-
-## 🎯 Próximas Issues (Backlog)
-
-| # | Prioridade | Issue |
-|---|-----------|-------|
-| [#6] | 🔴 Crítico | Backend: Sistema de Vendas e Conversões |
-| [#7] | 🔴 Crítico | Backend: Analytics com dados reais |
-| [#8] | 🟡 Alto | Backend: Links Rastreáveis |
-| [#9] | 🟡 Alto | Backend: Completar Integrações (Meta/Google/TikTok) |
-| [#10] | 🟢 Médio | Backend: WhatsApp testes + assinatura webhook |
-| [#11] | 🟢 Médio | Frontend: i18n EN/ES completo |
-| [#12] | 🟢 Médio | Frontend: Corrigir 22 falhas de testes unitários |
-| [#13] | 📦 Baixo | Backend: Workers e Processamento Assíncrono |
-| [#14] | 📦 Baixo | Backend: Auditoria e Monitoramento |
-| [#15] | 📦 Baixo | DevOps: CI/CD e Deploy Automático |
-| [#16] | 🟡 Alto | Frontend: Campaigns com dados reais |
-
-Ver todas as issues: https://github.com/kennedyselect/Adsmagic-First-AI/issues
-
----
-
-## 📄 Licença
-
-Proprietário — todos os direitos reservados.
+- Há bastante documentação histórica no repositório registrando etapas de rollout, deploys específicos e planos de implementação.
+- Para entender o estado atual do produto, priorize este README, a árvore de diretórios e os módulos ativos em `front-end/`, `back-end/supabase/functions/` e `back-end/*worker/`.

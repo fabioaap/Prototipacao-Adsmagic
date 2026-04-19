@@ -260,18 +260,16 @@ defineExpose({
 
         <!-- Activities Timeline -->
         <div v-else class="relative">
+            <!-- Timeline line -->
+            <div class="absolute left-4 top-0 bottom-0 w-px bg-border" />
+
             <!-- Activity Items -->
             <div class="space-y-4">
                 <div
-                    v-for="(activity, index) in visibleActivities"
+                    v-for="activity in visibleActivities"
                     :key="activity.id"
                     class="relative flex items-start gap-4 pl-0"
                 >
-                    <div
-                        v-if="index < visibleActivities.length - 1"
-                        class="absolute left-4 top-8 -bottom-4 w-px -translate-x-1/2 bg-border"
-                    />
-
                     <!-- Icon -->
                     <div
                         :class="cn(

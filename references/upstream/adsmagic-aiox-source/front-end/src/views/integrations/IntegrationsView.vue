@@ -55,11 +55,6 @@
               :whatsapp-connecting="whatsappConnecting"
               :ad-metrics="adMetrics"
               :metrics-loading="metricsLoading"
-              :whatsapp-accounts="whatsappAccounts"
-              :whatsapp-accounts-loading="whatsappAccountsLoading"
-              :get-whatsapp-status-label="getWhatsAppStatusLabel"
-              :get-whatsapp-status-class="getWhatsAppStatusClass"
-              :is-primary-connected-instance="isPrimaryConnectedInstance"
               @action="handleChannelsAction"
             />
           </TabsContent>
@@ -89,6 +84,13 @@
       @update:open="isGoogleConnectionModalOpen = $event"
       @success="handleGoogleConnectionSuccess"
     />
+    <!-- WhatsApp Connection Method Modal -->
+    <WhatsAppConnectionMethodModal
+      :open="isWhatsAppConnectionMethodModalOpen"
+      @update:open="isWhatsAppConnectionMethodModalOpen = $event"
+      @select-qr="handleSelectQR"
+      @select-webhook="handleSelectWebhook"
+    />
     <!-- WhatsApp QR Modal -->
     <WhatsAppQRModal
       :open="isWhatsAppQRModalOpen"
@@ -99,6 +101,13 @@
       @update:open="isWhatsAppQRModalOpen = $event"
       @generate-qr="handleGenerateWhatsAppQR"
       @check-connection="handleCheckWhatsAppConnection"
+      @share-qr="handleShareWhatsAppQR"
+    />
+    <!-- WhatsApp Webhook Modal -->
+    <WhatsAppWebhookModal
+      :open="isWhatsAppWebhookModalOpen"
+      @update:open="isWhatsAppWebhookModalOpen = $event"
+      @connected="handleWebhookConnected"
     />
 
     <!-- Account Selector Modal -->
@@ -135,11 +144,37 @@
             </p>
           </div>
 
+          <!-- Polling: aguardando resposta -->
           <div
-            v-if="activeTagVerificationStatus"
+            v-if="isTagVerificationPolling"
+            class="flex items-center gap-2 text-sm text-muted-foreground"
+          >
+            <Loader2 class="h-4 w-4 animate-spin" />
+            Aguardando resposta da tag no site...
+          </div>
+
+          <!-- Timeout: checklist de troubleshooting -->
+          <div
+            v-else-if="hasPollingTimedOut"
+            class="rounded-md border border-destructive/30 bg-destructive/5 p-3 space-y-2"
+          >
+            <div class="flex items-center gap-2 text-sm font-medium text-destructive">
+              <AlertTriangle class="h-4 w-4 shrink-0" />
+              A tag não respondeu no tempo esperado
+            </div>
+            <ul class="text-xs text-muted-foreground space-y-1 pl-6 list-disc">
+              <li>Verifique se o script da tag está no HTML do site (ou no GTM)</li>
+              <li>Verifique se o <code class="font-mono bg-muted px-1 rounded">projectId</code> corresponde ao projeto atual</li>
+              <li>Se usa GTM, confirme que o script e a config são carregados juntos</li>
+            </ul>
+          </div>
+
+          <!-- Status genérico (expired, failed, etc.) -->
+          <div
+            v-else-if="activeTagVerificationStatus && activeTagVerificationStatus !== 'pending'"
             class="text-xs text-muted-foreground"
           >
-            Status atual: {{ activeTagVerificationStatus }}
+            Status: {{ activeTagVerificationStatus }}
           </div>
 
           <div class="flex items-center justify-end gap-2">
@@ -175,11 +210,16 @@
           v-if="selectedConnection"
           :connection="selectedConnection"
           :platform="selectedPlatform"
+          :loading="connectionDetailsLoading"
           :show-google-conversion-actions="selectedPlatform === 'google'"
-          @view-logs="handleViewConnectionLogs"
-          @refresh="handleRefreshConnection"
+          :show-meta-pixel-management="selectedPlatform === 'meta'"
+          :show-token-renewal="selectedPlatform === 'meta' || selectedPlatform === 'google'"
+          :show-change-account="selectedPlatform === 'meta' || selectedPlatform === 'google'"
           @disconnect="handleDisconnectConnection"
           @manage-google-conversion-actions="handleOpenGoogleConversionActions"
+          @manage-meta-pixels="handleOpenMetaPixels"
+          @renew-token="handleRenewToken"
+          @change-account="handleChangeAccount"
         />
       </template>
     </Modal>
@@ -200,6 +240,24 @@
       @save="handleSaveGoogleConversionActions"
     />
 
+    <MetaPixelsDrawer
+      :open="isMetaPixelsDrawerOpen"
+      :loading="isMetaPixelsLoading"
+      :saving="isMetaPixelsSaving"
+      :error="metaPixelsError"
+      :fetch-error="metaPixelsFetchError"
+      :account-id="metaPixelsAccountId"
+      :pixels="metaPixels"
+      :selected-pixel-id="metaSelectedPixelId"
+      :pixel-access-token="metaPixelAccessToken"
+      :pixel-access-token-set="metaPixelAccessTokenSet"
+      @update:open="(value) => { if (!value) closeMetaPixelsDrawer() }"
+      @update:selected-pixel-id="selectMetaPixel"
+      @update:pixel-access-token="metaPixelAccessToken = $event"
+      @retry="handleReloadMetaPixels"
+      @save="handleSaveMetaPixels"
+    />
+
     <!-- Modal de confirmação para desconexão de integração -->
     <AlertDialog
       v-model="isDisconnectDialogOpen"
@@ -218,8 +276,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRoute } from 'vue-router'
-import { RefreshCw } from '@/composables/useIcons'
+import { RefreshCw, Loader2, AlertTriangle } from '@/composables/useIcons'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
 import Label from '@/components/ui/Label.vue'
@@ -235,17 +294,22 @@ import IntegrationsSiteTab from '@/components/integrations/tabs/IntegrationsSite
 import IntegrationsChannelsTab from '@/components/integrations/tabs/IntegrationsChannelsTab.vue'
 import IntegrationsAdsTab from '@/components/integrations/tabs/IntegrationsAdsTab.vue'
 import WhatsAppQRModal from '@/components/integrations/WhatsAppQRModal.vue'
+import WhatsAppConnectionMethodModal from '@/components/integrations/WhatsAppConnectionMethodModal.vue'
+import WhatsAppWebhookModal from '@/components/integrations/WhatsAppWebhookModal.vue'
 import MetaAccountPixelModal from '@/components/integrations/MetaAccountPixelModal.vue'
 import GoogleAccountModal from '@/components/integrations/GoogleAccountModal.vue'
 import GoogleConversionActionsDrawer from '@/components/integrations/GoogleConversionActionsDrawer.vue'
+import MetaPixelsDrawer from '@/components/integrations/MetaPixelsDrawer.vue'
 import AccountSelector from '@/components/integrations/AccountSelector.vue'
 import ConnectionInfo from '@/components/integrations/ConnectionInfo.vue'
 import AlertDialog from '@/components/ui/AlertDialog.vue'
 import { useGoogleConversionActions } from '@/composables/useGoogleConversionActions'
+import { useMetaPixels } from '@/composables/useMetaPixels'
 import { useIntegrationsDataLoader } from '@/composables/useIntegrationsDataLoader'
 import { useTagVerification } from '@/composables/useTagVerification'
 import { useAdTrackingTemplates } from '@/composables/useAdTrackingTemplates'
 import { useIntegrationsPlatformActions } from '@/composables/useIntegrationsPlatformActions'
+import { useTokenRenewal } from '@/composables/useTokenRenewal'
 import { integrationsService } from '@/services/api/integrations'
 import { useIntegrationsStore } from '@/stores/integrations'
 import { useProjectsStore } from '@/stores/projects'
@@ -275,6 +339,28 @@ const {
   setSelectedIds: setSelectedGoogleConversionActionIds,
 } = useGoogleConversionActions()
 
+const {
+  startRenewal: startTokenRenewal,
+} = useTokenRenewal()
+
+const {
+  isDrawerOpen: isMetaPixelsDrawerOpen,
+  isLoading: isMetaPixelsLoading,
+  isSaving: isMetaPixelsSaving,
+  error: metaPixelsError,
+  fetchError: metaPixelsFetchError,
+  accountId: metaPixelsAccountId,
+  availablePixels: metaPixels,
+  selectedPixelId: metaSelectedPixelId,
+  pixelAccessToken: metaPixelAccessToken,
+  pixelAccessTokenSet: metaPixelAccessTokenSet,
+  openDrawer: openMetaPixelsDrawer,
+  closeDrawer: closeMetaPixelsDrawer,
+  reload: reloadMetaPixels,
+  selectPixel: selectMetaPixel,
+  saveSelection: saveMetaPixelsSelection,
+} = useMetaPixels()
+
 const getInitialTab = (): 'site' | 'channels' | 'ads' => {
   const tabParam = route.query.tab as string | undefined
   if (tabParam === 'channels' || tabParam === 'ads') {
@@ -292,9 +378,10 @@ const {
   whatsappConnecting,
   isTagInstalled,
   eventsReceived,
-  getIntegrationByPlatform,
   connectedIntegrations,
-} = integrationsStore
+} = storeToRefs(integrationsStore)
+
+const { getIntegrationByPlatform } = integrationsStore
 
 const whatsappQR = computed(() => integrationsStore.whatsappQR)
 
@@ -323,14 +410,9 @@ const platformIntegrations = computed(() => ({
 const {
   adMetrics,
   metricsLoading,
-  whatsappAccounts,
-  whatsappAccountsLoading,
   loadData,
   loadWhatsAppAccounts,
   refreshPlatformMetrics,
-  getWhatsAppStatusLabel,
-  getWhatsAppStatusClass,
-  isPrimaryConnectedInstance,
 } = useIntegrationsDataLoader({
   currentProjectId,
   fetchIntegrations: () => integrationsStore.fetchIntegrations(),
@@ -346,13 +428,14 @@ const {
   isTagVerificationSubmitting,
   isTagVerificationPolling,
   activeTagVerificationStatus,
+  hasPollingTimedOut,
   closeTagVerificationModal,
   handleStartTagVerification,
   handleCheckTagInstallation,
   cancelPolling,
 } = useTagVerification({
   currentProjectId,
-  getDefaultSiteUrl: () => tagInstallation?.lastVerifiedUrl?.trim() || '',
+  getDefaultSiteUrl: () => tagInstallation.value?.lastVerifiedUrl?.trim() || '',
   startTagVerification: (siteUrl: string) => integrationsStore.startTagVerification(siteUrl),
   getTagVerificationStatus: (verificationId: string) =>
     integrationsStore.getTagVerificationStatus(verificationId),
@@ -361,6 +444,8 @@ const {
 
 const {
   isWhatsAppQRModalOpen,
+  isWhatsAppConnectionMethodModalOpen,
+  isWhatsAppWebhookModalOpen,
   isMetaConnectionModalOpen,
   isGoogleConnectionModalOpen,
   isAccountSelectorOpen,
@@ -372,6 +457,7 @@ const {
   isDisconnectDialogOpen,
   disconnectPlatformTarget,
   disconnectLoading,
+  connectionDetailsLoading,
   handleMetaConnect,
   handleMetaConnectionSuccess,
   handleGoogleConnect,
@@ -397,12 +483,14 @@ const {
   handleGoogleViewDetails,
   handleTikTokViewDetails,
   handleWhatsAppViewDetails,
-  handleViewConnectionLogs,
-  handleRefreshConnection,
   handleDisconnectConnection,
   handleWhatsAppConnect,
+  handleSelectQR,
+  handleSelectWebhook,
+  handleWebhookConnected,
   handleGenerateWhatsAppQR,
   handleCheckWhatsAppConnection,
+  handleShareWhatsAppQR,
 } = useIntegrationsPlatformActions({
   route,
   getIntegrationByPlatform: (platform: string) => getIntegrationByPlatform(platform),
@@ -415,6 +503,7 @@ const {
     getIntegrationAccounts: (integrationId) => integrationsService.getIntegrationAccounts(integrationId),
     generateWhatsAppQR: () => integrationsStore.generateWhatsAppQR(),
     checkWhatsAppConnection: (qrCode) => integrationsStore.checkWhatsAppConnection(qrCode),
+    createShareLink: () => integrationsStore.createShareLink(),
   },
   refreshPlatformMetrics,
   openGoogleConversionActionsDrawer,
@@ -509,6 +598,84 @@ const handleSaveGoogleConversionActions = async () => {
     toast({
       title: 'Erro',
       description: error instanceof Error ? error.message : 'Não foi possível salvar a seleção',
+      variant: 'destructive',
+    })
+  }
+}
+
+const handleRenewToken = async () => {
+  const integration = getIntegrationByPlatform(selectedPlatform.value)
+  if (!integration?.id) return
+
+  const success = await startTokenRenewal(integration.id)
+  if (success) {
+    await integrationsStore.fetchIntegrations()
+    toast({
+      title: 'Token renovado',
+      description: 'O token foi renovado com sucesso. Conta e pixel preservados.',
+    })
+    isConnectionInfoOpen.value = false
+  } else {
+    toast({
+      title: 'Erro',
+      description: 'Não foi possível renovar o token. Tente novamente.',
+      variant: 'destructive',
+    })
+  }
+}
+
+const handleChangeAccount = () => {
+  isConnectionInfoOpen.value = false
+  const platform = selectedPlatform.value
+  if (platform === 'meta') {
+    isMetaConnectionModalOpen.value = true
+  } else if (platform === 'google') {
+    isGoogleConnectionModalOpen.value = true
+  }
+}
+
+const handleOpenMetaPixels = async () => {
+  const metaIntegration = getIntegrationByPlatform('meta')
+
+  if (!metaIntegration?.id) {
+    toast({
+      title: 'Meta Ads indisponível',
+      description: 'Não foi possível localizar a conexão do Meta Ads para este projeto.',
+      variant: 'destructive',
+    })
+    return
+  }
+
+  isConnectionInfoOpen.value = false
+  await openMetaPixelsDrawer(metaIntegration.id)
+}
+
+const handleSaveMetaPixels = async () => {
+  try {
+    await saveMetaPixelsSelection()
+    toast({
+      title: 'Configuração salva',
+      description: 'Pixel do Meta Ads atualizado com sucesso',
+    })
+  } catch (error) {
+    toast({
+      title: 'Erro',
+      description: error instanceof Error ? error.message : 'Não foi possível salvar a configuração',
+      variant: 'destructive',
+    })
+  }
+}
+
+const handleReloadMetaPixels = async () => {
+  try {
+    await reloadMetaPixels()
+  } catch (error) {
+    toast({
+      title: 'Erro',
+      description:
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível recarregar pixels',
       variant: 'destructive',
     })
   }

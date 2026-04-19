@@ -17,7 +17,7 @@ import type {
   CampaignStatus,
 } from '../types.ts'
 
-const META_API_VERSION = 'v18.0'
+const META_API_VERSION = 'v21.0'
 const META_API_BASE_URL = `https://graph.facebook.com/${META_API_VERSION}`
 
 // Campos de insights que queremos buscar

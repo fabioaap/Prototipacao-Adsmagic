@@ -48,11 +48,19 @@ export async function handleOriginPerformance(
     const startISO = start.toISOString()
     const endISO = end.toISOString()
 
-    const { data: origins, error: originsError } = await supabaseClient
+    const originId = url.searchParams.get('origin') || null
+
+    let originsQuery = supabaseClient
       .from('origins')
       .select('id, name, type')
       .or(`project_id.is.null,project_id.eq.${projectId}`)
       .or('is_active.eq.true,is_active.is.null')
+
+    if (originId && originId !== 'all') {
+      originsQuery = originsQuery.eq('id', originId)
+    }
+
+    const { data: origins, error: originsError } = await originsQuery
 
     if (originsError) {
       console.error('[Dashboard Origin Performance] Error fetching origins:', originsError)
@@ -63,33 +71,38 @@ export async function handleOriginPerformance(
       return successResponse([], 200)
     }
 
-    const { data: contacts, error: contactsError } = await supabaseClient
-      .from('contacts')
-      .select('id, main_origin_id, created_at')
-      .eq('project_id', projectId)
-      .gte('created_at', startISO)
-      .lte('created_at', endISO)
+    // Paralelizar contacts, sales e ad metrics (independentes entre si)
+    const [contactsResult, salesResult, adMetricsByPlatform] = await Promise.all([
+      supabaseClient
+        .from('contacts')
+        .select('id, main_origin_id, created_at')
+        .eq('project_id', projectId)
+        .gte('created_at', startISO)
+        .lte('created_at', endISO),
+      supabaseClient
+        .from('sales')
+        .select(`
+          id,
+          value,
+          origin_id,
+          contact_id,
+          status,
+          contacts(main_origin_id)
+        `)
+        .eq('project_id', projectId)
+        .eq('status', 'completed')
+        .gte('date', startISO)
+        .lte('date', endISO),
+      getAdMetricsPerPlatform(supabaseClient, projectId, start, end),
+    ])
 
+    const { data: contacts, error: contactsError } = contactsResult
     if (contactsError) {
       console.error('[Dashboard Origin Performance] Error fetching contacts:', contactsError)
       return errorResponse('Failed to fetch contacts', 500)
     }
 
-    const { data: sales, error: salesError } = await supabaseClient
-      .from('sales')
-      .select(`
-        id,
-        value,
-        origin_id,
-        contact_id,
-        status,
-        contacts(main_origin_id)
-      `)
-      .eq('project_id', projectId)
-      .eq('status', 'completed')
-      .gte('date', startISO)
-      .lte('date', endISO)
-
+    const { data: sales, error: salesError } = salesResult
     if (salesError) {
       console.error('[Dashboard Origin Performance] Error fetching sales:', salesError)
     }
@@ -116,9 +129,6 @@ export async function handleOriginPerformance(
       }
     }
 
-    // Buscar spend real das integrações de ads, agrupado por plataforma→origem
-    const adMetricsByPlatform = await getAdMetricsPerPlatform(supabaseClient, projectId, start, end)
-
     // Mapear spend por origin ID (usando nome da origem para match)
     const spendByOrigin: Record<string, number> = {}
     for (const origin of origins) {
@@ -136,8 +146,8 @@ export async function handleOriginPerformance(
       const spend = spendByOrigin[originId] || 0
 
       const conversionRate = contactsCount > 0 ? (salesCount / contactsCount) * 100 : 0
-      const cac = contactsCount > 0 ? spend / contactsCount : 0
-      const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : 0
+      const cac = salesCount > 0 ? spend / salesCount : 0
+      const roi = spend > 0 ? revenue / spend : 0
 
       result.push({
         originId,

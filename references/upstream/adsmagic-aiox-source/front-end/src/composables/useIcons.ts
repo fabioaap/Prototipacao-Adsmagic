@@ -42,13 +42,15 @@ export {
   ChevronRight as ChevronRightIcon,
 } from 'lucide-vue-next'
 
-// Action Icons (22)
+// Action Icons (23)
 export {
   Plus,
   X,
   Check,
+  CheckSquare,
   Minus,
   Edit,
+  Edit2,
   Trash2,
   Download,
   Upload,
@@ -83,6 +85,12 @@ export {
   Dot,
 } from 'lucide-vue-next'
 
+// User Icons (2)
+export {
+  UserPlus,
+  UserCog,
+} from 'lucide-vue-next'
+
 // Business Icons (26)
 export {
   Users,
@@ -111,9 +119,17 @@ export {
   BarChart,
   BarChart2,
   BarChart3,
+  Package,
 } from 'lucide-vue-next'
 
-// Social/Integration Icons (6)
+// Platform Icons (3)
+export {
+  Facebook,
+  Chrome,
+  Music,
+} from 'lucide-vue-next'
+
+// Social/Integration Icons (8)
 export {
   Linkedin,
   Globe,
@@ -122,9 +138,11 @@ export {
   Link as LinkIcon,
   Link,
   WifiOff,
+  QrCode,
+  Webhook,
 } from 'lucide-vue-next'
 
-// Miscellaneous Icons (20)
+// Miscellaneous Icons (21)
 export {
   Sparkles,
   Rocket,
@@ -134,6 +152,7 @@ export {
   Shield,
   Lock,
   Unlock,
+  KeyRound,
   Folder,
   Image,
   Video,
@@ -146,6 +165,12 @@ export {
   Cloud,
   UtensilsCrossed,
   Store,
+  CreditCard,
+  CheckCheck,
+  Mic,
+  MapPin,
+  Play,
+  File,
 } from 'lucide-vue-next'
 
 /* eslint-enable no-restricted-imports */

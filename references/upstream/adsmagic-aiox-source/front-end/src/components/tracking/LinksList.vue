@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ExternalLink, Copy, Eye, Edit, Trash2, Check } from 'lucide-vue-next'
+import { ExternalLink, Copy, Eye, Edit, Trash2, Check } from '@/composables/useIcons'
 import Button from '@/components/ui/Button.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import SearchInput from '@/components/ui/SearchInput.vue'

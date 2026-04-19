@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Settings } from 'lucide-vue-next'
+import { Settings } from '@/composables/useIcons'
 import { useProjectsStore } from '@/stores/projects'
 import Button from '@/components/ui/Button.vue'
 

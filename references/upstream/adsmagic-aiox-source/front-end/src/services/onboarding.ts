@@ -125,7 +125,6 @@ class MockOnboardingService implements OnboardingService {
         JSON.stringify(validatedData)
       )
 
-      console.log('[MOCK] Dados de onboarding salvos:', validatedData)
     } catch (error) {
       console.error('Erro ao salvar dados de onboarding:', error)
       throw new Error('Erro ao salvar dados de onboarding')
@@ -164,7 +163,6 @@ class MockOnboardingService implements OnboardingService {
         JSON.stringify(validatedStatus)
       )
 
-      console.log('[MOCK] Onboarding marcado como completado:', validatedStatus)
     } catch (error) {
       console.error('Erro ao marcar onboarding como completado:', error)
       throw new Error('Erro ao marcar onboarding como completado')
@@ -182,7 +180,6 @@ class MockOnboardingService implements OnboardingService {
       localStorage.removeItem(STORAGE_KEYS.ONBOARDING_DATA)
       localStorage.removeItem(STORAGE_KEYS.ONBOARDING_STATUS)
 
-      console.log('[MOCK] Status de onboarding resetado')
     } catch (error) {
       console.error('Erro ao resetar status de onboarding:', error)
       throw new Error('Erro ao resetar status de onboarding')

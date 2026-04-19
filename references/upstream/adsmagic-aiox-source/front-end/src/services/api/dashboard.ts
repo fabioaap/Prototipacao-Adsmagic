@@ -11,8 +11,6 @@ import { apiClient } from './client'
 import type { DashboardMetrics, TimeSeriesData, OriginPerformance } from '@/types'
 import { getDashboardMetrics, getTimeSeriesData, getOriginPerformance } from '@/mocks/dashboard'
 
-
-
 // Flag para alternar entre mock e API real
 const USE_MOCK = false
 

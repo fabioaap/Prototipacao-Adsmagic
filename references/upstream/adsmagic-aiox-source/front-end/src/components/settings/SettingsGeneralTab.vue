@@ -18,13 +18,7 @@
             v-model="formData.projectName"
             placeholder="Digite o nome do projeto"
             :disabled="loading"
-            @blur="handleNameBlur"
-            @input="nameError = ''"
-            :aria-invalid="nameError ? 'true' : undefined"
-            aria-describedby="projectName-error"
-            :class="nameError ? 'border-destructive focus-visible:ring-destructive' : ''"
           />
-          <p v-if="nameError" id="projectName-error" class="text-xs text-destructive" role="alert">{{ nameError }}</p>
         </div>
 
         <!-- Project Description -->
@@ -54,7 +48,6 @@
               size="sm"
               @click="handleCopyProjectId"
               :disabled="loading"
-              aria-label="Copiar ID do projeto"
             >
               <Copy class="h-4 w-4" />
             </Button>
@@ -197,31 +190,9 @@
 
     <!-- Save Button -->
     <div class="flex items-center justify-end pt-4 border-t">
-      <Tooltip v-if="!hasChanges && !loading" side="left">
-        <template #trigger>
-          <span
-            class="inline-block"
-            tabindex="0"
-            role="button"
-            aria-disabled="true"
-            aria-label="Salvar Alterações — desabilitado"
-          >
-            <Button
-              :disabled="true"
-              :loading="loading"
-              aria-hidden="true"
-            >
-              <Save class="h-4 w-4" />
-              Salvar Alterações
-            </Button>
-          </span>
-        </template>
-        Altere um campo para salvar
-      </Tooltip>
       <Button
-        v-else
         @click="handleSave"
-        :disabled="loading"
+        :disabled="loading || !hasChanges"
         :loading="loading"
       >
         <Save class="h-4 w-4" />
@@ -331,7 +302,6 @@ import Textarea from '@/components/ui/Textarea.vue'
 import Label from '@/components/ui/Label.vue'
 import AlertDialog from '@/components/ui/AlertDialog.vue'
 import Modal from '@/components/ui/Modal.vue'
-import Tooltip from '@/components/ui/Tooltip.vue'
 import ModelAttributionSelector from '@/components/settings/ModelAttributionSelector.vue'
 import type { GeneralSettings } from '@/types/models'
 import { formatSafeDateTime } from '@/utils/formatters'
@@ -392,7 +362,6 @@ const revenueGoalInput = ref<string>(
     : ''
 )
 
-const nameError = ref('')
 const isArchiveModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 const isDeleteConfirmModalOpen = ref(false)
@@ -432,17 +401,6 @@ const parseRevenueGoalInput = (input: string): number | undefined => {
   
   const parsed = parseFloat(cleanValue)
   return !isNaN(parsed) && parsed > 0 ? parsed : undefined
-}
-
-/**
- * Handler para quando o campo nome perde o foco — valida campo obrigatório
- */
-const handleNameBlur = () => {
-  if (!formData.value.projectName.trim()) {
-    nameError.value = 'Nome do projeto é obrigatório'
-  } else {
-    nameError.value = ''
-  }
 }
 
 /**
@@ -556,11 +514,6 @@ const goToDashboard = () => {
 // ============================================================================
 
 const handleSave = () => {
-  if (!formData.value.projectName.trim()) {
-    nameError.value = 'Nome do projeto é obrigatório'
-    return
-  }
-  nameError.value = ''
   emit('save', { ...formData.value })
 }
 

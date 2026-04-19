@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { Check, Filter } from '@/composables/useIcons'
 import Select from '@/components/ui/radix/Select.vue'
 import { SelectItem, SelectItemIndicator, SelectItemText } from 'radix-vue'
+import { useOriginsStore } from '@/stores/origins'
 
 interface Props {
   modelValue: string
@@ -13,23 +14,29 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-const options = [
-  { label: 'Todas Origens', value: 'all' },
-  { label: 'Meta Ads', value: 'meta_ads' },
-  { label: 'Google Ads', value: 'google_ads' },
-  { label: 'TikTok Ads', value: 'tiktok_ads' },
-  { label: 'YouTube', value: 'youtube' },
-  { label: 'WhatsApp', value: 'whatsapp' },
-  { label: 'Orgânico', value: 'organic' },
-  { label: 'Referência/Parceria', value: 'referral' }
-]
+const originsStore = useOriginsStore()
 
-const validValues = new Set(options.map((option) => option.value))
-const selectedValue = computed(() => {
-  if (validValues.has(props.modelValue)) return props.modelValue
-  const byLabel = options.find((option) => option.label === props.modelValue)
-  return byLabel?.value ?? 'all'
+onMounted(() => {
+  if (originsStore.activeOrigins.length === 0) {
+    originsStore.fetchOrigins()
+  }
 })
+
+const options = computed(() => {
+  const items = [{ label: 'Todas Origens', value: 'all' }]
+  for (const origin of originsStore.activeOrigins) {
+    items.push({ label: origin.name, value: origin.id })
+  }
+  return items
+})
+
+const validValues = computed(() => new Set(options.value.map((option) => option.value)))
+const selectedValue = computed(() => {
+  if (validValues.value.has(props.modelValue)) return props.modelValue
+  return 'all'
+})
+
+const isLoadingOrigins = computed(() => originsStore.isLoading && originsStore.activeOrigins.length === 0)
 
 function handleSelect(value: string) {
   emit('update:modelValue', value || 'all')
@@ -44,8 +51,9 @@ function handleSelect(value: string) {
     <div class="select-wrapper">
       <Select
         :model-value="selectedValue"
-        placeholder="Selecione"
+        :placeholder="isLoadingOrigins ? 'Carregando...' : 'Selecione'"
         data-testid="origins-select"
+        :disabled="isLoadingOrigins"
         @update:model-value="handleSelect"
       >
         <SelectItem

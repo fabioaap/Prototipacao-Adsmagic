@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Upload, Sparkles, ShoppingCart, Building2, GraduationCap, Rocket, LayoutGrid, CheckSquare, X, Plus } from 'lucide-vue-next'
+import { Download, Upload, Sparkles, ShoppingCart, Building2, GraduationCap, Rocket, LayoutGrid, CheckSquare, X, Plus } from '@/composables/useIcons'
 import Button from '@/components/ui/Button.vue'
 import Modal from '@/components/ui/Modal.vue'
 import StagesList from '@/components/settings/StagesList.vue'
@@ -13,9 +13,6 @@ import type { Stage } from '@/types/models'
 import { useToast } from '@/components/ui/toast/use-toast'
 import { downloadBlob, generateFilename } from '@/utils/download'
 
-// ============================================================================
-// I18N
-// ============================================================================
 const { toast } = useToast()
 
 // ============================================================================
@@ -128,14 +125,14 @@ const funnelTemplates: FunnelTemplate[] = [
 
 const showTemplateModal = ref(false)
 const isApplyingTemplate = ref(false)
-const CONTACTS_VIEW_MODE_STORAGE_KEY = 'contacts-view-mode'
+import { CONTACTS_VIEW_MODE_KEY } from '@/config/storage-keys'
 
 const handleOpenTemplates = () => {
   showTemplateModal.value = true
 }
 
 const handleViewKanban = () => {
-  localStorage.setItem(CONTACTS_VIEW_MODE_STORAGE_KEY, 'kanban')
+  localStorage.setItem(CONTACTS_VIEW_MODE_KEY, 'kanban')
   router.push({
     name: 'contacts',
     params: {

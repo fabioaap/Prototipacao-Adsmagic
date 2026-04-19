@@ -62,6 +62,8 @@ const customPageComponents: Record<string, ReturnType<typeof defineAsyncComponen
   'brand-cards': defineAsyncComponent(() => import('./pages/BrandCardsPage.vue')),
   'brand-patterns': defineAsyncComponent(() => import('./pages/BrandPatternsPage.vue')),
   'brand-cover': defineAsyncComponent(() => import('./pages/BrandCoverPage.vue')),
+  'brand-instagram-carousels': defineAsyncComponent(() => import('./pages/BrandInstagramCarouselsPage.vue')),
+  'brand-carousel-post1': defineAsyncComponent(() => import('./pages/BrandCarouselPost1Page.vue')),
 }
 
 const customPage = computed(() => {
@@ -156,8 +158,13 @@ function isInternalLink(target: string) {
 </script>
 
 <template>
+  <!-- Custom-only page (no dsContent entry required) -->
+  <div v-if="!page && customPage">
+    <component :is="customPage" />
+  </div>
+
   <!-- Editorial layout for Brand pages -->
-  <div v-if="page && page.tone === 'brand'">
+  <div v-else-if="page && page.tone === 'brand'">
     <BrandEditorialRenderer :page="page" />
     <component v-if="customPage" :is="customPage" class="mt-8" />
   </div>

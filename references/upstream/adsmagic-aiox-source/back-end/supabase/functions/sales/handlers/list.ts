@@ -67,7 +67,8 @@ export async function handleList(
         contacts (
           name,
           phone,
-          country_code
+          country_code,
+          main_origin_id
         )
       `, { count: 'exact' })
 

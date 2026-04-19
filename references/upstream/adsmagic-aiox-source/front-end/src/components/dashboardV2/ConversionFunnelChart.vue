@@ -3,9 +3,10 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import VueApexCharts from 'vue3-apexcharts'
 import type { ApexOptions } from 'apexcharts'
-import type { FunnelStageStats } from '@/types'
+import type { FunnelCountMode, FunnelStageStats } from '@/types'
 
 interface Props {
+  mode: FunnelCountMode
   stages: FunnelStageStats[]
   totalContacts?: number
 }
@@ -84,13 +85,21 @@ function formatPercent(value: number, decimals = 1): string {
 
 function formatAvgDays(days?: number): string {
   if (typeof days !== 'number' || Number.isNaN(days) || days <= 0) {
-    return t('dashboard.v2.contactsInStage')
+    return props.mode === 'current'
+      ? t('dashboard.v2.contactsInStage')
+      : t('dashboard.v2.contactsPassedStage')
   }
 
   return t('dashboard.v2.avgTime', {
     time: `${days.toFixed(1).replace('.', ',')} dias`
   })
 }
+
+const chartAriaLabel = computed(() =>
+  props.mode === 'current'
+    ? t('dashboard.v2.funnelChartAriaCurrent')
+    : t('dashboard.v2.funnelChartAriaPassed')
+)
 
 const chartSeries = computed(() => [{
   name: t('dashboard.v2.funnelTitle'),
@@ -189,7 +198,7 @@ const chartOptions = computed<ApexOptions>(() => ({
           <div style="font-size:12px; color:#475569; margin-bottom:4px;">${stage.stageName}</div>
           <div style="font-size:18px; font-weight:700; color:#0f172a;">${formatNumber(stage.count)}</div>
           <div style="font-size:12px; color:#64748b; margin-top:6px;">${formatPercent(share, 0)} ${t('dashboard.v2.ofTotal')}</div>
-          <div style="font-size:12px; color:#64748b; margin-top:2px;">${conversion} ${t('dashboard.v2.advanced')}</div>
+          <div style="font-size:12px; color:#64748b; margin-top:2px;">${conversion} ${t('dashboard.v2.fromPreviousStage')}</div>
           <div style="font-size:12px; color:#64748b; margin-top:2px;">${formatAvgDays(stage.avgTimeInStage)}</div>
         </div>
       `
@@ -228,7 +237,7 @@ const stageDetails = computed(() => props.stages.map((stage, index) => {
     <div
       class="funnel-chart-frame"
       :style="{ minHeight: `${chartHeight + 34}px` }"
-      aria-label="Gráfico de funil de conversão"
+      :aria-label="chartAriaLabel"
     >
       <div class="funnel-chart-stage">
         <VueApexCharts
@@ -247,11 +256,11 @@ const stageDetails = computed(() => props.stages.map((stage, index) => {
         class="funnel-detail-card"
         role="listitem"
         :style="{
-          '--stage-accent': stage.palette.solid,
-          '--stage-soft': stage.palette.soft,
-          '--stage-tint': stage.palette.tint,
-          '--stage-border': stage.palette.border,
-          '--stage-shadow': stage.palette.shadow
+          '--stage-accent': stage.palette?.solid,
+          '--stage-soft': stage.palette?.soft,
+          '--stage-tint': stage.palette?.tint,
+          '--stage-border': stage.palette?.border,
+          '--stage-shadow': stage.palette?.shadow
         }"
       >
         <div class="funnel-detail-main">
@@ -269,7 +278,7 @@ const stageDetails = computed(() => props.stages.map((stage, index) => {
           <p class="funnel-detail-count">{{ formatNumber(stage.count) }}</p>
           <p class="funnel-detail-share">{{ formatPercent(stage.share, 0) }} {{ t('dashboard.v2.ofTotal') }}</p>
           <span v-if="stage.conversionRate > 0" class="funnel-detail-conversion">
-            {{ formatPercent(stage.conversionRate) }} {{ t('dashboard.v2.advanced') }}
+            {{ formatPercent(stage.conversionRate) }} {{ t('dashboard.v2.fromPreviousStage') }}
           </span>
         </div>
       </article>

@@ -2,13 +2,12 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 const MIN_NAVIGATION_FEEDBACK_MS = 200
-type TimeoutHandle = ReturnType<typeof globalThis.setTimeout>
 
 export const useNavigationStore = defineStore('navigation', () => {
   const isNavigating = ref(false)
   const pendingToPath = ref<string | null>(null)
   const startedAt = ref<number | null>(null)
-  let finishTimer: TimeoutHandle | null = null
+  let finishTimer: ReturnType<typeof setTimeout> | null = null
 
   const clearFinishTimer = () => {
     if (finishTimer !== null) {

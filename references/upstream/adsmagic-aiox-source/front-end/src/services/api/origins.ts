@@ -89,9 +89,6 @@ export async function getOrigins(): Promise<Result<Origin[], Error>> {
     return { ok: true, value: origins }
   } catch (err) {
     const message = getApiErrorMessage(err)
-    if (import.meta.env.DEV) {
-      console.error('[Origins Service] Error fetching origins:', err)
-    }
     return { ok: false, error: new Error(message) }
   }
 }
@@ -109,9 +106,6 @@ export async function getOriginById(id: string): Promise<Result<Origin | null, E
     const response = await apiClient.get<BackendOriginRow>(`/origins/${id}`)
     return { ok: true, value: mapBackendOriginToFrontend(response.data) }
   } catch (err: unknown) {
-    if (import.meta.env.DEV) {
-      console.error('[Origins Service] getOriginById error:', err)
-    }
     const axiosErr = err as { response?: { status?: number } }
     if (axiosErr.response?.status === 404) {
       return { ok: true, value: null }
@@ -157,9 +151,6 @@ export async function createOrigin(dto: CreateOriginDTO): Promise<Result<Origin,
     const response = await apiClient.post<BackendOriginRow>('/origins', body)
     return { ok: true, value: mapBackendOriginToFrontend(response.data) }
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.error('[Origins Service] createOrigin error:', err)
-    }
     return { ok: false, error: new Error(getApiErrorMessage(err)) }
   }
 }
@@ -190,9 +181,6 @@ export async function updateOrigin(
     const response = await apiClient.patch<BackendOriginRow>(`/origins/${id}`, body)
     return { ok: true, value: mapBackendOriginToFrontend(response.data) }
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.error('[Origins Service] updateOrigin error:', err)
-    }
     return { ok: false, error: new Error(getApiErrorMessage(err)) }
   }
 }
@@ -209,9 +197,6 @@ export async function deleteOrigin(id: string): Promise<Result<void, Error>> {
     await apiClient.delete(`/origins/${id}`)
     return { ok: true, value: undefined }
   } catch (err) {
-    if (import.meta.env.DEV) {
-      console.error('[Origins Service] deleteOrigin error:', err)
-    }
     return { ok: false, error: new Error(getApiErrorMessage(err)) }
   }
 }

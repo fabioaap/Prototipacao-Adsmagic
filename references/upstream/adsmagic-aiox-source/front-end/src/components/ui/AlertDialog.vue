@@ -88,7 +88,7 @@ const dialogClass = cn(
     >
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+        class="fixed inset-0 z-50 bg-black/50"
         @click="handleCancel"
       >
         <div class="fixed inset-0 flex items-center justify-center p-4">

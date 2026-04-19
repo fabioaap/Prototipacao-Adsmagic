@@ -69,6 +69,9 @@ let handleConfigureBroker: typeof import('./handlers/configure-broker.ts').handl
 let handleListAccounts: typeof import('./handlers/list-accounts.ts').handleListAccounts | null = null
 let handleGetAccount: typeof import('./handlers/get-account.ts').handleGetAccount | null = null
 let handleDisconnectInstance: typeof import('./handlers/disconnect-instance.ts').handleDisconnectInstance | null = null
+let handleSaveConnectedAccount: typeof import('./handlers/save-connected-account.ts').handleSaveConnectedAccount | null = null
+let handleCreateShareToken: typeof import('./handlers/create-share-token.ts').handleCreateShareToken | null = null
+let handleGetConversation: typeof import('./handlers/get-conversation.ts').handleGetConversation | null = null
 let errorResponse: typeof import('./utils/response.ts').errorResponse | null = null
 
 // Flag para indicar se todos os handlers foram carregados
@@ -137,6 +140,21 @@ async function loadHandlers(): Promise<void> {
     const disconnectInstanceModule = await import('./handlers/disconnect-instance.ts')
     handleDisconnectInstance = disconnectInstanceModule.handleDisconnectInstance
     console.log('[Messaging] ✓ disconnect-instance loaded')
+
+    console.log('[Messaging] Loading save-connected-account handler...')
+    const saveConnectedAccountModule = await import('./handlers/save-connected-account.ts')
+    handleSaveConnectedAccount = saveConnectedAccountModule.handleSaveConnectedAccount
+    console.log('[Messaging] ✓ save-connected-account loaded')
+
+    console.log('[Messaging] Loading create-share-token handler...')
+    const createShareTokenModule = await import('./handlers/create-share-token.ts')
+    handleCreateShareToken = createShareTokenModule.handleCreateShareToken
+    console.log('[Messaging] ✓ create-share-token loaded')
+
+    console.log('[Messaging] Loading get-conversation handler...')
+    const getConversationModule = await import('./handlers/get-conversation.ts')
+    handleGetConversation = getConversationModule.handleGetConversation
+    console.log('[Messaging] ✓ get-conversation loaded')
 
     handlersLoaded = true
     console.log('[Messaging] ========== ALL HANDLERS LOADED ==========')
@@ -287,6 +305,12 @@ serve(async (req) => {
       if (!handleConfigureBroker) return makeErrorResponse('Handler not available: configure-broker', 503)
       return await handleConfigureBroker(req, supabaseClient)
     }
+
+    // POST /messaging/save-connected-account - Salva conta conectada via webhook (API Oficial)
+    if (req.method === 'POST' && pathParts.length === 2 && pathParts[1] === 'save-connected-account') {
+      if (!handleSaveConnectedAccount) return makeErrorResponse('Handler not available: save-connected-account', 503)
+      return await handleSaveConnectedAccount(req, supabaseClient)
+    }
     
     // GET /messaging/connection-status/:accountId - Verifica status de conexão detalhado
     if (req.method === 'GET' && pathParts.length === 3 && pathParts[1] === 'connection-status') {
@@ -311,6 +335,18 @@ serve(async (req) => {
     if (req.method === 'POST' && pathParts.length === 3 && pathParts[1] === 'connect') {
       if (!handleConnectInstance) return makeErrorResponse('Handler not available: connect-instance', 503)
       return await handleConnectInstance(req, supabaseClient, pathParts[2])
+    }
+
+    // POST /messaging/share/:accountId - Cria token de compartilhamento de QR Code
+    if (req.method === 'POST' && pathParts.length === 3 && pathParts[1] === 'share') {
+      if (!handleCreateShareToken) return makeErrorResponse('Handler not available: create-share-token', 503)
+      return await handleCreateShareToken(req, supabaseClient, pathParts[2])
+    }
+
+    // GET /messaging/conversations/:contactId - Histórico de conversas de um contato
+    if (req.method === 'GET' && pathParts.length === 3 && pathParts[1] === 'conversations') {
+      if (!handleGetConversation) return makeErrorResponse('Handler not available: get-conversation', 503)
+      return await handleGetConversation(req, supabaseClient, pathParts[2])
     }
 
     // Rota não encontrada

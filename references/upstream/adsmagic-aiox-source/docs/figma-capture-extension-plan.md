@@ -1,12 +1,12 @@
-# Figma Capture Workflow Note
+# Figma Capture Extension Plan
 
-## Status
+## Objetivo
 
-A barra de captura usada no fluxo de tela para o Figma deve ser tratada como uma capacidade nativa do MCP do Figma no VS Code.
+Criar uma extensão leve do VS Code para disparar a captura para o Figma a partir do ambiente local do AdsMagic, sem depender de editar manualmente a URL da página nem reexplicar o fluxo em cada sessão.
 
-## Decisao Atual
+## Estado Atual
 
-O projeto possui um helper local de captura carregado em [front-end/index.html](front-end/index.html) via [front-end/public/figma-capture-helper.js](front-end/public/figma-capture-helper.js).
+Hoje o projeto já possui um helper local de captura carregado em [front-end/index.html](front-end/index.html) via [front-end/public/figma-capture-helper.js](front-end/public/figma-capture-helper.js).
 
 Esse helper expõe atalhos globais no browser:
 
@@ -16,21 +16,24 @@ Esse helper expõe atalhos globais no browser:
 4. `window.adsmagicFigmaCapture.copyHeaderAndFilters()`
 5. `window.adsmagicFigmaCapture.copyEventsTable()`
 
-Isso resolve a captura na aplicação web. O acionamento visual no VS Code deve privilegiar a barra nativa do MCP do Figma, nao uma extensao local adicional.
+Isso já resolve a captura na aplicação web. A extensão deve ser apenas uma camada de acionamento no VS Code.
 
-## Implicacao pratica
+## Problema a Resolver
 
-Quando o pedido for `Capitura do figma` ou `Captura do figma`, o fluxo correto e:
+O usuário quer um gatilho persistente no VS Code para ativar a captura sem precisar:
 
-1. usar a skill `figma-prototype-export`
-2. usar a barra nativa de captura do MCP do Figma, quando disponivel
-3. usar os scripts do repo apenas como apoio para preparar URL, rota e fallback guardado
+1. montar hashes manualmente
+2. abrir comandos MCP manualmente
+3. depender do contexto da conversa atual
 
-## Extensao local
+## Escopo do MVP
 
-Uma extensao local experimental chegou a ser considerada, mas nao deve ser a base oficial deste fluxo.
+O MVP da extensão deve fazer só o necessário:
 
-Se houver artefatos dessa extensao no workspace, trate-os como experimentais ou descontinuados.
+1. Adicionar um botão na status bar do VS Code com rótulo `Figma Capture`.
+2. Registrar comandos simples para tipos comuns de captura.
+3. Reaproveitar a aba já autenticada do navegador integrado sempre que possível.
+4. Acionar o helper global `window.adsmagicFigmaCapture` na página atual.
 
 ## UX Proposta
 
@@ -148,12 +151,3 @@ Quando retomarmos essa frente, a ordem recomendada é:
 2. Botão de status bar.
 3. Quick Pick com comandos.
 4. Chamada ao helper global da página.
-
-## Estado Atual
-
-O fluxo suportado neste repo e:
-
-1. helper local em [front-end/public/figma-capture-helper.js](front-end/public/figma-capture-helper.js)
-2. scripts em [scripts/figma_capture_localhost.cjs](scripts/figma_capture_localhost.cjs), [scripts/figma_capture_guarded.cjs](scripts/figma_capture_guarded.cjs) e [scripts/figma_mcp_call.py](scripts/figma_mcp_call.py)
-3. skill em [.agents/skills/figma-prototype-export/SKILL.md](.agents/skills/figma-prototype-export/SKILL.md)
-4. MCP do workspace em [.vscode/mcp.json](.vscode/mcp.json)

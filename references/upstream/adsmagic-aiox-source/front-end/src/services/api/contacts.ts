@@ -17,7 +17,6 @@
  */
 
 import { apiClient } from './client'
-import { tagsService } from './tags'
 import type {
   Contact,
   CreateContactDTO,
@@ -76,12 +75,6 @@ export async function getContacts(
 
       // In mock mode, we simulate project filtering but allow all mock data through
       // This is because mock contacts have hardcoded projectIds that won't match real projects
-      const currentProjectId = localStorage.getItem('current_project_id')
-      if (currentProjectId && import.meta.env.DEV) {
-        console.log('[Contacts Service] Mock mode - project filter would be:', currentProjectId)
-        console.log('[Contacts Service] Mock contacts have projectId:', MOCK_CONTACTS[0]?.projectId)
-      }
-
       // Apply search filter
       if (filters?.search) {
         filtered = searchContacts(filters.search)
@@ -95,20 +88,6 @@ export async function getContacts(
       // Apply stage filter
       if (filters?.stages && filters.stages.length > 0) {
         filtered = filtered.filter((contact) => filters.stages!.includes(contact.stage))
-      }
-
-      // Apply tag filter
-      if (filters?.tags && filters.tags.length > 0) {
-        const contactTags = await Promise.all(
-          filtered.map(async (contact) => ({
-            contact,
-            tags: await tagsService.getContactTags(contact.id)
-          }))
-        )
-
-        filtered = contactTags
-          .filter(({ tags }) => tags.some((tag) => filters.tags!.includes(tag.id)))
-          .map(({ contact }) => contact)
       }
 
       // Apply date range filter
@@ -634,19 +613,6 @@ export async function exportContactsToCSV(
           c.email?.toLowerCase().includes(query) ||
           c.phone?.includes(query)
         )
-      }
-
-      if (filters?.tags?.length) {
-        const contactTags = await Promise.all(
-          contactsToExport.map(async (contact) => ({
-            contact,
-            tags: await tagsService.getContactTags(contact.id)
-          }))
-        )
-
-        contactsToExport = contactTags
-          .filter(({ tags }) => tags.some((tag) => filters.tags!.includes(tag.id)))
-          .map(({ contact }) => contact)
       }
     } else {
       // Fetch all contacts matching filters (paginate through all pages)

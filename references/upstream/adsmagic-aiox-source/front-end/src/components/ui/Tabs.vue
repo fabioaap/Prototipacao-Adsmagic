@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provide, ref, computed } from 'vue'
+import { provide, ref, computed, watch } from 'vue'
 import { cn } from '@/lib/utils'
 
 interface TabsProps {
@@ -16,6 +16,14 @@ const emit = defineEmits<{
 }>()
 
 const activeTab = ref(props.modelValue)
+const baseId = `tabs-${Math.random().toString(36).slice(2, 9)}`
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    activeTab.value = value
+  }
+)
 
 const updateActiveTab = (value: string) => {
   activeTab.value = value
@@ -25,6 +33,7 @@ const updateActiveTab = (value: string) => {
 // Provide context to child components
 provide('tabs', {
   activeTab: computed(() => activeTab.value),
+  baseId,
   orientation: computed(() => props.orientation),
   updateActiveTab,
 })

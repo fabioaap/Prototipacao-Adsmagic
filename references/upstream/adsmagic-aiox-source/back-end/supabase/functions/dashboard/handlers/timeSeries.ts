@@ -71,24 +71,34 @@ export async function handleTimeSeries(
       return errorResponse('Project ID is required', 400)
     }
 
+    const originId = url.searchParams.get('origin') || null
+
     const { start, end } = getDateRange(period, startDate, endDate)
     const startISO = start.toISOString()
     const endISO = end.toISOString()
 
+    let contactsQuery = supabaseClient
+      .from('contacts')
+      .select('id, created_at')
+      .eq('project_id', projectId)
+      .gte('created_at', startISO)
+      .lte('created_at', endISO)
+
+    if (originId && originId !== 'all') {
+      contactsQuery = contactsQuery.eq('main_origin_id', originId)
+    }
+
+    let salesQuery = supabaseClient
+      .from('sales')
+      .select('id, value, date, origin_id, contact_id, contacts(main_origin_id)')
+      .eq('project_id', projectId)
+      .eq('status', 'completed')
+      .gte('date', startISO)
+      .lte('date', endISO)
+
     const [contactsRes, salesRes] = await Promise.all([
-      supabaseClient
-        .from('contacts')
-        .select('id, created_at')
-        .eq('project_id', projectId)
-        .gte('created_at', startISO)
-        .lte('created_at', endISO),
-      supabaseClient
-        .from('sales')
-        .select('id, value, date')
-        .eq('project_id', projectId)
-        .eq('status', 'completed')
-        .gte('date', startISO)
-        .lte('date', endISO)
+      contactsQuery,
+      salesQuery
     ])
 
     if (contactsRes.error) {
@@ -110,6 +120,13 @@ export async function handleTimeSeries(
 
     const salesByDay: Record<string, { count: number; revenue: number }> = {}
     for (const s of salesRes.data ?? []) {
+      // Filter sales by origin when originId is set
+      if (originId && originId !== 'all') {
+        const contact = Array.isArray(s.contacts) ? s.contacts[0] : s.contacts
+        const saleOriginId = contact?.main_origin_id || s.origin_id
+        if (saleOriginId !== originId) continue
+      }
+
       const day = s?.date ? toISODate(new Date(s.date)) : null
       if (!day) continue
       if (!salesByDay[day]) salesByDay[day] = { count: 0, revenue: 0 }

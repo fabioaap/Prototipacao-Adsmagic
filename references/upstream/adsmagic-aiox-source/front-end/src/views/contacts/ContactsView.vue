@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { List, LayoutGrid, Filter, Download, Plus } from 'lucide-vue-next'
+import { List, LayoutGrid, Loader2, Filter, Download, Plus } from '@/composables/useIcons'
 import Button from '@/components/ui/Button.vue'
+import Label from '@/components/ui/Label.vue'
+import Input from '@/components/ui/Input.vue'
 import SearchInput from '@/components/ui/SearchInput.vue'
+import Modal from '@/components/ui/Modal.vue'
 import AlertDialog from '@/components/ui/AlertDialog.vue'
 import AppShell from '@/components/layout/AppShell.vue'
 import ContactsList from '@/components/contacts/ContactsList.vue'
@@ -11,10 +14,11 @@ import ContactsKanban from '@/components/contacts/ContactsKanban.vue'
 import ContactFormModal from '@/components/contacts/ContactFormModal.vue'
 import ContactDetailsDrawer from '@/components/contacts/ContactDetailsDrawer.vue'
 import ContactsFilters from '@/components/contacts/ContactsFilters.vue'
-import ContactImportModal from '@/components/contacts/ContactImportModal.vue'
-import StagesManagementDrawer from '@/components/contacts/StagesManagementDrawer.vue'
+const ContactImportModal = defineAsyncComponent(() => import('@/components/contacts/ContactImportModal.vue'))
+const StagesManagementDrawer = defineAsyncComponent(() => import('@/components/contacts/StagesManagementDrawer.vue'))
 import SaleFormModal from '@/components/sales/SaleFormModal.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
+import Select from '@/components/ui/Select.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useAlertDialog } from '@/composables/useAlertDialog'
 import type { ContactFilters } from '@/components/contacts/ContactsFilters.vue'
@@ -47,8 +51,8 @@ const { toast } = useToast()
 const { t } = useI18n()
 
 // Preferência de visualização (salva em localStorage)
-const STORAGE_KEY = 'contacts-view-mode'
-const storedViewMode = localStorage.getItem(STORAGE_KEY) as ViewMode | null
+import { CONTACTS_VIEW_MODE_KEY } from '@/config/storage-keys'
+const storedViewMode = localStorage.getItem(CONTACTS_VIEW_MODE_KEY) as ViewMode | null
 const viewMode = ref<ViewMode>(storedViewMode || 'list')
 
 // Modals e Drawers
@@ -90,7 +94,6 @@ const hasActiveFilters = computed(() => {
   return (
     activeFilters.value.stageIds.length > 0 ||
     activeFilters.value.originIds.length > 0 ||
-    activeFilters.value.tagIds.length > 0 ||
     activeFilters.value.location !== '' ||
     activeFilters.value.dateFrom !== '' ||
     activeFilters.value.dateTo !== ''
@@ -104,7 +107,7 @@ const hasActiveFilters = computed(() => {
 // Alternar visualização
 const setViewMode = (mode: ViewMode) => {
   viewMode.value = mode
-  localStorage.setItem(STORAGE_KEY, mode)
+  localStorage.setItem(CONTACTS_VIEW_MODE_KEY, mode)
 }
 
 // Abrir modal de criação
@@ -296,7 +299,6 @@ const buildApiFilters = (overrideSearch?: string) => {
   return {
     stages: activeFilters.value.stageIds,
     origins: activeFilters.value.originIds,
-    tags: activeFilters.value.tagIds,
     search: effectiveSearch || undefined,
     dateFrom: activeFilters.value.dateFrom,
     dateTo: activeFilters.value.dateTo,
@@ -308,10 +310,11 @@ const buildApiFilters = (overrideSearch?: string) => {
 const handleApplyFilters = async (filters: ContactFilters) => {
   activeFilters.value = filters
   const apiFilters = buildApiFilters()
-  
+
   try {
+    contactsStore.setFilters(apiFilters, { skipFetch: true })
     await Promise.all([
-      contactsStore.setFilters(apiFilters),
+      contactsStore.fetchContacts(),
       contactsStore.fetchKanbanContacts(apiFilters),
     ])
   } catch (error) {
@@ -338,10 +341,10 @@ const handleClearFilters = async () => {
   }
   
   try {
-    const clearFilters = { page: 1, pageSize: 10 }
+    contactsStore.setFilters({ page: 1, pageSize: 10 }, { skipFetch: true })
     await Promise.all([
-      contactsStore.clearFilters(),
-      contactsStore.fetchKanbanContacts(clearFilters),
+      contactsStore.fetchContacts(),
+      contactsStore.fetchKanbanContacts({ page: 1, pageSize: 10 }),
     ])
   } catch (error) {
     console.error('Erro ao limpar filtros:', error)
@@ -358,8 +361,9 @@ const handleSearchChange = (value: string) => {
   searchDebounceTimer = setTimeout(async () => {
     try {
       const apiFilters = buildApiFilters(value.trim())
+      contactsStore.setFilters(apiFilters, { skipFetch: true })
       await Promise.all([
-        contactsStore.setFilters(apiFilters),
+        contactsStore.fetchContacts(),
         contactsStore.fetchKanbanContacts(apiFilters),
       ])
     } catch (error) {
@@ -385,7 +389,6 @@ const handleExport = async () => {
     const result = await exportContactsToCSV({
       stages: activeFilters.value.stageIds,
       origins: activeFilters.value.originIds,
-      tags: activeFilters.value.tagIds,
       search: searchTerm.value || undefined
     })
     
@@ -432,10 +435,22 @@ const handleImportComplete = async (count: number) => {
 
 // Abrir drawer para gestão do funil (etapas do Kanban)
 const handleGoToFunnel = () => {
+  console.log('🎯 handleGoToFunnel clicado!')
+  console.log('🎯 Estado antes:', isStagesDrawerOpen.value)
   isStagesDrawerOpen.value = true
+  console.log('🎯 Estado depois:', isStagesDrawerOpen.value)
 }
 
-// Funções de gerenciamento de etapas movidas para StagesManagementDrawer
+// Estados para modal de criação/edição de etapa
+const isStageModalOpen = ref(false)
+const editingStage = ref<any>(null)
+const stageFormData = ref({
+  name: '',
+  trackingPhrase: '',
+  type: 'normal' as 'normal' | 'sale' | 'lost'
+})
+
+// Funções de gerenciamento de etapas (atualmente não utilizadas no template)
 /* const addNewStage = () => {
   // Fechar drawer antes de abrir modal
   isStagesDrawerOpen.value = false
@@ -798,6 +813,68 @@ onUnmounted(() => {
       @stages-updated="handleStagesUpdated"
     />
 
+    <!-- Modal de Criação/Edição de Etapa -->
+    <Modal
+      :open="isStageModalOpen"
+      :title="editingStage ? t('contacts.stageModal.editTitle') : t('contacts.stageModal.newTitle')"
+      size="md"
+      @update:open="isStageModalOpen = $event"
+    >
+      <div class="space-y-4">
+        <div>
+          <Label for="stage-name">{{ t('contacts.stageModal.stageName') }}</Label>
+          <Input
+            id="stage-name"
+            v-model="stageFormData.name"
+            :placeholder="t('contacts.stageModal.stageNamePlaceholder')"
+            class="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label for="stage-phrase">{{ t('contacts.stageModal.trackingPhrase') }}</Label>
+          <Input
+            id="stage-phrase"
+            v-model="stageFormData.trackingPhrase"
+            :placeholder="t('contacts.stageModal.trackingPhrasePlaceholder')"
+            class="mt-1"
+          />
+          <p class="text-xs text-muted-foreground mt-1">
+            {{ t('contacts.stageModal.trackingPhraseHint') }}
+          </p>
+        </div>
+
+        <div>
+          <Label>{{ t('contacts.stageModal.stageType') }}</Label>
+          <div class="mt-2">
+            <Select
+              v-model="stageFormData.type"
+              :options="[
+                { value: 'normal', label: t('contacts.stageModal.typeNormal') },
+                { value: 'sale', label: t('contacts.stageModal.typeSale') },
+                { value: 'lost', label: t('contacts.stageModal.typeLost') }
+              ]"
+              :placeholder="t('contacts.stageModal.typePlaceholder')"
+            />
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <Button variant="outline" @click="isStageModalOpen = false">
+          {{ t('common.cancel') }}
+        </Button>
+        <Button @click="() => {}" :disabled="stagesStore.isLoading">
+          <span v-if="stagesStore.isLoading">
+            <Loader2 class="h-4 w-4 animate-spin mr-2" />
+            {{ t('contacts.stageModal.saving') }}
+          </span>
+          <span v-else>
+            {{ editingStage ? t('contacts.stageModal.updateStage') : t('contacts.stageModal.createStage') }}
+          </span>
+        </Button>
+      </template>
+    </Modal>
   </AppShell>
 
   <!-- Dialogs de Confirmação e Alerta -->

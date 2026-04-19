@@ -117,16 +117,16 @@ const handleConfirmPasswordChange = (value: string) => {
 </script>
 
 <template>
-  <div class="min-h-screen flex">
+  <div class="h-screen flex overflow-hidden">
     <div class="language-selector-wrapper">
       <LanguageSelector />
     </div>
 
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
-      <div class="w-full max-w-md space-y-8">
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-background overflow-y-auto">
+      <div class="w-full max-w-md space-y-4 sm:space-y-6 lg:space-y-8">
         <div class="text-center">
           <BrandLogo :height="48" />
-          <p class="text-muted-foreground mt-4">
+          <p class="text-muted-foreground mt-2 sm:mt-4">
             {{ t('auth.resetPassword.subtitle') }}
           </p>
         </div>
@@ -208,12 +208,12 @@ const handleConfirmPasswordChange = (value: string) => {
       </div>
     </div>
 
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-12">
-      <div class="max-w-md text-primary-foreground space-y-6">
-        <h2 class="text-5xl font-bold leading-tight">
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 items-center justify-center p-8 xl:p-12">
+      <div class="max-w-md text-primary-foreground space-y-4 xl:space-y-6">
+        <h2 class="text-3xl xl:text-5xl font-bold leading-tight">
           {{ t('auth.resetPassword.hero.title') }}
         </h2>
-        <p class="text-xl text-primary-foreground/90">
+        <p class="text-lg xl:text-xl text-primary-foreground/90">
           {{ t('auth.resetPassword.hero.description') }}
         </p>
       </div>

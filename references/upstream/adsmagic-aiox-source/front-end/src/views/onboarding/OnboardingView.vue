@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/toast/use-toast'
 import { onboardingService } from '@/services/onboarding'
 import { supabase } from '@/services/api/supabaseClient'
 import { ensureSession } from '@/services/api/client'
+import { analytics } from '@/services/analytics'
 import { isCompanyAlreadyExistsError, isRlsForbiddenError } from '@/services/api/companiesService'
 import OnboardingLayout from '@/components/features/onboarding/OnboardingLayout.vue'
 import Button from '@/components/ui/Button.vue'
@@ -184,7 +185,7 @@ const progress = computed(() => (currentStep.value / 3) * 100)
 const DEFAULT_COUNTRY = 'BR' as const
 const DEFAULT_CURRENCY = 'BRL' as const
 const DEFAULT_TIMEZONE = 'America/Sao_Paulo' as const
-const DEFAULT_INDUSTRY = 'franchise' as const
+const DEFAULT_INDUSTRY = 'general' as const
 const DEFAULT_COMPANY_SIZE = 'small' as const
 const DEFAULT_COMPANY_NAME = 'Minha Empresa' as const
 
@@ -241,15 +242,14 @@ function mapOnboardingDataToCompanyData(finalData: OnboardingFinalData): CreateC
 }
 
 /**
- * Verifica se usuário já tem empresa e retorna a existente se houver
+ * Verifica se usuário já tem empresa, usando cache do store quando disponível
  */
 async function checkExistingCompany(): Promise<{ hasCompany: boolean; companyId?: string }> {
   const { useCompaniesStore } = await import('@/stores/companies')
   const companiesStore = useCompaniesStore()
-  
-  await companiesStore.fetchCompanies({ reason: 'view' })
-  
-  if (companiesStore.companies && companiesStore.companies.length > 0) {
+
+  // Usa dados já carregados no store (do login) em vez de re-buscar na API
+  if (companiesStore.companies.length > 0) {
     const existingCompany = companiesStore.companies[0]
     if (!existingCompany) return { hasCompany: false }
     companiesStore.setCurrentCompany(existingCompany)
@@ -259,13 +259,21 @@ async function checkExistingCompany(): Promise<{ hasCompany: boolean; companyId?
   return { hasCompany: false }
 }
 
+/**
+ * Em caso de conflito 409, busca a empresa existente na API
+ */
 async function ensureCompanyAvailableAfterConflict(): Promise<string> {
-  const { hasCompany, companyId } = await checkExistingCompany()
-  if (!hasCompany || !companyId) {
+  const { useCompaniesStore } = await import('@/stores/companies')
+  const companiesStore = useCompaniesStore()
+
+  await companiesStore.fetchCompanies({ force: true, reason: 'mutation' })
+
+  const existingCompany = companiesStore.companies[0]
+  if (!existingCompany) {
     throw new Error('Conflito ao criar empresa, mas nenhuma empresa vinculada foi encontrada.')
   }
 
-  return companyId
+  return existingCompany.id
 }
 
 /**
@@ -329,13 +337,13 @@ async function createCompanyFromOnboarding(finalData: OnboardingFinalData): Prom
     }
     
     console.log('[Onboarding] ✅ Company created successfully:', company.id)
-    
-    // Atualizar store e progresso
+
+    // Setar empresa diretamente no store (evita re-fetch da API)
     const { useCompaniesStore } = await import('@/stores/companies')
     const companiesStore = useCompaniesStore()
-    await companiesStore.fetchCompanies({ force: true, reason: 'mutation' })
-    const createdCompanyId = companiesStore.currentCompany?.id || company.id
-    return createdCompanyId
+    companiesStore.companies = [company]
+    companiesStore.setCurrentCompany(company)
+    return company.id
     
   } catch (error: unknown) {
     console.error('[Onboarding] ❌ Error creating company:', error)
@@ -432,8 +440,11 @@ const handleComplete = async (): Promise<void> => {
       const finalData = (onboardingStore.collectedData || {}) as OnboardingFinalData
       await onboardingService.saveOnboardingData(finalData as any)
       const companyId = await createCompanyFromOnboarding(finalData)
-      await updateOnboardingProgress(userId, companyId)
+      // Fire-and-forget: não bloqueia navegação
+      updateOnboardingProgress(userId, companyId)
       await authStore.markOnboardingCompleted()
+      analytics.track('onboarding_completed', {})
+      localStorage.removeItem('current_project_id')
       await router.push(`/${locale}/projects`)
       return
     }
@@ -451,10 +462,14 @@ const handleComplete = async (): Promise<void> => {
 
     // Criar empresa real no banco de dados
     const companyId = await createCompanyFromOnboarding(finalData)
-    await updateOnboardingProgress(userId, companyId)
 
-    // Marca onboarding como completado
+    // Fire-and-forget: atualiza progresso sem bloquear navegação
+    updateOnboardingProgress(userId, companyId)
+
+    // Marca onboarding como completado e limpa project_id stale
     await authStore.markOnboardingCompleted()
+    analytics.track('onboarding_completed', {})
+    localStorage.removeItem('current_project_id')
     await router.push(`/${locale}/projects`)
   } catch (error) {
     console.error('Erro ao finalizar onboarding:', error)

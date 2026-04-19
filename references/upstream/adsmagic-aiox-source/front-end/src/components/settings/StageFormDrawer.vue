@@ -15,6 +15,7 @@ import type {
   Stage,
   Origin,
   GoogleConversionAction,
+  MetaPixel,
   StageEventRoute,
   StageEventRouteChannel,
 } from '@/types/models'
@@ -55,6 +56,8 @@ interface StageEventRouteForm {
   integrationAccountId: string
   conversionActionId: string
   conversionActionName: string
+  pixelId: string
+  pixelName: string
   value: string
   currency: string
   priority: string
@@ -140,6 +143,8 @@ function createEmptyRoute(
     integrationAccountId: defaults?.integrationAccountId || '',
     conversionActionId: '',
     conversionActionName: '',
+    pixelId: '',
+    pixelName: '',
     value: '',
     currency: defaults?.currency || 'BRL',
     priority: '0',
@@ -194,6 +199,8 @@ function normalizeEventConfig(rawEventConfig: Stage['eventConfig'] | undefined):
         integrationAccountId: asString(routeRaw.integrationAccountId || routeRaw.integration_account_id).trim(),
         conversionActionId: asString(routeRaw.conversionActionId || routeRaw.conversion_action_id).trim(),
         conversionActionName: asString(routeRaw.conversionActionName || routeRaw.conversion_action_name).trim(),
+        pixelId: asString(routeRaw.pixelId || routeRaw.pixel_id).trim(),
+        pixelName: asString(routeRaw.pixelName || routeRaw.pixel_name).trim(),
         value: asScalarString(routeRaw.value),
         currency: asString(routeRaw.currency).trim() || defaultCurrency,
         priority: asScalarString(routeRaw.priority || 0),
@@ -234,6 +241,16 @@ const googleAccounts = ref<GoogleAccountOption[]>([])
 const conversionActionsByAccount = ref<Record<string, GoogleConversionAction[]>>({})
 const googleEnhancedLeadsByAccount = ref<Record<string, boolean | undefined>>({})
 
+interface MetaAccountOption {
+  id: string
+  externalAccountId: string
+  label: string
+}
+
+const metaIntegrationId = ref('')
+const metaAccounts = ref<MetaAccountOption[]>([])
+const pixelsByAccount = ref<Record<string, MetaPixel[]>>({})
+
 const formData = ref<FormData>({
   name: '',
   trackingPhrase: '',
@@ -269,6 +286,13 @@ const originOptions = computed(() => {
 
 const googleAccountOptions = computed(() => {
   return googleAccounts.value.map((account) => ({
+    value: account.id,
+    label: account.label,
+  }))
+})
+
+const metaAccountOptions = computed(() => {
+  return metaAccounts.value.map((account) => ({
     value: account.id,
     label: account.label,
   }))
@@ -337,6 +361,36 @@ async function ensureGoogleConversionActionsLoaded(accountId: string): Promise<v
   }
 }
 
+async function ensureMetaPixelsLoaded(accountId: string): Promise<void> {
+  if (!accountId || pixelsByAccount.value[accountId]) {
+    return
+  }
+
+  if (!metaIntegrationId.value) {
+    return
+  }
+
+  const account = metaAccounts.value.find((item) => item.id === accountId)
+  if (!account) {
+    return
+  }
+
+  try {
+    const response = await integrationsService.getMetaPixelConfig(
+      metaIntegrationId.value,
+      account.externalAccountId,
+    )
+
+    // Only include pixels that have a CAPI token configured
+    pixelsByAccount.value = {
+      ...pixelsByAccount.value,
+      [accountId]: response.pixels,
+    }
+  } catch (error) {
+    console.error('[StageFormDrawer] Erro ao carregar pixels Meta:', error)
+  }
+}
+
 async function loadSupportData() {
   loadingSupportData.value = true
   supportDataError.value = null
@@ -344,6 +398,9 @@ async function loadSupportData() {
   googleAccounts.value = []
   conversionActionsByAccount.value = {}
   googleEnhancedLeadsByAccount.value = {}
+  metaIntegrationId.value = ''
+  metaAccounts.value = []
+  pixelsByAccount.value = {}
 
   try {
     const originsResult = await getOrigins()
@@ -359,35 +416,65 @@ async function loadSupportData() {
     }
 
     const integrations = await integrationsService.getIntegrations(projectId)
+
+    // Load Google integration
     const googleIntegration = integrations.find(
       (integration) => integration.platform === 'google' && integration.status === 'connected'
     )
 
-    if (!googleIntegration) {
-      return
+    if (googleIntegration) {
+      googleIntegrationId.value = googleIntegration.id
+
+      const accountsResponse = await integrationsService.getIntegrationAccounts(googleIntegration.id)
+      const activeGoogleAccounts = accountsResponse.accounts
+        .filter((account) => account.status === 'active')
+        .map((account) => ({
+          id: account.id,
+          externalAccountId: account.external_account_id,
+          label: `${account.external_account_name || account.account_name} (${account.external_account_id})`,
+        }))
+
+      googleAccounts.value = activeGoogleAccounts
+
+      const googleRoutesToPreload = [...new Set(
+        formData.value.eventConfig.routes
+          .filter((route) => route.channel === 'google' && route.integrationAccountId)
+          .map((route) => route.integrationAccountId)
+      )]
+
+      for (const accountId of googleRoutesToPreload) {
+        await ensureGoogleConversionActionsLoaded(accountId)
+      }
     }
 
-    googleIntegrationId.value = googleIntegration.id
+    // Load Meta integration
+    const metaIntegration = integrations.find(
+      (integration) => integration.platform === 'meta' && integration.status === 'connected'
+    )
 
-    const accountsResponse = await integrationsService.getIntegrationAccounts(googleIntegration.id)
-    const activeGoogleAccounts = accountsResponse.accounts
-      .filter((account) => account.status === 'active')
-      .map((account) => ({
-        id: account.id,
-        externalAccountId: account.external_account_id,
-        label: `${account.external_account_name || account.account_name} (${account.external_account_id})`,
-      }))
+    if (metaIntegration) {
+      metaIntegrationId.value = metaIntegration.id
 
-    googleAccounts.value = activeGoogleAccounts
+      const metaAccountsResponse = await integrationsService.getIntegrationAccounts(metaIntegration.id)
+      const activeMetaAccounts = metaAccountsResponse.accounts
+        .filter((account) => account.status === 'active')
+        .map((account) => ({
+          id: account.id,
+          externalAccountId: account.external_account_id,
+          label: `${account.external_account_name || account.account_name} (${account.external_account_id})`,
+        }))
 
-    const routesToPreload = [...new Set(
-      formData.value.eventConfig.routes
-        .filter((route) => route.channel === 'google' && route.integrationAccountId)
-        .map((route) => route.integrationAccountId)
-    )]
+      metaAccounts.value = activeMetaAccounts
 
-    for (const accountId of routesToPreload) {
-      await ensureGoogleConversionActionsLoaded(accountId)
+      const metaRoutesToPreload = [...new Set(
+        formData.value.eventConfig.routes
+          .filter((route) => route.channel === 'meta' && route.integrationAccountId)
+          .map((route) => route.integrationAccountId)
+      )]
+
+      for (const accountId of metaRoutesToPreload) {
+        await ensureMetaPixelsLoaded(accountId)
+      }
     }
   } catch (error) {
     console.error('[StageFormDrawer] Erro ao carregar dados de suporte:', error)
@@ -439,8 +526,21 @@ function handleChannelChange(route: StageEventRouteForm, channel: string) {
   if (route.channel === 'google') {
     route.integrationId = googleIntegrationId.value || route.integrationId
     route.integrationAccountId = route.integrationAccountId || googleAccounts.value[0]?.id || ''
+    route.pixelId = ''
+    route.pixelName = ''
     if (route.integrationAccountId) {
       ensureGoogleConversionActionsLoaded(route.integrationAccountId)
+    }
+    return
+  }
+
+  if (route.channel === 'meta') {
+    route.integrationId = metaIntegrationId.value || route.integrationId
+    route.integrationAccountId = route.integrationAccountId || metaAccounts.value[0]?.id || ''
+    route.conversionActionId = ''
+    route.conversionActionName = ''
+    if (route.integrationAccountId) {
+      ensureMetaPixelsLoaded(route.integrationAccountId)
     }
     return
   }
@@ -448,6 +548,8 @@ function handleChannelChange(route: StageEventRouteForm, channel: string) {
   route.integrationAccountId = ''
   route.conversionActionId = ''
   route.conversionActionName = ''
+  route.pixelId = ''
+  route.pixelName = ''
 }
 
 function handleGoogleAccountChange(route: StageEventRouteForm, accountId: string) {
@@ -456,6 +558,32 @@ function handleGoogleAccountChange(route: StageEventRouteForm, accountId: string
   route.conversionActionId = ''
   route.conversionActionName = ''
   ensureGoogleConversionActionsLoaded(accountId)
+}
+
+function handleMetaAccountChange(route: StageEventRouteForm, accountId: string) {
+  route.integrationAccountId = accountId
+  route.integrationId = metaIntegrationId.value || route.integrationId
+  route.pixelId = ''
+  route.pixelName = ''
+  ensureMetaPixelsLoaded(accountId)
+}
+
+function getPixelOptions(route: StageEventRouteForm) {
+  const list = pixelsByAccount.value[route.integrationAccountId] || []
+
+  return list.map((pixel) => ({
+    value: pixel.id,
+    label: `${pixel.name} (${pixel.id})`,
+  }))
+}
+
+function handleMetaPixelChange(route: StageEventRouteForm, pixelId: string) {
+  route.pixelId = pixelId
+
+  const selected = (pixelsByAccount.value[route.integrationAccountId] || [])
+    .find((pixel) => pixel.id === pixelId)
+
+  route.pixelName = selected?.name || ''
 }
 
 function handleConversionActionChange(route: StageEventRouteForm, conversionActionId: string) {
@@ -483,6 +611,8 @@ function normalizeRoutesForSave(routes: StageEventRouteForm[]): StageEventRoute[
         integrationAccountId: route.integrationAccountId || undefined,
         conversionActionId: route.conversionActionId || undefined,
         conversionActionName: route.conversionActionName || undefined,
+        pixelId: route.pixelId || undefined,
+        pixelName: route.pixelName || undefined,
       }
 
       return normalizedRoute
@@ -517,6 +647,16 @@ function validateRoutes(): boolean {
 
       if (!route.conversionActionId) {
         issues.push(`Rota ${index + 1}: selecione a conversion action do Google Ads.`)
+      }
+    }
+
+    if (route.channel === 'meta') {
+      if (!route.integrationAccountId) {
+        issues.push(`Rota ${index + 1}: selecione a conta do Meta Ads.`)
+      }
+
+      if (!route.pixelId) {
+        issues.push(`Rota ${index + 1}: selecione o pixel do Meta Ads.`)
       }
     }
   }
@@ -859,6 +999,38 @@ watch(() => props.open, async (isOpen) => {
                         :disabled="loading || !route.integrationAccountId"
                         placeholder="Selecione a conversion action"
                         @update:model-value="handleConversionActionChange(route, $event)"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="route.channel === 'meta'" class="space-y-3">
+                  <Alert v-if="!metaIntegrationId" variant="warning">
+                    <div class="text-sm">
+                      Integração Meta Ads não conectada neste projeto.
+                    </div>
+                  </Alert>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="space-y-2">
+                      <Label>Conta Meta Ads</Label>
+                      <Select
+                        :model-value="route.integrationAccountId"
+                        :options="metaAccountOptions"
+                        :disabled="loading || !metaIntegrationId"
+                        placeholder="Selecione a conta"
+                        @update:model-value="handleMetaAccountChange(route, $event)"
+                      />
+                    </div>
+
+                    <div class="space-y-2">
+                      <Label>Pixel Meta Ads</Label>
+                      <Select
+                        :model-value="route.pixelId"
+                        :options="getPixelOptions(route)"
+                        :disabled="loading || !route.integrationAccountId"
+                        placeholder="Selecione o pixel"
+                        @update:model-value="handleMetaPixelChange(route, $event)"
                       />
                     </div>
                   </div>
