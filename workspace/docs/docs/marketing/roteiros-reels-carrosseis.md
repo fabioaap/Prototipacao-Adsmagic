@@ -1,17 +1,17 @@
 ---
 title: Roteiros — Reels e Carrosseis
-slug: /wiki/marketing/roteiros-reels-carrosseis
+slug: /marketing/roteiros-reels-carrosseis
 ---
 
 # Roteiros — Reels e Carrosseis
 
-Kit operacional com 6 roteiros de Reels e 3 roteiros de Carrosseis prontos para produção. Todo o material é derivado do [Canvas de Conteúdo para Instagram](/wiki/marketing/canvas-de-conteudo-instagram) e sustentado pela [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo).
+Kit operacional com 6 roteiros de Reels e 3 roteiros de Carrosseis prontos para produção. Todo o material é derivado do [Canvas de Conteúdo para Instagram](/marketing/canvas-de-conteudo-instagram) e sustentado pela [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo).
 
 ## Como usar este kit
 
 1. Escolha o roteiro pelo pilar editorial e dia da semana.
 2. Grave seguindo os timestamps e direções visuais.
-3. Use os textos de overlay exatamente como descritos — eles foram extraídos das [Mensagens-Chave](/wiki/marketing/mensagens-chave).
+3. Use os textos de overlay exatamente como descritos — eles foram extraídos das [Mensagens-Chave](/marketing/mensagens-chave).
 4. Adapte o CTA conforme o momento: DM, WhatsApp ou comentário.
 5. Consulte o [Calendário sugerido](#calendário-sugerido--semanas-1-e-2) para sequência de publicação.
 
@@ -213,7 +213,7 @@ Kit operacional com 6 roteiros de Reels e 3 roteiros de Carrosseis prontos para 
 
 ## Calendário sugerido — Semanas 1 e 2
 
-Distribuição dos 6 Reels e 3 Carrosseis em duas semanas, seguindo a cadência editorial do [Canvas de Conteúdo](/wiki/marketing/canvas-de-conteudo-instagram).
+Distribuição dos 6 Reels e 3 Carrosseis em duas semanas, seguindo a cadência editorial do [Canvas de Conteúdo](/marketing/canvas-de-conteudo-instagram).
 
 ### Semana 1
 
@@ -261,8 +261,9 @@ Conjunto de 20 hashtags otimizadas para o ICP (agências de tráfego pago com ve
 
 ## Referências cruzadas
 
-- [Canvas de Conteúdo para Instagram](/wiki/marketing/canvas-de-conteudo-instagram) — pilares editoriais, estruturas de formato, hook library, cadência semanal
-- [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo) — Golden Core, 5 problemas-raiz, transformação prometida, anti-categoria
-- [Mensagens-Chave](/wiki/marketing/mensagens-chave) — mensagem-mãe, versões por público, CTAs recomendados
-- [Assets e Campanhas](/wiki/marketing/assets-e-campanhas) — inventário de assets, status de produção, lacunas
-- [Provas e Objeções](/wiki/marketing/provas-e-objecoes) — claims validados, respostas a objeções comuns
+- [Canvas de Conteúdo para Instagram](/marketing/canvas-de-conteudo-instagram) — pilares editoriais, estruturas de formato, hook library, cadência semanal
+- [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo) — Golden Core, 5 problemas-raiz, transformação prometida, anti-categoria
+- [Mensagens-Chave](/marketing/mensagens-chave) — mensagem-mãe, versões por público, CTAs recomendados
+- [Assets e Campanhas](/marketing/assets-e-campanhas) — inventário de assets, status de produção, lacunas
+- [Provas e Objeções](/marketing/provas-e-objecoes) — claims validados, respostas a objeções comuns
+

@@ -1,6 +1,6 @@
 ---
 title: "Kit de Copies — Google Ads"
-slug: /wiki/marketing/copies-google-ads
+slug: /marketing/copies-google-ads
 ---
 
 # Kit de Copies — Google Ads (Search)
@@ -427,11 +427,12 @@ Campanha: Adsmagic — Search — Agências
 
 ## Referências cruzadas
 
-- [Mensagens-Chave](/wiki/marketing/mensagens-chave) — mensagem-mãe, copies por público e canal, CTAs
-- [Posicionamento](/wiki/marketing/posicionamento) — categoria, problema central, proposta de valor, diferenciais
-- [Oferta para Agências](/wiki/marketing/oferta-para-agencias) — blueprint de LP, hero, blocos de valor, FAQ
-- [Provas e Objeções](/wiki/marketing/provas-e-objecoes) — claims aprovados, níveis de confiança, regra editorial
-- [Assets e Campanhas](/wiki/marketing/assets-e-campanhas) — índice de campanhas e lacunas de produção
-- [Benchmark Competitivo: Tintim](/wiki/marketing/benchmark-competitivo-tintim) — posicionamento e oferta do concorrente direto
-- [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo) — tese central, Golden Core, transformação prometida
-- [Pricing e Unit Economics](/wiki/marketing/pricing-e-unit-economics) — pricing vigente e lógica de precificação
+- [Mensagens-Chave](/marketing/mensagens-chave) — mensagem-mãe, copies por público e canal, CTAs
+- [Posicionamento](/marketing/posicionamento) — categoria, problema central, proposta de valor, diferenciais
+- [Oferta para Agências](/marketing/oferta-para-agencias) — blueprint de LP, hero, blocos de valor, FAQ
+- [Provas e Objeções](/marketing/provas-e-objecoes) — claims aprovados, níveis de confiança, regra editorial
+- [Assets e Campanhas](/marketing/assets-e-campanhas) — índice de campanhas e lacunas de produção
+- [Benchmark Competitivo: Tintim](/marketing/benchmark-competitivo-tintim) — posicionamento e oferta do concorrente direto
+- [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo) — tese central, Golden Core, transformação prometida
+- [Pricing e Unit Economics](/marketing/pricing-e-unit-economics) — pricing vigente e lógica de precificação
+

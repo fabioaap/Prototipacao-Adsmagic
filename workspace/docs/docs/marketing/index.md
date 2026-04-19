@@ -1,6 +1,6 @@
 ---
 title: Marketing
-slug: /wiki/marketing
+slug: /marketing
 ---
 
 # Marketing
@@ -36,17 +36,17 @@ Define o mercado, o público e a tese de valor do Adsmagic.
 
 Páginas desta camada:
 
-- [Posicionamento](/wiki/marketing/posicionamento)
-- [ICP e Segmentos](/wiki/marketing/icp-e-segmentos)
-- [Agencias e Parceiros](/wiki/marketing/agencias-e-parceiros)
-- [Oferta para Agencias](/wiki/marketing/oferta-para-agencias)
-- [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo)
-- [Pricing e Unit Economics](/wiki/marketing/pricing-e-unit-economics)
-- [Squad de GTM](/wiki/marketing/squad-de-gtm)
-- [Gaps e Decisões Abertas do GTM](/wiki/marketing/gaps-e-decisoes-abertas-do-gtm)
-- [Benchmark Competitivo: Tintim](/wiki/marketing/benchmark-competitivo-tintim)
-- [Dossie de Canal: Bispo Bruno Leonardo](/wiki/marketing/dossie-canal-youtube-bispo-bruno-leonardo)
-- [Plano de 90 dias](/wiki/marketing/plano-90-dias)
+- [Posicionamento](/marketing/posicionamento)
+- [ICP e Segmentos](/marketing/icp-e-segmentos)
+- [Agencias e Parceiros](/marketing/agencias-e-parceiros)
+- [Oferta para Agencias](/marketing/oferta-para-agencias)
+- [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo)
+- [Pricing e Unit Economics](/marketing/pricing-e-unit-economics)
+- [Squad de GTM](/marketing/squad-de-gtm)
+- [Gaps e Decisões Abertas do GTM](/marketing/gaps-e-decisoes-abertas-do-gtm)
+- [Benchmark Competitivo: Tintim](/marketing/benchmark-competitivo-tintim)
+- [Dossie de Canal: Bispo Bruno Leonardo](/marketing/dossie-canal-youtube-bispo-bruno-leonardo)
+- [Plano de 90 dias](/marketing/plano-90-dias)
 
 ### Messaging
 
@@ -54,9 +54,9 @@ Transforma a estratégia em linguagem utilizável por site, vendas, conteúdo e 
 
 Páginas desta camada:
 
-- [Mensagens-Chave](/wiki/marketing/mensagens-chave)
-- [Alinhamento de Fontes](/wiki/marketing/alinhamento-de-fontes)
-- [Provas e Objeções](/wiki/marketing/provas-e-objecoes)
+- [Mensagens-Chave](/marketing/mensagens-chave)
+- [Alinhamento de Fontes](/marketing/alinhamento-de-fontes)
+- [Provas e Objeções](/marketing/provas-e-objecoes)
 
 ### Campanhas de GTM
 
@@ -64,16 +64,16 @@ Transforma estratégia, narrativa e mensagens em campanhas, conteúdos e ativos 
 
 Páginas desta camada:
 
-- [Plano de Organização — Campanhas de GTM](/wiki/marketing/plano-organizacao-campanhas-gtm)
-- [Assets e Campanhas](/wiki/marketing/assets-e-campanhas)
-- [Kit de Copies — Meta Ads](/wiki/marketing/copies-meta-ads)
-- [Kit de Copies — Google Ads](/wiki/marketing/copies-google-ads)
-- [Canvas de Conteúdo para Instagram](/wiki/marketing/canvas-de-conteudo-instagram)
-- [Arquitetura Editorial — Série Instagram StoryBrand](/wiki/marketing/arquitetura-editorial-instagram-storybrand)
-- [Copies — Série de 9 Carrosséis Instagram StoryBrand](/wiki/marketing/copies-carrosseis-instagram-storybrand)
-- [Roteiros — Reels e Carrosseis](/wiki/marketing/roteiros-reels-carrosseis)
-- [Sequência de E-mail Outbound](/wiki/marketing/sequencia-email-outbound)
-- [Governança](/wiki/marketing/governanca)
+- [Plano de Organização — Campanhas de GTM](/marketing/plano-organizacao-campanhas-gtm)
+- [Assets e Campanhas](/marketing/assets-e-campanhas)
+- [Kit de Copies — Meta Ads](/marketing/copies-meta-ads)
+- [Kit de Copies — Google Ads](/marketing/copies-google-ads)
+- [Canvas de Conteúdo para Instagram](/marketing/canvas-de-conteudo-instagram)
+- [Arquitetura Editorial — Série Instagram StoryBrand](/marketing/arquitetura-editorial-instagram-storybrand)
+- [Copies — Série de 9 Carrosséis Instagram StoryBrand](/marketing/copies-carrosseis-instagram-storybrand)
+- [Roteiros — Reels e Carrosseis](/marketing/roteiros-reels-carrosseis)
+- [Sequência de E-mail Outbound](/marketing/sequencia-email-outbound)
+- [Governança](/marketing/governanca)
 
 ## Como usar
 

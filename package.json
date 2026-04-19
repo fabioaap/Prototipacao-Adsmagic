@@ -20,7 +20,9 @@
     "docs:serve": "npm run serve --prefix workspace/docs",
     "docs:clear": "npm run clear --prefix workspace/docs",
     "dev:with-docs": "npm run dev",
-    "build": "vite build",
+    "build:workspace": "vite build",
+    "build:pages": "node ./build-pages.mjs",
+    "build": "npm run build:pages",
     "preview": "vite preview"
   },
   "dependencies": {

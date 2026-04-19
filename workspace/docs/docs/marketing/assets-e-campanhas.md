@@ -1,6 +1,6 @@
 ---
 title: Assets e Campanhas
-slug: /wiki/marketing/assets-e-campanhas
+slug: /marketing/assets-e-campanhas
 ---
 
 # Assets e Campanhas
@@ -35,10 +35,10 @@ Estes materiais já possuem conteúdo completo e validado na wiki. Servem como f
 
 | Asset | Objetivo | Público | Canal de uso | Fonte | Status |
 |-------|----------|---------|-------------|-------|--------|
-| Base de Inteligência de Conteúdo | Tese central, Golden Core, 5 problemas, transformação prometida | Todos | Todos (referência editorial) | [Wiki](/wiki/marketing/base-de-inteligencia-de-conteudo) | Ativo |
-| Canvas de Conteúdo Instagram | 6 pilares editoriais, formatos, cadência semanal, hook library | Gestores de tráfego, donos de agência | Instagram orgânico | [Wiki](/wiki/marketing/canvas-de-conteudo-instagram) | Ativo |
-| Mensagens-Chave | Mensagem-mãe, versões por público/canal, CTAs recomendados | Todos | Todos (referência de copy) | [Wiki](/wiki/marketing/mensagens-chave) | Ativo |
-| Oferta para Agências | Blueprint de LP, hero, 4 blocos de valor, diferenciação, FAQ, estrutura de LP | Donos de agência, gestores de tráfego | LP, deck, one-pager | [Wiki](/wiki/marketing/oferta-para-agencias) | Ativo |
+| Base de Inteligência de Conteúdo | Tese central, Golden Core, 5 problemas, transformação prometida | Todos | Todos (referência editorial) | [Wiki](/marketing/base-de-inteligencia-de-conteudo) | Ativo |
+| Canvas de Conteúdo Instagram | 6 pilares editoriais, formatos, cadência semanal, hook library | Gestores de tráfego, donos de agência | Instagram orgânico | [Wiki](/marketing/canvas-de-conteudo-instagram) | Ativo |
+| Mensagens-Chave | Mensagem-mãe, versões por público/canal, CTAs recomendados | Todos | Todos (referência de copy) | [Wiki](/marketing/mensagens-chave) | Ativo |
+| Oferta para Agências | Blueprint de LP, hero, 4 blocos de valor, diferenciação, FAQ, estrutura de LP | Donos de agência, gestores de tráfego | LP, deck, one-pager | [Wiki](/marketing/oferta-para-agencias) | Ativo |
 
 ### Assets que precisam ser produzidos
 
@@ -48,12 +48,12 @@ Estes materiais ainda não existem como peça final. A estrutura estratégica es
 |-------|----------|-------------|-------|--------|
 | Landing page vendas WhatsApp | Converter tráfego pago em trials de rastreamento | Mensagens-Chave | Web | **SEO pronto** — canonical `adsmagic.com.br/vendas-whatsapp` · [Preview](http://localhost:4173/vendas-whatsapp/) |
 | Landing page para agências | Converter tráfego pago e orgânico em demos diagnósticas | Oferta para Agências + Mensagens-Chave | Web | **SEO pronto** — canonical `adsmagic.com.br/para-agencias` · [Preview](http://localhost:4173/para-agencias/) |
-| Deck comercial / one-pager | Apoiar vendas consultivas e outbound | Oferta para Agências | Comercial | **Protótipo pronto** ([/deck/agencias](pathname:///deck/agencias)) |
-| Kit de copies para Meta Ads | Anúncios de criação de demanda (4 ângulos: anti-CPL, prova de receita, funil invisível, diferenciação) | Mensagens-Chave (seção mídia paga) | Meta Ads | **Ativo** ([Wiki](/wiki/marketing/copies-meta-ads)) |
-| Kit de copies para Google Ads | Anúncios de captura de intenção (search) | Mensagens-Chave | Google Ads | **Ativo** ([Wiki](/wiki/marketing/copies-google-ads)) |
-| Sequência de e-mail outbound | 5 e-mails para reengajamento e nutrição | Mensagens-Chave (seção e-mail) | E-mail | **Ativo** ([Wiki](/wiki/marketing/sequencia-email-outbound)) |
-| Primeiros Reels (lote piloto) | 4-6 Reels seguindo canvas editorial | Canvas Instagram (hooks + estrutura Reels) | Instagram | **Ativo** ([Wiki](/wiki/marketing/roteiros-reels-carrosseis)) |
-| Primeiros Carrosseis (lote piloto) | 2-3 carrosseis educativos | Canvas Instagram (estrutura carrossel) | Instagram | **Ativo** ([Wiki](/wiki/marketing/roteiros-reels-carrosseis)) |
+| Deck comercial / one-pager | Apoiar vendas consultivas e outbound | Oferta para Agências | Comercial | **Protótipo pronto** (rota `/deck/agencias` no workspace) |
+| Kit de copies para Meta Ads | Anúncios de criação de demanda (4 ângulos: anti-CPL, prova de receita, funil invisível, diferenciação) | Mensagens-Chave (seção mídia paga) | Meta Ads | **Ativo** ([Wiki](/marketing/copies-meta-ads)) |
+| Kit de copies para Google Ads | Anúncios de captura de intenção (search) | Mensagens-Chave | Google Ads | **Ativo** ([Wiki](/marketing/copies-google-ads)) |
+| Sequência de e-mail outbound | 5 e-mails para reengajamento e nutrição | Mensagens-Chave (seção e-mail) | E-mail | **Ativo** ([Wiki](/marketing/sequencia-email-outbound)) |
+| Primeiros Reels (lote piloto) | 4-6 Reels seguindo canvas editorial | Canvas Instagram (hooks + estrutura Reels) | Instagram | **Ativo** ([Wiki](/marketing/roteiros-reels-carrosseis)) |
+| Primeiros Carrosseis (lote piloto) | 2-3 carrosseis educativos | Canvas Instagram (estrutura carrossel) | Instagram | **Ativo** ([Wiki](/marketing/roteiros-reels-carrosseis)) |
 | Kit de Stories de conversão | Stories com CTA direto para DM/WhatsApp | Canvas Instagram (estrutura Stories) | Instagram | Planejado |
 | Automações de captura (formulário → CRM) | Garantir que leads da LP entrem no fluxo comercial | — | Integração | Planejado |
 | Material de prova social | Casos, depoimentos, dados de resultado | — | Todos | Planejado (depende de clientes ativos) |
@@ -155,15 +155,15 @@ Lista das peças que precisam existir para que o GTM funcione conforme o plano d
 
 ### Críticas (bloqueiam as motions da fase 31-60)
 
-1. ~~**Landing pages standalone (vendas + agências)**~~ — **Resolvida.** Ambas as LPs possuem protótipo funcional com SEO configurado (meta tags, JSON-LD, Open Graph, robots.txt, sitemap.xml). Canonicals: `adsmagic.com.br/vendas-whatsapp` e `adsmagic.com.br/para-agencias`. Blueprint de agências na wiki ([Oferta para Agências](/wiki/marketing/oferta-para-agencias)). Handoff de deploy: [Cloudflare Pages para LPs](/workflow/cloudflare-pages-lps).
+1. ~~**Landing pages standalone (vendas + agências)**~~ — **Resolvida.** Ambas as LPs possuem protótipo funcional com SEO configurado (meta tags, JSON-LD, Open Graph, robots.txt, sitemap.xml). Canonicals: `adsmagic.com.br/vendas-whatsapp` e `adsmagic.com.br/para-agencias`. Blueprint de agências na wiki ([Oferta para Agências](/marketing/oferta-para-agencias)). Handoff de deploy: [Cloudflare Pages para LPs](/workflow/cloudflare-pages-lps).
 2. **Automação de captura (LP → CRM)** — sem fluxo automatizado, leads da LP não entram no pipeline comercial. Depende de definição de ferramenta e SLA de resposta.
-3. ~~**Kit de copies para mídia paga (Meta + Google)**~~ — **Resolvida.** Kits operacionais disponíveis: [Meta Ads](/wiki/marketing/copies-meta-ads) (11 variações, 4 ângulos) e [Google Ads](/wiki/marketing/copies-google-ads) (4 RSAs, 4 grupos de keywords). Derivados de [Mensagens-Chave](/wiki/marketing/mensagens-chave).
+3. ~~**Kit de copies para mídia paga (Meta + Google)**~~ — **Resolvida.** Kits operacionais disponíveis: [Meta Ads](/marketing/copies-meta-ads) (11 variações, 4 ângulos) e [Google Ads](/marketing/copies-google-ads) (4 RSAs, 4 grupos de keywords). Derivados de [Mensagens-Chave](/marketing/mensagens-chave).
 
 ### Importantes (sustentam escala e retenção na fase 31-60)
 
-4. **~~Deck comercial / one-pager~~** — **Resolvido.** Protótipo funcional imprimível disponível em [/deck/agencias](pathname:///deck/agencias). Derivado da [Oferta para Agências](/wiki/marketing/oferta-para-agencias).
-5. ~~**Primeiro lote de Reels e Carrosseis**~~ — **Resolvida.** Roteiros de 6 Reels + 3 Carrosseis disponíveis na [Wiki](/wiki/marketing/roteiros-reels-carrosseis). Derivados do [Canvas de Conteúdo](/wiki/marketing/canvas-de-conteudo-instagram).
-6. ~~**Sequência de e-mail outbound**~~ — **Resolvida.** Sequência de 5 e-mails disponível na [Wiki](/wiki/marketing/sequencia-email-outbound). Derivada de [Mensagens-Chave](/wiki/marketing/mensagens-chave).
+4. **~~Deck comercial / one-pager~~** — **Resolvido.** Protótipo funcional imprimível disponível na rota `/deck/agencias` do workspace. Derivado da [Oferta para Agências](/marketing/oferta-para-agencias).
+5. ~~**Primeiro lote de Reels e Carrosseis**~~ — **Resolvida.** Roteiros de 6 Reels + 3 Carrosseis disponíveis na [Wiki](/marketing/roteiros-reels-carrosseis). Derivados do [Canvas de Conteúdo](/marketing/canvas-de-conteudo-instagram).
+6. ~~**Sequência de e-mail outbound**~~ — **Resolvida.** Sequência de 5 e-mails disponível na [Wiki](/marketing/sequencia-email-outbound). Derivada de [Mensagens-Chave](/marketing/mensagens-chave).
 
 ### Estruturais (necessárias para a fase 61-90)
 
@@ -176,10 +176,10 @@ Lista das peças que precisam existir para que o GTM funcione conforme o plano d
 
 ## Referências internas
 
-- [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo) — tese, Golden Core, problemas, transformação
-- [Canvas de Conteúdo para Instagram](/wiki/marketing/canvas-de-conteudo-instagram) — pilares, formatos, cadência, hooks
-- [Mensagens-Chave](/wiki/marketing/mensagens-chave) — mensagem-mãe, copies por público e canal, CTAs
-- [Oferta para Agências](/wiki/marketing/oferta-para-agencias) — blueprint de LP, hero, blocos de valor, FAQ
+- [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo) — tese, Golden Core, problemas, transformação
+- [Canvas de Conteúdo para Instagram](/marketing/canvas-de-conteudo-instagram) — pilares, formatos, cadência, hooks
+- [Mensagens-Chave](/marketing/mensagens-chave) — mensagem-mãe, copies por público e canal, CTAs
+- [Oferta para Agências](/marketing/oferta-para-agencias) — blueprint de LP, hero, blocos de valor, FAQ
 
 ## Critério editorial
 

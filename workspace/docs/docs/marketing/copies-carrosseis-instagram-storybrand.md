@@ -1,6 +1,6 @@
 ---
 title: Copies — Série de 9 Carrosséis Instagram StoryBrand
-slug: /wiki/marketing/copies-carrosseis-instagram-storybrand
+slug: /marketing/copies-carrosseis-instagram-storybrand
 ---
 
 # Copies — Série de 9 Carrosséis Instagram StoryBrand

@@ -1,6 +1,6 @@
 ---
 title: Provas e Objeções
-slug: /wiki/marketing/provas-e-objecoes
+slug: /marketing/provas-e-objecoes
 ---
 
 # Provas e Objeções
@@ -25,14 +25,14 @@ Cada claim é avaliado com um nível de confiança:
 |------|---------|
 | **Texto do claim** | Identifica qual anúncio realmente gera vendas, não apenas leads |
 | **Evidência** | Capacidade de produto: a plataforma conecta aquisição via Ads, conversa via WhatsApp e fechamento via CRM/operação comercial. Essa conexão permite rastrear a jornada do clique até a venda e atribuir receita a campanhas, conjuntos e criativos específicos. |
-| **Confiança** | **Sustentado** — mecanismo de atribuição é funcionalidade central do produto, documentado na [Base de Inteligência](/wiki/marketing/base-de-inteligencia-de-conteudo). |
+| **Confiança** | **Sustentado** — mecanismo de atribuição é funcionalidade central do produto, documentado na [Base de Inteligência](/marketing/base-de-inteligencia-de-conteudo). |
 
 ### Claim 2: "Mais clareza para defender resultado"
 
 | Item | Detalhe |
 |------|---------|
 | **Texto do claim** | A agência passa a mostrar avanços reais na jornada comercial, não apenas lead e clique |
-| **Evidência** | A plataforma expõe estágios intermediários (conversa qualificada, proposta, aprovação, venda) que antes ficavam invisíveis. Isso permite que a agência construa relatórios orientados a receita. A [Oferta para Agências](/wiki/marketing/oferta-para-agencias) detalha esse ganho. |
+| **Evidência** | A plataforma expõe estágios intermediários (conversa qualificada, proposta, aprovação, venda) que antes ficavam invisíveis. Isso permite que a agência construa relatórios orientados a receita. A [Oferta para Agências](/marketing/oferta-para-agencias) detalha esse ganho. |
 | **Confiança** | **Parcialmente sustentado** — a capacidade técnica existe; falta caso real de agência usando esse fluxo para defender verba ou reter conta. |
 
 ### Claim 3: "Melhor leitura para otimizar mídia"
@@ -40,7 +40,7 @@ Cada claim é avaliado com um nível de confiança:
 | Item | Detalhe |
 |------|---------|
 | **Texto do claim** | O Adsmagic envia sinais qualificados de conversão de volta para Meta Ads e Google Ads |
-| **Evidência** | Funcionalidade de envio de eventos de conversão com contexto de funil (estágio, qualidade). Isso alimenta os algoritmos com dados mais ricos que um simples evento de lead. Descrito na [Base de Inteligência](/wiki/marketing/base-de-inteligencia-de-conteudo) como etapa de "fechamento do loop". |
+| **Evidência** | Funcionalidade de envio de eventos de conversão com contexto de funil (estágio, qualidade). Isso alimenta os algoritmos com dados mais ricos que um simples evento de lead. Descrito na [Base de Inteligência](/marketing/base-de-inteligencia-de-conteudo) como etapa de "fechamento do loop". |
 | **Confiança** | **Sustentado** — funcionalidade de produto verificável. O diferencial frente a concorrentes que apenas rastreiam é o contexto de estágio enviado junto ao sinal. |
 
 ### Claim 4: "Diagnóstico mais forte para reter e expandir contas"
@@ -48,7 +48,7 @@ Cada claim é avaliado com um nível de confiança:
 | Item | Detalhe |
 |------|---------|
 | **Texto do claim** | Quando o cliente não converte, a agência enxerga se o problema está na campanha, no atendimento ou no fechamento |
-| **Evidência** | A conexão entre Ads, WhatsApp e operação comercial revela gargalos do funil: onde a conversa trava, onde o atendimento demora, onde a proposta não avança. Essa visibilidade é descrita como uma das expansões do core na [Base de Inteligência](/wiki/marketing/base-de-inteligencia-de-conteudo). |
+| **Evidência** | A conexão entre Ads, WhatsApp e operação comercial revela gargalos do funil: onde a conversa trava, onde o atendimento demora, onde a proposta não avança. Essa visibilidade é descrita como uma das expansões do core na [Base de Inteligência](/marketing/base-de-inteligencia-de-conteudo). |
 | **Confiança** | **Parcialmente sustentado** — o mecanismo de detecção de gargalos existe no produto; falta evidência empírica de agência que usou o diagnóstico para reter conta. |
 
 ### Claim 5: "Diferenciação comercial para a agência"
@@ -56,7 +56,7 @@ Cada claim é avaliado com um nível de confiança:
 | Item | Detalhe |
 |------|---------|
 | **Texto do claim** | Enquanto outras agências reportam CPL, a sua conversa sobre venda, qualidade e receita |
-| **Evidência** | Posicionamento de mercado: o [Benchmark Tintim](/wiki/marketing/benchmark-competitivo-tintim) mostra que o mercado opera com foco em rastreamento e atribuição básica. O Adsmagic se posiciona como camada de inteligência — prova de receita e diagnóstico de funil — e não apenas tracker de conversa. |
+| **Evidência** | Posicionamento de mercado: o [Benchmark Tintim](/marketing/benchmark-competitivo-tintim) mostra que o mercado opera com foco em rastreamento e atribuição básica. O Adsmagic se posiciona como camada de inteligência — prova de receita e diagnóstico de funil — e não apenas tracker de conversa. |
 | **Confiança** | **Parcialmente sustentado** — narrativa estratégica coerente; precisa de prova social (depoimento ou case) que demonstre a diferenciação percebida pelo comprador. |
 
 ### Claim 6: "R$ 147/mês com payback de 1,5 mês"
@@ -71,7 +71,7 @@ Cada claim é avaliado com um nível de confiança:
 
 ## Objeções recorrentes e respostas recomendadas
 
-As objeções abaixo foram mapeadas a partir do [ICP e Segmentos](/wiki/marketing/icp-e-segmentos), do [Benchmark Tintim](/wiki/marketing/benchmark-competitivo-tintim) e de lacunas identificadas na operação de GTM.
+As objeções abaixo foram mapeadas a partir do [ICP e Segmentos](/marketing/icp-e-segmentos), do [Benchmark Tintim](/marketing/benchmark-competitivo-tintim) e de lacunas identificadas na operação de GTM.
 
 ### 1. "Já temos CRM ou ferramenta de atendimento"
 
@@ -95,7 +95,7 @@ As objeções abaixo foram mapeadas a partir do [ICP e Segmentos](/wiki/marketin
 
 **Resposta curta:** O Tintim é uma boa ferramenta de rastreamento. O Adsmagic entra em outra camada: prova de receita e inteligência de funil para agências que precisam mostrar o que realmente gera cliente.
 
-**Resposta detalhada:** O Tintim tem mensagem simples, prova social forte e programa de parceiros maduro. É uma referência séria na categoria. O Adsmagic diferencia por não se limitar ao rastreamento de conversas — ele conecta dado de mídia, comportamento no WhatsApp e fechamento comercial para entregar diagnóstico de funil, atribuição de receita e sinais de conversão com contexto de estágio. Em resumo: menos tracker de conversa, mais sistema de prova de receita. A análise completa está no [Benchmark Tintim](/wiki/marketing/benchmark-competitivo-tintim).
+**Resposta detalhada:** O Tintim tem mensagem simples, prova social forte e programa de parceiros maduro. É uma referência séria na categoria. O Adsmagic diferencia por não se limitar ao rastreamento de conversas — ele conecta dado de mídia, comportamento no WhatsApp e fechamento comercial para entregar diagnóstico de funil, atribuição de receita e sinais de conversão com contexto de estágio. Em resumo: menos tracker de conversa, mais sistema de prova de receita. A análise completa está no [Benchmark Tintim](/marketing/benchmark-competitivo-tintim).
 
 ### 5. "Por que não usar só UTM + planilha?"
 
@@ -113,7 +113,7 @@ As objeções abaixo foram mapeadas a partir do [ICP e Segmentos](/wiki/marketin
 
 **Resposta curta:** Funciona melhor com contas que vendem via WhatsApp, usam tráfego pago e têm processo comercial ou atendimento consultivo.
 
-**Resposta detalhada:** Os segmentos com maior aderência são serviços de ticket médio ou alto, crédito e financiamento, consórcio, automotivo e educação com venda assistida. Se o cliente da agência não depende de conversa comercial para fechar, o valor do Adsmagic diminui. O [ICP e Segmentos](/wiki/marketing/icp-e-segmentos) detalha os critérios de qualificação.
+**Resposta detalhada:** Os segmentos com maior aderência são serviços de ticket médio ou alto, crédito e financiamento, consórcio, automotivo e educação com venda assistida. Se o cliente da agência não depende de conversa comercial para fechar, o valor do Adsmagic diminui. O [ICP e Segmentos](/marketing/icp-e-segmentos) detalha os critérios de qualificação.
 
 ### 8. "Quanto tempo leva para configurar?"
 
@@ -139,7 +139,7 @@ Esta seção existe para manter honestidade entre o que dizemos e o que podemos 
 | Depoimento de gestor de tráfego ou dono de agência sobre ganho de clareza | Claims 2, 5 | Não iniciado |
 | Evidência de ganho mensurável entre campanha e fechamento (antes/depois) | Claims 1, 3 | Não iniciado |
 | Dados reais de coorte validando LTV/CAC 4.0x e payback 1,5 mês | Claim 6 | Não iniciado — depende de base pagante |
-| Comparativo técnico documentado Adsmagic vs Tintim (funcionalidades, não opinião) | Objeção 4 | Parcial — [Benchmark](/wiki/marketing/benchmark-competitivo-tintim) cobre posicionamento, não feature-by-feature |
+| Comparativo técnico documentado Adsmagic vs Tintim (funcionalidades, não opinião) | Objeção 4 | Parcial — [Benchmark](/marketing/benchmark-competitivo-tintim) cobre posicionamento, não feature-by-feature |
 | Tempo médio real de onboarding medido em clientes | Objeções 3, 8 | Não iniciado |
 | Prova social com agências reconhecidas no mercado | Claim 5 | Não iniciado — Tintim já tem isso; Adsmagic precisa construir |
 
@@ -149,7 +149,7 @@ Esta seção existe para manter honestidade entre o que dizemos e o que podemos 
 
 ## Referências cruzadas
 
-- [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo) — tese central, mecanismo e transformação prometida
-- [Benchmark Competitivo Tintim](/wiki/marketing/benchmark-competitivo-tintim) — como o concorrente direto se posiciona e onde diferenciar
-- [ICP e Segmentos](/wiki/marketing/icp-e-segmentos) — perfil de cliente ideal, critérios de qualificação e objeções iniciais
-- [Oferta para Agências](/wiki/marketing/oferta-para-agencias) — blueprint da landing page e claims de valor para agências
+- [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo) — tese central, mecanismo e transformação prometida
+- [Benchmark Competitivo Tintim](/marketing/benchmark-competitivo-tintim) — como o concorrente direto se posiciona e onde diferenciar
+- [ICP e Segmentos](/marketing/icp-e-segmentos) — perfil de cliente ideal, critérios de qualificação e objeções iniciais
+- [Oferta para Agências](/marketing/oferta-para-agencias) — blueprint da landing page e claims de valor para agências

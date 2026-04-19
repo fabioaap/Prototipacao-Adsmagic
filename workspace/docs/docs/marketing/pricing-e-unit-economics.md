@@ -1,6 +1,6 @@
 ---
 title: Pricing e Unit Economics
-slug: /wiki/marketing/pricing-e-unit-economics
+slug: /marketing/pricing-e-unit-economics
 ---
 
 # Pricing e Unit Economics

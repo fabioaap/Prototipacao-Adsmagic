@@ -8,7 +8,16 @@ import remarkAsciiProgress from './src/remark/ascii-progress.js';
 const require = createRequire(import.meta.url);
 const pkg = require('./package.json') as { version: string };
 
-const workspaceUrl = process.env.WORKSPACE_URL || 'http://localhost:3000';
+function normalizeBasePath(pathValue: string | undefined, fallback: string) {
+  const value = pathValue?.trim() || fallback;
+  const withLeadingSlash = value.startsWith('/') ? value : `/${value}`;
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
+}
+
+const docsBasePath = normalizeBasePath(process.env.DOCS_BASE_PATH, '/wiki/');
+const siteUrl = (process.env.SITE_URL || process.env.CF_PAGES_URL || 'http://localhost:3000').replace(/\/$/, '');
+const workspaceUrl = (process.env.WORKSPACE_URL || siteUrl).replace(/\/$/, '');
+const workspaceRoutesUrl = `${workspaceUrl}/rotas`;
 
 const config: Config = {
   title: 'Adsmagic Docs',
@@ -17,8 +26,11 @@ const config: Config = {
   future: {
     v4: true,
   },
-  url: process.env.WORKSPACE_URL || 'https://fabioaap.github.io',
-  baseUrl: process.env.CI ? '/Prototipacao-Adsmagic/wiki/' : '/',
+  url: siteUrl,
+  baseUrl: docsBasePath,
+  customFields: {
+    workspaceUrl,
+  },
   onBrokenLinks: 'throw',
   markdown: {
     mermaid: true,
@@ -43,7 +55,7 @@ const config: Config = {
           remarkPlugins: [remarkAsciiProgress],
         },
         blog: false,
-        pages: {},
+        pages: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -89,7 +101,7 @@ const config: Config = {
             },
             {
               label: 'Wiki',
-              to: '/wiki',
+              to: '/',
             },
           ],
         },
@@ -128,11 +140,11 @@ const config: Config = {
             },
             {
               label: 'Rotas em producao',
-              href: 'http://localhost:5200/pt/rotas',
+              href: workspaceRoutesUrl,
             },
             {
               label: 'Wiki de produto',
-              to: '/wiki',
+              to: '/',
             },
           ],
         },

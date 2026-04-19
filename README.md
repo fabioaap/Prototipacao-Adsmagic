@@ -18,24 +18,24 @@ Leia a 📋 **[Constituição do repositório](./CONSTITUTION.md)** para entende
 ## Para qual time você é?
 
 ### 🎯 Time de Produto
-1. [Setup local](http://localhost:3001/setup-local) — como rodar o workspace
-2. [Produto As-Is](http://localhost:3001/product/as-is) — como o Adsmagic está hoje em produção
-3. [Produto To-Be](http://localhost:3001/product/to-be) — o que estamos explorando
-4. [Jornadas](http://localhost:3001/jornadas) — fluxos completos do usuário
+1. [Setup local](http://localhost:3001/wiki/setup-local) — como rodar o workspace
+2. [Produto As-Is](http://localhost:3001/wiki/product/as-is) — como o Adsmagic está hoje em produção
+3. [Produto To-Be](http://localhost:3001/wiki/product/to-be) — o que estamos explorando
+4. [Jornadas](http://localhost:3001/wiki/jornadas) — fluxos completos do usuário
 
 ### ⚙️ Time de Engenharia
-1. [Setup local](http://localhost:3001/setup-local) — instalar e rodar
-2. [Visão geral da arquitetura](http://localhost:3001/architecture/visao-geral) — como está organizado
-3. [Estrutura do protótipo](http://localhost:3001/architecture/estrutura-do-prototipo) — layout, rotas, mock data
-4. [Workflow de prototipação](http://localhost:3001/workflow/prototipacao) — branches, commits, ciclo de vida
+1. [Setup local](http://localhost:3001/wiki/setup-local) — instalar e rodar
+2. [Visão geral da arquitetura](http://localhost:3001/wiki/architecture/visao-geral) — como está organizado
+3. [Estrutura do protótipo](http://localhost:3001/wiki/architecture/estrutura-do-prototipo) — layout, rotas, mock data
+4. [Workflow de prototipação](http://localhost:3001/wiki/workflow/prototipacao) — branches, commits, ciclo de vida
 
 ### 📣 Time de Marketing / GTM
-1. [Squad de GTM](http://localhost:3001/marketing/squad-de-gtm) — modelo operacional do squad
-2. [Wiki de marketing](http://localhost:3001/wiki) — posicionamento, ICP, conteúdo
+1. [Squad de GTM](http://localhost:3001/wiki/marketing/squad-de-gtm) — modelo operacional do squad
+2. [Wiki de marketing](http://localhost:3001/wiki/) — posicionamento, ICP, conteúdo
 3. [Landing Pages — assets e campanhas](http://localhost:3001/wiki/marketing/assets-e-campanhas) — status de SEO, canônicos, copies
-4. [Handoff Cloudflare Pages](http://localhost:3001/workflow/cloudflare-pages-lps) — deploy, checklist pós-deploy, domínios
+4. [Handoff Cloudflare Pages](http://localhost:3001/wiki/workflow/cloudflare-pages-lps) — deploy, checklist pós-deploy, domínios
 
-> **Wiki de produto completa:** `npm run docs:dev` → http://localhost:3001
+> **Wiki de produto completa:** `npm run docs:dev` → http://localhost:3001/wiki/
 
 ---
 
@@ -113,7 +113,7 @@ npm run dev:with-docs
 
 Acesse o workspace em **http://localhost:3000** ou na próxima porta livre até **http://localhost:3006**
 
-Documentacao: **http://localhost:3001**
+Documentacao: **http://localhost:3001/wiki/**
 
 Landing pages standalone: **http://localhost:4173**
 
@@ -185,7 +185,19 @@ npm run docs:build
 npm run docs:serve
 ```
 
-Use a wiki de produto para registrar mudancas estruturais do Adsmagic. Em desenvolvimento, `apps/plataforma/.env.development` fixa `VITE_DOCS_PORTAL_URL` em `http://localhost:3001` e `VITE_LANDING_PAGES_PREVIEW_URL` em `http://localhost:4173`. Se o portal nao responder, a rota `/wiki` mostra um estado local estavel em vez de recarregar infinitamente; o catalogo de LPs usa a URL de preview para abrir as superficies standalone. Os atalhos legados `/lp/home` e `/lp/agencias` agora funcionam como redirects de compatibilidade para essas superficies, preservando query string e hash.
+Use a wiki de produto para registrar mudancas estruturais do Adsmagic. Em desenvolvimento, `apps/plataforma/.env.development` fixa `VITE_DOCS_PORTAL_URL` em `http://localhost:3001/wiki` e `VITE_LANDING_PAGES_PREVIEW_URL` em `http://localhost:4173`. Se o portal nao responder, a rota `/wiki` redireciona para essa URL; o catalogo de LPs usa a URL de preview para abrir as superficies standalone. Os atalhos legados `/lp/home` e `/lp/agencias` agora funcionam como redirects de compatibilidade para essas superficies, preservando query string e hash.
+
+### Deploy do Workspace no GitHub Pages
+
+O build raiz agora gera um artefato combinado em `dist/`, com o app na raiz e a wiki em `dist/wiki/`.
+
+O workflow de publicação é [ .github/workflows/deploy-docs.yml ](./.github/workflows/deploy-docs.yml) e publica esse artefato no GitHub Pages sempre que a branch `main` recebe push.
+
+- Build command: `npm run build`
+- Artefato publicado: `dist`
+- Base do app no Pages: `/Prototipacao-Adsmagic/`
+- Base da wiki no Pages: `/Prototipacao-Adsmagic/wiki/`
+- Compatibilidade com links antigos: o build gera aliases estáticos para rotas antigas fora de `/wiki`, além do `404.html` para o Vue Router
 
 ---
 

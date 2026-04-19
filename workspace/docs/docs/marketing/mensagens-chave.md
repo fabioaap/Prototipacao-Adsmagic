@@ -1,6 +1,6 @@
 ---
 title: Mensagens-Chave
-slug: /wiki/marketing/mensagens-chave
+slug: /marketing/mensagens-chave
 ---
 
 # Mensagens-Chave

@@ -9,6 +9,8 @@ export type WikiTaxonomySection = {
   items: WikiTaxonomyLink[];
 };
 
+const marketingDoc = (slug = '') => `/marketing${slug ? `/${slug}` : ''}`;
+
 export const wikiTaxonomySections: WikiTaxonomySection[] = [
   {
     title: 'Introdução',
@@ -17,7 +19,7 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
       {label: 'Constituição do repositório', docId: 'constituicao', to: '/constituicao'},
       {label: 'Setup local', docId: 'setup-local', to: '/setup-local'},
       {label: 'Agentes na IDE', docId: 'workflow/agentes-na-ide', to: '/workflow/agentes-na-ide'},
-      {label: 'Wiki', docId: 'wiki/index', to: '/wiki'},
+      {label: 'Wiki', docId: 'wiki/index', to: '/'},
       {label: 'Visão geral', docId: 'architecture/visao-geral', to: '/architecture/visao-geral'},
       {label: 'Organização do repositório', docId: 'architecture/organizacao-do-repositorio', to: '/architecture/organizacao-do-repositorio'},
     ],
@@ -65,10 +67,10 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
   {
     title: 'Segurança e qualidade',
     items: [
-      {label: 'Governança', docId: 'marketing/governanca', to: '/wiki/marketing/governanca'},
-      {label: 'Alinhamento de fontes', docId: 'marketing/alinhamento-de-fontes', to: '/wiki/marketing/alinhamento-de-fontes'},
-      {label: 'Provas e objeções', docId: 'marketing/provas-e-objecoes', to: '/wiki/marketing/provas-e-objecoes'},
-      {label: 'Gaps e decisões abertas', docId: 'marketing/gaps-e-decisoes-abertas-do-gtm', to: '/wiki/marketing/gaps-e-decisoes-abertas-do-gtm'},
+      {label: 'Governança', docId: 'marketing/governanca', to: marketingDoc('governanca')},
+      {label: 'Alinhamento de fontes', docId: 'marketing/alinhamento-de-fontes', to: marketingDoc('alinhamento-de-fontes')},
+      {label: 'Provas e objeções', docId: 'marketing/provas-e-objecoes', to: marketingDoc('provas-e-objecoes')},
+      {label: 'Gaps e decisões abertas', docId: 'marketing/gaps-e-decisoes-abertas-do-gtm', to: marketingDoc('gaps-e-decisoes-abertas-do-gtm')},
     ],
   },
   {
@@ -85,18 +87,18 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
     title: 'Gerenciamento de projetos',
     items: [
       {label: 'Jornadas', docId: 'jornadas', to: '/jornadas'},
-      {label: 'Plano de 90 dias', docId: 'marketing/plano-90-dias', to: '/wiki/marketing/plano-90-dias'},
-      {label: 'Squad de GTM', docId: 'marketing/squad-de-gtm', to: '/wiki/marketing/squad-de-gtm'},
+      {label: 'Plano de 90 dias', docId: 'marketing/plano-90-dias', to: marketingDoc('plano-90-dias')},
+      {label: 'Squad de GTM', docId: 'marketing/squad-de-gtm', to: marketingDoc('squad-de-gtm')},
       {label: 'Antítese', docId: 'stories/antitese', to: '/stories/antitese'},
     ],
   },
   {
     title: 'Empresas e equipes',
     items: [
-      {label: 'ICP e segmentos', docId: 'marketing/icp-e-segmentos', to: '/wiki/marketing/icp-e-segmentos'},
-      {label: 'Agências e parceiros', docId: 'marketing/agencias-e-parceiros', to: '/wiki/marketing/agencias-e-parceiros'},
-      {label: 'Oferta para agências', docId: 'marketing/oferta-para-agencias', to: '/wiki/marketing/oferta-para-agencias'},
-      {label: 'Posicionamento', docId: 'marketing/posicionamento', to: '/wiki/marketing/posicionamento'},
+      {label: 'ICP e segmentos', docId: 'marketing/icp-e-segmentos', to: marketingDoc('icp-e-segmentos')},
+      {label: 'Agências e parceiros', docId: 'marketing/agencias-e-parceiros', to: marketingDoc('agencias-e-parceiros')},
+      {label: 'Oferta para agências', docId: 'marketing/oferta-para-agencias', to: marketingDoc('oferta-para-agencias')},
+      {label: 'Posicionamento', docId: 'marketing/posicionamento', to: marketingDoc('posicionamento')},
     ],
   },
   {
@@ -111,25 +113,25 @@ export const wikiTaxonomySections: WikiTaxonomySection[] = [
   {
     title: 'Campanhas de GTM',
     items: [
-      {label: 'Plano de organização GTM', docId: 'marketing/plano-organizacao-campanhas-gtm', to: '/wiki/marketing/plano-organizacao-campanhas-gtm'},
-      {label: 'Base de inteligência de conteúdo', docId: 'marketing/base-de-inteligencia-de-conteudo', to: '/wiki/marketing/base-de-inteligencia-de-conteudo'},
-      {label: 'Assets e campanhas', docId: 'marketing/assets-e-campanhas', to: '/wiki/marketing/assets-e-campanhas'},
-      {label: 'Copies Meta Ads', docId: 'marketing/copies-meta-ads', to: '/wiki/marketing/copies-meta-ads'},
-      {label: 'Copies Google Ads', docId: 'marketing/copies-google-ads', to: '/wiki/marketing/copies-google-ads'},
-      {label: 'Canvas de conteúdo', docId: 'marketing/canvas-de-conteudo-instagram', to: '/wiki/marketing/canvas-de-conteudo-instagram'},
-      {label: 'Arquitetura editorial StoryBrand', docId: 'marketing/arquitetura-editorial-instagram-storybrand', to: '/wiki/marketing/arquitetura-editorial-instagram-storybrand'},
-      {label: 'Copies dos 9 carrosséis StoryBrand', docId: 'marketing/copies-carrosseis-instagram-storybrand', to: '/wiki/marketing/copies-carrosseis-instagram-storybrand'},
-      {label: 'Roteiros para reels e carrosséis', docId: 'marketing/roteiros-reels-carrosseis', to: '/wiki/marketing/roteiros-reels-carrosseis'},
-      {label: 'Sequência de email outbound', docId: 'marketing/sequencia-email-outbound', to: '/wiki/marketing/sequencia-email-outbound'},
+      {label: 'Plano de organização GTM', docId: 'marketing/plano-organizacao-campanhas-gtm', to: marketingDoc('plano-organizacao-campanhas-gtm')},
+      {label: 'Base de inteligência de conteúdo', docId: 'marketing/base-de-inteligencia-de-conteudo', to: marketingDoc('base-de-inteligencia-de-conteudo')},
+      {label: 'Assets e campanhas', docId: 'marketing/assets-e-campanhas', to: marketingDoc('assets-e-campanhas')},
+      {label: 'Copies Meta Ads', docId: 'marketing/copies-meta-ads', to: marketingDoc('copies-meta-ads')},
+      {label: 'Copies Google Ads', docId: 'marketing/copies-google-ads', to: marketingDoc('copies-google-ads')},
+      {label: 'Canvas de conteúdo', docId: 'marketing/canvas-de-conteudo-instagram', to: marketingDoc('canvas-de-conteudo-instagram')},
+      {label: 'Arquitetura editorial StoryBrand', docId: 'marketing/arquitetura-editorial-instagram-storybrand', to: marketingDoc('arquitetura-editorial-instagram-storybrand')},
+      {label: 'Copies dos 9 carrosséis StoryBrand', docId: 'marketing/copies-carrosseis-instagram-storybrand', to: marketingDoc('copies-carrosseis-instagram-storybrand')},
+      {label: 'Roteiros para reels e carrosséis', docId: 'marketing/roteiros-reels-carrosseis', to: marketingDoc('roteiros-reels-carrosseis')},
+      {label: 'Sequência de email outbound', docId: 'marketing/sequencia-email-outbound', to: marketingDoc('sequencia-email-outbound')},
     ],
   },
   {
     title: 'Mais documentos',
     items: [
-      {label: 'Marketing', docId: 'marketing/index', to: '/wiki/marketing'},
+      {label: 'Marketing', docId: 'marketing/index', to: marketingDoc()},
       {label: 'Módulos', docId: 'modulos/index', to: '/modulos'},
-      {label: 'Benchmark competitivo', docId: 'marketing/benchmark-competitivo-tintim', to: '/wiki/marketing/benchmark-competitivo-tintim'},
-      {label: 'Dossiê de canal no YouTube', docId: 'marketing/dossie-canal-youtube-bispo-bruno-leonardo', to: '/wiki/marketing/dossie-canal-youtube-bispo-bruno-leonardo'},
+      {label: 'Benchmark competitivo', docId: 'marketing/benchmark-competitivo-tintim', to: marketingDoc('benchmark-competitivo-tintim')},
+      {label: 'Dossiê de canal no YouTube', docId: 'marketing/dossie-canal-youtube-bispo-bruno-leonardo', to: marketingDoc('dossie-canal-youtube-bispo-bruno-leonardo')},
     ],
   },
 ];

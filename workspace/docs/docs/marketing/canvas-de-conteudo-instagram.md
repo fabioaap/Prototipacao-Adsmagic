@@ -1,13 +1,13 @@
 ---
 title: Canvas de Conteúdo para Instagram
-slug: /wiki/marketing/canvas-de-conteudo-instagram
+slug: /marketing/canvas-de-conteudo-instagram
 ---
 
 # Canvas de Conteúdo para Instagram
 
 Esta pagina consolida o canvas operacional de conteudo para Instagram do Adsmagic.
 
-Ela deve ser usada como desdobramento pratico da [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo) para transformar tese, dor, mecanismo e prova em publicacoes recorrentes.
+Ela deve ser usada como desdobramento pratico da [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo) para transformar tese, dor, mecanismo e prova em publicacoes recorrentes.
 
 ## Objetivo do canvas
 
@@ -205,7 +205,7 @@ O objetivo e fazer o publico perceber que esta operando com o modelo mental erra
 
 ## Como usar junto com a base principal
 
-Use a [Base de Inteligência de Conteúdo](/wiki/marketing/base-de-inteligencia-de-conteudo) para definir tese, narrativa e claims.
+Use a [Base de Inteligência de Conteúdo](/marketing/base-de-inteligencia-de-conteudo) para definir tese, narrativa e claims.
 
 Use esta pagina para transformar essa base em:
 

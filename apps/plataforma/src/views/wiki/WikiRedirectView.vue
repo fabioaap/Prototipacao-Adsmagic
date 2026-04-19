@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 
+const docsPortalUrl = (import.meta.env.VITE_DOCS_PORTAL_URL || `${import.meta.env.BASE_URL}wiki`).replace(/\/$/, '')
+
 onMounted(() => {
-  window.location.href = import.meta.env.BASE_URL + 'wiki/'
+  window.location.assign(`${docsPortalUrl}/`)
 })
 </script>
 

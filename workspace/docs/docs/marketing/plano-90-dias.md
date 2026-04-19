@@ -1,6 +1,6 @@
 ---
 title: Plano de 90 dias
-slug: /wiki/marketing/plano-90-dias
+slug: /marketing/plano-90-dias
 ---
 
 # Plano de 90 dias

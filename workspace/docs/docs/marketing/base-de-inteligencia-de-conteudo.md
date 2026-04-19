@@ -1,6 +1,6 @@
 ---
 title: Base de Inteligência de Conteúdo
-slug: /wiki/marketing/base-de-inteligencia-de-conteudo
+slug: /marketing/base-de-inteligencia-de-conteudo
 ---
 
 # Base de Inteligência de Conteúdo
@@ -9,7 +9,7 @@ Esta pagina transforma o documento Ads Magic Base de Inteligencia de Conteudo v2
 
 Ela deve ser usada como fonte editorial para narrativa, conteudo, argumentos de campanha, scripts comerciais, landing page e materiais de onboarding.
 
-> Esta pagina organiza a tese central do documento original. Para preco e unit economics, a referencia oficial continua sendo [Pricing e Unit Economics](/wiki/marketing/pricing-e-unit-economics).
+> Esta pagina organiza a tese central do documento original. Para preco e unit economics, a referencia oficial continua sendo [Pricing e Unit Economics](/marketing/pricing-e-unit-economics).
 
 ## Papel desta base
 
