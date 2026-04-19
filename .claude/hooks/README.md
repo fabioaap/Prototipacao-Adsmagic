@@ -83,7 +83,7 @@ Valida formato snake_case em slugs:
 Impede criação de mind clones sem DNA extraído previamente.
 
 **O que é bloqueado:**
-- Criar novo arquivo `squads/*/agents/*.md` que pareça ser um mind clone
+- Criar novo arquivo `workspace/squads/*/agents/*.md` que pareça ser um mind clone
 - Mind clones = agents baseados em pessoas reais (não funcionais)
 
 **O que NÃO é bloqueado:**
@@ -95,9 +95,9 @@ Impede criação de mind clones sem DNA extraído previamente.
   - `tools-*`, `process-*`, `workflow-*`
 
 **Locais de DNA verificados:**
-- `squads/{pack}/data/minds/{agent_id}_dna.yaml`
-- `squads/{pack}/data/minds/{agent_id}_dna.md`
-- `squads/{pack}/data/{agent_id}-dna.yaml`
+- `workspace/squads/{pack}/data/minds/{agent_id}_dna.yaml`
+- `workspace/squads/{pack}/data/minds/{agent_id}_dna.md`
+- `workspace/squads/{pack}/data/{agent_id}-dna.yaml`
 - `outputs/minds/{agent_id}/`
 
 **Solução quando bloqueado:**

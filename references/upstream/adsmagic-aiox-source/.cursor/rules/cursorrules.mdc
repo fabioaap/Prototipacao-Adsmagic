@@ -1,0 +1,1090 @@
+---
+alwaysApply: true
+---
+# Regras de Desenvolvimento - Princípios Universais
+
+## 🎯 Filosofia de Desenvolvimento
+
+Este projeto segue os princípios de **Clean Code**, **SOLID**, e **pragmatismo**. O código deve ser:
+- **Legível**: Qualquer desenvolvedor deve entender rapidamente
+- **Manutenível**: Fácil de modificar e estender
+- **Testável**: Isolado e com responsabilidades claras
+- **Performático**: Otimizado sem sacrificar clareza
+- **Documentado**: Autoexplicativo com documentação onde necessário
+
+---
+
+## 1. Princípios SOLID
+
+### Single Responsibility Principle (SRP)
+- Cada classe/função/módulo deve ter UMA única responsabilidade
+- Se você precisa usar "E" ou "OU" para descrever o que algo faz, provavelmente está violando SRP
+- Mantenha funções com no máximo 20-30 linhas
+- Componentes UI devem ter no máximo 200-300 linhas
+```typescript
+// ❌ EVITAR - Múltiplas responsabilidades
+class UserManager {
+  validateUser() { }
+  saveToDatabase() { }
+  sendEmail() { }
+  generateReport() { }
+}
+
+// ✅ BOM - Responsabilidade única
+class UserValidator {
+  validate(user: User): ValidationResult { }
+}
+
+class UserRepository {
+  save(user: User): Promise<void> { }
+}
+
+class EmailService {
+  send(to: string, subject: string): Promise<void> { }
+}
+```
+
+### Open/Closed Principle (OCP)
+- Entidades devem estar abertas para extensão, mas fechadas para modificação
+- Use interfaces, abstrações e composição
+- Evite modificar código existente; estenda comportamento
+```typescript
+// ✅ BOM - Aberto para extensão
+interface PaymentProcessor {
+  process(amount: number): Promise<boolean>
+}
+
+class CreditCardProcessor implements PaymentProcessor {
+  process(amount: number): Promise<boolean> { }
+}
+
+class PayPalProcessor implements PaymentProcessor {
+  process(amount: number): Promise<boolean> { }
+}
+
+// Adicionar novo método de pagamento não requer modificar código existente
+class CryptoProcessor implements PaymentProcessor {
+  process(amount: number): Promise<boolean> { }
+}
+```
+
+### Liskov Substitution Principle (LSP)
+- Subtipos devem ser substituíveis por seus tipos base
+- Se você substitui uma classe base pela derivada, o comportamento deve permanecer correto
+
+### Interface Segregation Principle (ISP)
+- Muitas interfaces específicas são melhores que uma interface geral
+- Clientes não devem ser forçados a depender de interfaces que não usam
+```typescript
+// ❌ EVITAR - Interface muito abrangente
+interface Animal {
+  fly(): void
+  swim(): void
+  walk(): void
+}
+
+// ✅ BOM - Interfaces segregadas
+interface Flyable {
+  fly(): void
+}
+
+interface Swimmable {
+  swim(): void
+}
+
+interface Walkable {
+  walk(): void
+}
+
+class Bird implements Flyable, Walkable {
+  fly() { }
+  walk() { }
+}
+```
+
+### Dependency Inversion Principle (DIP)
+- Dependa de abstrações, não de implementações concretas
+- Módulos de alto nível não devem depender de módulos de baixo nível
+```typescript
+// ❌ EVITAR - Dependência concreta
+class UserService {
+  private db = new MySQLDatabase() // Dependência concreta
+  
+  save(user: User) {
+    this.db.insert(user)
+  }
+}
+
+// ✅ BOM - Dependência de abstração
+interface Database {
+  insert(data: unknown): Promise<void>
+}
+
+class UserService {
+  constructor(private db: Database) { } // Injeção de dependência
+  
+  save(user: User) {
+    this.db.insert(user)
+  }
+}
+```
+
+---
+
+## 2. Clean Code
+
+### Nomenclatura
+
+#### Variáveis e Funções
+- Use nomes descritivos e pronunciáveis
+- Evite abreviações obscuras
+- Prefira clareza sobre brevidade
+```typescript
+// ❌ EVITAR
+const d = new Date()
+const usr = getUsr()
+function calc() { }
+
+// ✅ BOM
+const currentDate = new Date()
+const user = getUser()
+function calculateTotal() { }
+```
+
+#### Constantes
+- Use UPPER_SNAKE_CASE para constantes verdadeiras
+- Use camelCase para valores de configuração
+```typescript
+// ✅ BOM
+const MAX_RETRY_ATTEMPTS = 3
+const API_TIMEOUT_MS = 5000
+
+const config = {
+  apiUrl: 'https://api.example.com',
+  retryAttempts: 3
+}
+```
+
+#### Classes e Interfaces
+- PascalCase para classes, interfaces, types, enums
+- Interfaces podem ter prefixo "I" opcional (escolha um padrão e mantenha)
+```typescript
+// ✅ BOM
+class UserService { }
+interface IPaymentGateway { } // ou
+interface PaymentGateway { }
+type HttpMethod = 'GET' | 'POST'
+enum UserRole { }
+```
+
+### Funções
+
+#### Tamanho e Responsabilidade
+- Funções devem fazer UMA coisa e fazer bem
+- Máximo de 3-4 parâmetros (use objetos para mais)
+- Evite flags booleanos como parâmetros (crie funções separadas)
+```typescript
+// ❌ EVITAR
+function processUser(user: User, sendEmail: boolean, saveToDb: boolean) {
+  if (sendEmail) { /* ... */ }
+  if (saveToDb) { /* ... */ }
+}
+
+// ✅ BOM
+function processUser(user: User) {
+  validateUser(user)
+  saveUser(user)
+  notifyUser(user)
+}
+
+function validateUser(user: User): ValidationResult { }
+function saveUser(user: User): Promise<void> { }
+function notifyUser(user: User): Promise<void> { }
+```
+
+#### Parâmetros de Objeto
+```typescript
+// ❌ EVITAR - Muitos parâmetros
+function createUser(
+  name: string,
+  email: string,
+  age: number,
+  address: string,
+  phone: string
+) { }
+
+// ✅ BOM - Objeto de parâmetros
+interface CreateUserParams {
+  name: string
+  email: string
+  age: number
+  address: string
+  phone: string
+}
+
+function createUser(params: CreateUserParams) { }
+```
+
+#### Retorno Consistente
+- Sempre retorne o mesmo tipo
+- Use `null` ou `undefined` de forma consistente
+- Considere usar tipos `Result<T, E>` para operações que podem falhar
+```typescript
+// ❌ EVITAR - Retorno inconsistente
+function getUser(id: string): User | null | false | undefined { }
+
+// ✅ BOM
+function getUser(id: string): User | null { }
+
+// ✅ MELHOR - Para operações que podem falhar
+type Result<T, E = Error> = 
+  | { success: true; data: T }
+  | { success: false; error: E }
+
+function getUser(id: string): Promise<Result<User>> { }
+```
+
+### Comentários
+
+#### Quando Comentar
+- **Comente o PORQUÊ, não o QUE**
+- O código deve ser autoexplicativo
+- Use comentários para: decisões de design, limitações, avisos, TODOs
+```typescript
+// ❌ EVITAR - Comentário óbvio
+// Incrementa o contador
+counter++
+
+// ✅ BOM - Explica o porquê
+// Usamos setTimeout em vez de setInterval porque precisamos
+// garantir que cada operação complete antes da próxima
+setTimeout(processQueue, 1000)
+
+// ✅ BOM - Documenta limitação conhecida
+// FIXME: Este approach não funciona com mais de 10k items
+// TODO: Implementar paginação (Issue #123)
+```
+
+#### JSDoc para APIs Públicas
+- Use JSDoc para funções/classes públicas
+- Documente parâmetros, retorno e exceções
+```typescript
+/**
+ * Processa pagamento usando o gateway especificado
+ * 
+ * @param amount - Valor em centavos
+ * @param gateway - Gateway de pagamento a utilizar
+ * @returns Promise com resultado do processamento
+ * @throws {PaymentError} Quando o pagamento falha
+ * @example
+ * ```ts
+ * const result = await processPayment(1000, paypalGateway)
+ * if (result.success) {
+ *   console.log('Pagamento aprovado')
+ * }
+ * ```
+ */
+async function processPayment(
+  amount: number,
+  gateway: PaymentGateway
+): Promise<PaymentResult> { }
+```
+
+---
+
+## 3. TypeScript
+
+### Type Safety
+- **Evite `any`** - use `unknown` quando o tipo é desconhecido
+- Use tipos estritos
+- Habilite `strict: true` no tsconfig
+```typescript
+// ❌ EVITAR
+function process(data: any) { }
+
+// ✅ BOM
+function process(data: unknown) {
+  if (typeof data === 'string') {
+    // TypeScript sabe que data é string aqui
+  }
+}
+
+// ✅ MELHOR - Use tipos específicos quando possível
+function process(data: ProcessableData) { }
+```
+
+### Types vs Interfaces
+- **Interface**: Para definir contratos que podem ser estendidos
+- **Type**: Para unions, intersections, primitivos mapeados
+```typescript
+// ✅ Use interface para objetos extensíveis
+interface User {
+  id: string
+  name: string
+}
+
+interface AdminUser extends User {
+  permissions: string[]
+}
+
+// ✅ Use type para unions e intersections
+type Status = 'pending' | 'approved' | 'rejected'
+type ApiResponse<T> = {
+  data: T
+  meta: ResponseMeta
+}
+```
+
+### Generics
+- Use generics para criar código reutilizável e type-safe
+```typescript
+// ✅ BOM - Generic reutilizável
+function first<T>(array: T[]): T | undefined {
+  return array[0]
+}
+
+const firstNumber = first([1, 2, 3]) // Type: number | undefined
+const firstString = first(['a', 'b']) // Type: string | undefined
+```
+
+### Utility Types
+- Aproveite utility types do TypeScript
+```typescript
+// Partial - Torna todas as propriedades opcionais
+type PartialUser = Partial<User>
+
+// Pick - Seleciona propriedades específicas
+type UserPreview = Pick<User, 'id' | 'name'>
+
+// Omit - Remove propriedades específicas
+type UserWithoutPassword = Omit<User, 'password'>
+
+// Record - Cria tipo de objeto com chaves específicas
+type UserMap = Record<string, User>
+
+// ReturnType - Extrai tipo de retorno
+type UserServiceReturn = ReturnType<typeof userService.getAll>
+```
+
+---
+
+## 4. Arquitetura e Estrutura
+
+### Separação de Responsabilidades
+
+#### Camadas da Aplicação
+```
+presentation/    # UI, components, views
+├── components/
+├── views/
+└── layouts/
+
+business/        # Lógica de negócio, use cases
+├── services/
+├── usecases/
+└── validators/
+
+data/           # Acesso a dados, repositories
+├── repositories/
+├── models/
+└── mappers/
+
+infrastructure/ # Frameworks, external services
+├── http/
+├── database/
+└── queue/
+```
+
+### Dependency Flow
+- Camadas internas não devem conhecer camadas externas
+- Use injeção de dependência
+- Abstrações nas camadas internas, implementações nas externas
+```typescript
+// ✅ BOM - Camada de negócio não conhece detalhes de implementação
+// business/services/userService.ts
+interface UserRepository {
+  findById(id: string): Promise<User | null>
+}
+
+class UserService {
+  constructor(private repo: UserRepository) { }
+  
+  async getUser(id: string): Promise<User> {
+    const user = await this.repo.findById(id)
+    if (!user) throw new Error('User not found')
+    return user
+  }
+}
+
+// data/repositories/userRepository.ts
+class SupabaseUserRepository implements UserRepository {
+  async findById(id: string): Promise<User | null> {
+    // Implementação específica do Supabase
+  }
+}
+```
+
+### Modules e Barrel Exports
+- Use index.ts para exports limpos
+- Evite circular dependencies
+```typescript
+// ✅ BOM - services/index.ts
+export { UserService } from './userService'
+export { PaymentService } from './paymentService'
+export type { IUserService, IPaymentService } from './types'
+
+// Importação limpa
+import { UserService, PaymentService } from '@/services'
+```
+
+---
+
+## 5. Error Handling
+
+### Estratégias de Erro
+
+#### Try-Catch Específico
+```typescript
+// ✅ BOM - Trate erros específicos
+try {
+  await processPayment(amount)
+} catch (error) {
+  if (error instanceof PaymentDeclinedError) {
+    notify('Pagamento recusado')
+  } else if (error instanceof NetworkError) {
+    notify('Erro de conexão')
+  } else {
+    logger.error('Erro inesperado', error)
+    throw error
+  }
+}
+```
+
+#### Custom Errors
+```typescript
+// ✅ BOM - Crie erros customizados
+class ValidationError extends Error {
+  constructor(
+    message: string,
+    public field: string,
+    public code: string
+  ) {
+    super(message)
+    this.name = 'ValidationError'
+  }
+}
+
+class NotFoundError extends Error {
+  constructor(entity: string, id: string) {
+    super(`${entity} with id ${id} not found`)
+    this.name = 'NotFoundError'
+  }
+}
+```
+
+#### Result Type Pattern
+```typescript
+// ✅ EXCELENTE - Use Result type para operações que podem falhar
+type Success<T> = { ok: true; value: T }
+type Failure<E> = { ok: false; error: E }
+type Result<T, E = Error> = Success<T> | Failure<E>
+
+function divide(a: number, b: number): Result<number> {
+  if (b === 0) {
+    return { ok: false, error: new Error('Division by zero') }
+  }
+  return { ok: true, value: a / b }
+}
+
+const result = divide(10, 2)
+if (result.ok) {
+  console.log(result.value) // TypeScript sabe que é number
+} else {
+  console.error(result.error) // TypeScript sabe que é Error
+}
+```
+
+---
+
+## 6. Performance
+
+### Otimizações Gerais
+
+#### Evite Operações Desnecessárias
+```typescript
+// ❌ EVITAR
+function processUsers(users: User[]) {
+  users.forEach(user => {
+    const formatted = formatUser(user) // Formata mesmo que não use
+    if (user.active) {
+      save(formatted)
+    }
+  })
+}
+
+// ✅ BOM
+function processUsers(users: User[]) {
+  users
+    .filter(user => user.active)
+    .map(formatUser)
+    .forEach(save)
+}
+```
+
+#### Memoization
+```typescript
+// ✅ BOM - Cache cálculos caros
+const expensiveCalculation = memoize((n: number) => {
+  // Cálculo pesado
+  return result
+})
+```
+
+#### Lazy Loading
+```typescript
+// ✅ BOM - Carregue apenas quando necessário
+class DataService {
+  private _cache: Map<string, Data> | null = null
+  
+  private get cache(): Map<string, Data> {
+    if (!this._cache) {
+      this._cache = new Map()
+    }
+    return this._cache
+  }
+}
+```
+
+### Async/Await
+
+#### Operações Paralelas
+```typescript
+// ❌ EVITAR - Sequential
+const user = await getUser()
+const posts = await getPosts()
+const comments = await getComments()
+
+// ✅ BOM - Parallel
+const [user, posts, comments] = await Promise.all([
+  getUser(),
+  getPosts(),
+  getComments()
+])
+```
+
+#### Error Handling em Parallel
+```typescript
+// ✅ BOM - Handle errors individuais
+const results = await Promise.allSettled([
+  fetchUser(),
+  fetchPosts(),
+  fetchComments()
+])
+
+results.forEach((result, index) => {
+  if (result.status === 'fulfilled') {
+    console.log(`Success ${index}:`, result.value)
+  } else {
+    console.error(`Failed ${index}:`, result.reason)
+  }
+})
+```
+
+---
+
+## 7. Segurança
+
+### Input Validation
+- **SEMPRE valide input do usuário**
+- Use bibliotecas de validação (Zod, Yup, Joi)
+- Valide no frontend E backend
+```typescript
+// ✅ BOM - Validação com Zod
+import { z } from 'zod'
+
+const userSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  age: z.number().int().positive().max(120)
+})
+
+function createUser(data: unknown) {
+  const validated = userSchema.parse(data) // Throws se inválido
+  // validated é type-safe aqui
+}
+```
+
+### Sanitização
+- Sanitize dados antes de usar
+- Especialmente importante para SQL, HTML, URLs
+```typescript
+// ✅ BOM - Sanitize HTML
+import DOMPurify from 'dompurify'
+
+function renderUserContent(html: string) {
+  const clean = DOMPurify.sanitize(html)
+  return clean
+}
+```
+
+### Senhas e Secrets
+- **NUNCA** commite senhas ou API keys
+- Use variáveis de ambiente
+- Use .env.example para documentar necessidades
+```typescript
+// ✅ BOM
+const apiKey = process.env.API_KEY
+if (!apiKey) {
+  throw new Error('API_KEY não configurada')
+}
+```
+
+### Rate Limiting
+- Implemente rate limiting em APIs
+- Proteja contra abuse
+
+---
+
+## 8. Testes
+
+### Pirâmide de Testes
+- Muitos testes unitários
+- Alguns testes de integração
+- Poucos testes E2E
+
+### Nomenclatura de Testes
+```typescript
+// ✅ BOM - Descritivo e claro
+describe('UserService', () => {
+  describe('createUser', () => {
+    it('should create user with valid data', () => { })
+    it('should throw ValidationError when email is invalid', () => { })
+    it('should hash password before saving', () => { })
+  })
+})
+```
+
+### AAA Pattern
+- **Arrange**: Setup
+- **Act**: Execute
+- **Assert**: Verify
+```typescript
+it('should calculate total correctly', () => {
+  // Arrange
+  const cart = new ShoppingCart()
+  cart.addItem({ price: 10, quantity: 2 })
+  cart.addItem({ price: 5, quantity: 1 })
+  
+  // Act
+  const total = cart.getTotal()
+  
+  // Assert
+  expect(total).toBe(25)
+})
+```
+
+### Mocking
+- Mock dependências externas
+- Não teste implementações, teste comportamento
+```typescript
+// ✅ BOM - Mock dependencies
+it('should send welcome email on user creation', async () => {
+  const mockEmailService = {
+    send: jest.fn().mockResolvedValue(true)
+  }
+  
+  const userService = new UserService(mockEmailService)
+  await userService.createUser(userData)
+  
+  expect(mockEmailService.send).toHaveBeenCalledWith(
+    userData.email,
+    'Welcome!'
+  )
+})
+```
+
+---
+
+## 9. Documentação
+
+### README
+Todo projeto deve ter:
+- Descrição clara
+- Como instalar
+- Como rodar
+- Como testar
+- Estrutura do projeto
+- Tecnologias utilizadas
+
+### Código Autodocumentado
+- Nomes descritivos eliminam necessidade de comentários
+- Estrutura clara elimina necessidade de diagramas complexos
+
+### ADRs (Architecture Decision Records)
+- Documente decisões importantes de arquitetura
+- Formato: Contexto, Decisão, Consequências
+```markdown
+# ADR-001: Usar PostgreSQL ao invés de MongoDB
+
+## Contexto
+Precisamos escolher banco de dados para o projeto.
+Dados são altamente relacionais.
+
+## Decisão
+Usar PostgreSQL.
+
+## Consequências
+Positivas:
+- ACID compliance
+- Suporte a joins complexos
+- Maturidade e estabilidade
+
+Negativas:
+- Menos flexibilidade em schema
+- Scaling horizontal mais complexo
+```
+
+---
+
+## 10. Git e Versionamento
+
+### Commits
+- Commits pequenos e focados
+- Mensagens descritivas no imperativo
+```bash
+# ✅ BOM
+git commit -m "Add user authentication service"
+git commit -m "Fix memory leak in data processor"
+git commit -m "Refactor payment validation logic"
+
+# ❌ EVITAR
+git commit -m "changes"
+git commit -m "fix bug"
+git commit -m "WIP"
+```
+
+### Conventional Commits
+```bash
+feat: adiciona nova funcionalidade
+fix: corrige bug
+docs: atualiza documentação
+style: formatação, ponto e vírgula, etc
+refactor: refatoração de código
+test: adiciona ou modifica testes
+chore: atualização de build, configs, etc
+```
+
+### Branches
+```bash
+main/master     # Produção
+develop        # Desenvolvimento
+feature/xxx    # Nova funcionalidade
+fix/xxx        # Bug fix
+hotfix/xxx     # Fix urgente em produção
+```
+
+---
+
+## 11. Code Review
+
+### O Que Procurar
+- [ ] Código segue SOLID?
+- [ ] Nomenclatura clara?
+- [ ] Funções pequenas e focadas?
+- [ ] Sem duplicação de código?
+- [ ] Tratamento de erros adequado?
+- [ ] Type-safe (TypeScript)?
+- [ ] Testes incluídos?
+- [ ] Documentação atualizada?
+- [ ] Sem secrets commitados?
+- [ ] Performance considerada?
+
+### Feedback
+- Seja específico e construtivo
+- Sugira melhorias, não apenas aponte problemas
+- Use "nós" ao invés de "você"
+```markdown
+# ✅ BOM
+"Podemos simplificar esta função extraindo a lógica de validação?"
+"Que tal usarmos Promise.all aqui para melhorar performance?"
+
+# ❌ EVITAR
+"Isto está errado"
+"Você não entendeu nada"
+```
+
+---
+
+## 12. Padrões de Código
+
+### DRY (Don't Repeat Yourself)
+- Extraia código duplicado em funções/componentes
+- Use composição e herança adequadamente
+```typescript
+// ❌ EVITAR - Duplicação
+function processAdminUser(user: User) {
+  validateEmail(user.email)
+  validateAge(user.age)
+  saveToDatabase(user)
+  // lógica admin específica
+}
+
+function processRegularUser(user: User) {
+  validateEmail(user.email)
+  validateAge(user.age)
+  saveToDatabase(user)
+  // lógica regular específica
+}
+
+// ✅ BOM - DRY
+function processUser(user: User) {
+  validateEmail(user.email)
+  validateAge(user.age)
+  saveToDatabase(user)
+}
+
+function processAdminUser(user: User) {
+  processUser(user)
+  // lógica admin específica
+}
+
+function processRegularUser(user: User) {
+  processUser(user)
+  // lógica regular específica
+}
+```
+
+### KISS (Keep It Simple, Stupid)
+- Prefira soluções simples
+- Não otimize prematuramente
+- Não use padrões complexos para problemas simples
+
+### YAGNI (You Aren't Gonna Need It)
+- Não implemente funcionalidades "por precaução"
+- Implemente apenas o necessário agora
+- Refatore quando surgir a necessidade real
+
+---
+
+## 13. Padrões de Design Úteis
+
+### Factory Pattern
+```typescript
+interface IUser { }
+
+class AdminUser implements IUser { }
+class RegularUser implements IUser { }
+
+class UserFactory {
+  static create(type: 'admin' | 'regular'): IUser {
+    switch (type) {
+      case 'admin': return new AdminUser()
+      case 'regular': return new RegularUser()
+    }
+  }
+}
+```
+
+### Strategy Pattern
+```typescript
+interface PaymentStrategy {
+  pay(amount: number): Promise<boolean>
+}
+
+class CreditCardStrategy implements PaymentStrategy {
+  async pay(amount: number) { /* ... */ }
+}
+
+class PayPalStrategy implements PaymentStrategy {
+  async pay(amount: number) { /* ... */ }
+}
+
+class PaymentProcessor {
+  constructor(private strategy: PaymentStrategy) { }
+  
+  async process(amount: number) {
+    return this.strategy.pay(amount)
+  }
+}
+```
+
+### Observer Pattern
+```typescript
+interface Observer {
+  update(data: unknown): void
+}
+
+class Subject {
+  private observers: Observer[] = []
+  
+  subscribe(observer: Observer) {
+    this.observers.push(observer)
+  }
+  
+  notify(data: unknown) {
+    this.observers.forEach(obs => obs.update(data))
+  }
+}
+```
+
+### Repository Pattern
+```typescript
+interface Repository<T> {
+  findById(id: string): Promise<T | null>
+  findAll(): Promise<T[]>
+  save(entity: T): Promise<void>
+  delete(id: string): Promise<void>
+}
+
+class UserRepository implements Repository<User> {
+  // Implementação específica
+}
+```
+
+---
+
+## 14. Anti-Patterns a Evitar
+
+### God Object/Class
+- Classes que fazem tudo
+- Violação massiva de SRP
+
+### Spaghetti Code
+- Código sem estrutura clara
+- Fluxo confuso e difícil de seguir
+
+### Magic Numbers/Strings
+```typescript
+// ❌ EVITAR
+if (user.status === 2) { }
+setTimeout(callback, 86400000)
+
+// ✅ BOM
+const USER_STATUS_ACTIVE = 2
+const ONE_DAY_MS = 24 * 60 * 60 * 1000
+
+if (user.status === USER_STATUS_ACTIVE) { }
+setTimeout(callback, ONE_DAY_MS)
+```
+
+### Shotgun Surgery
+- Uma mudança requer alterações em muitos lugares
+- Indica acoplamento excessivo
+
+### Feature Envy
+- Método usa mais dados de outra classe que da própria
+- Considere mover o método
+
+---
+
+## 15. Checklist Final
+
+Antes de considerar código "pronto":
+
+### Funcionalidade
+- [ ] Funciona conforme esperado?
+- [ ] Edge cases tratados?
+- [ ] Erros tratados adequadamente?
+
+### Qualidade
+- [ ] Segue SOLID?
+- [ ] DRY aplicado?
+- [ ] KISS aplicado?
+- [ ] Type-safe?
+
+### Manutenibilidade
+- [ ] Nomenclatura clara?
+- [ ] Funções pequenas e focadas?
+- [ ] Sem duplicação?
+- [ ] Comentários onde necessário?
+
+### Performance
+- [ ] Sem operações desnecessárias?
+- [ ] Async otimizado?
+- [ ] Memoization onde faz sentido?
+
+### Segurança
+- [ ] Input validado?
+- [ ] Dados sanitizados?
+- [ ] Sem secrets expostos?
+
+### Testes
+- [ ] Testes unitários escritos?
+- [ ] Coverage adequado?
+- [ ] Testes passando?
+
+### Documentação
+- [ ] Código autodocumentado?
+- [ ] JSDoc para APIs públicas?
+- [ ] README atualizado?
+
+---
+
+## 🎯 Dicas para Usar com Cursor AI
+
+### Ao Solicitar Código
+1. **Seja específico sobre princípios**: "Crie uma função que siga SOLID e DRY..."
+2. **Peça documentação**: "Inclua JSDoc e comentários explicativos..."
+3. **Solicite tipos**: "Use TypeScript com tipos estritos..."
+4. **Peça testes**: "Inclua testes unitários para esta função..."
+
+### Exemplos de Prompts
+
+**Para criar serviço:**
+```
+Crie um serviço de autenticação seguindo SOLID, com:
+- Interface clara
+- Injeção de dependência
+- Tratamento de erros robusto
+- TypeScript strict
+- JSDoc completo
+- Testes unitários
+```
+
+**Para refatorar:**
+```
+Refatore este código seguindo:
+- Princípios SOLID
+- DRY
+- Clean Code
+- Extraia funções menores
+- Adicione tipos TypeScript
+- Melhore nomenclatura
+```
+
+**Para revisar:**
+```
+Revise este código verificando:
+- Violações de SOLID
+- Code smells
+- Performance issues
+- Segurança
+- Sugira melhorias específicas
+```
+
+---
+
+## 📚 Recursos Recomendados
+
+### Livros
+- Clean Code - Robert C. Martin
+- Design Patterns - Gang of Four
+- Refactoring - Martin Fowler
+- The Pragmatic Programmer
+
+### Online
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Refactoring Guru](https://refactoring.guru/)
+- [Clean Code JavaScript](https://github.com/ryanmcdermott/clean-code-javascript)
+
+---
+
+## 🔄 Manutenção Destas Regras
+
+Estas regras são vivas e devem evoluir:
+- Revise periodicamente
+- Adicione novos padrões descobertos
+- Remova regras obsoletas
+- Mantenha pragmatismo sobre dogmatismo
+
+**Lembre-se**: Regras são guias, não leis absolutas. Use bom senso e contexto.

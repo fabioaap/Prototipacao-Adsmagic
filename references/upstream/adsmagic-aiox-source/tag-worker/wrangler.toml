@@ -1,0 +1,49 @@
+name = "adsmagic-tag"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# Import .txt files as raw text
+rules = [
+  { type = "Text", globs = ["**/*.txt"], fallthrough = false }
+]
+
+[vars]
+EVENTS_API_URL = "https://nitefyufrzytdtxhaocf.supabase.co/functions/v1/events/track"
+
+# Cloudflare Queue — buffers events before delivering to Supabase
+[[queues.producers]]
+queue = "adsmagic-events"
+binding = "EVENTS_QUEUE"
+
+[[queues.consumers]]
+queue = "adsmagic-events"
+max_batch_size = 25
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "adsmagic-events-dlq"
+
+[[queues.producers]]
+queue = "adsmagic-events-dlq"
+binding = "EVENTS_DLQ"
+
+# Observability
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
+
+# Custom domain: tag.adsmagic.com.br
+# Configure via Cloudflare Dashboard > Workers > Custom Domains
+# or uncomment below after creating the route:
+# [routes]
+# { pattern = "tag.adsmagic.com.br/*", zone_name = "adsmagic.com.br" }

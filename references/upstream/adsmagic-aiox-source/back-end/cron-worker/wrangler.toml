@@ -1,0 +1,27 @@
+# Cloudflare Worker Configuration
+# AdsMagic Job Trigger - Cron Worker
+#
+# Deploy:
+#   wrangler deploy
+#
+# Configure secrets:
+#   wrangler secret put SUPABASE_URL
+#   wrangler secret put SERVICE_ROLE_KEY
+
+name = "adsmagic-job-trigger"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# Cron triggers - executa a cada minuto
+[triggers]
+crons = ["* * * * *"]
+
+# Variáveis de ambiente (não sensíveis)
+[vars]
+# SUPABASE_URL será configurado como secret
+
+# Nota: SERVICE_ROLE_KEY deve ser configurado como secret via:
+# wrangler secret put SERVICE_ROLE_KEY
+
+# Opcional: CRON_SECRET para autenticação de triggers manuais
+# wrangler secret put CRON_SECRET

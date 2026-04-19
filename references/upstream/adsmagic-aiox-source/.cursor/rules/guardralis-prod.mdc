@@ -1,0 +1,73 @@
+---
+alwaysApply: true
+---
+# CursorRules — Guardrails anti-quebra (Front Vue 3 + TS, API real)
+
+## Status atual da branch v3 (Março 2026)
+- **API real ativa para:** contacts, projects, companies, origins, stages, tags, integrations (OAuth parcial), messaging (WhatsApp)
+- **Ainda mock:** dashboard analytics (issue #7), sales (issue #6 — backend não implementado)
+- **Playwright:** SEMPRE usar `pnpm build:visual` (modo test, VITE_USE_MOCK=true). `build:temp` quebra os testes.
+- **Testes:** 969/969 unitários + 37/37 E2E passando na branch v3
+
+## 0) Norte
+- Não introduza **breaking changes** em contratos sem criar nova versão.
+- Projeto utiliza **API real para features concluídas** e **mock para features pendentes de backend**.
+- Clareza, rastreabilidade e rollback fácil > "mágica".
+- Cada commit deve ser **testável em staging** e **rollbackável**.
+- Antes de implementar qualquer backend: verificar se a issue correspondente existe no GitHub.
+
+## 1) Escopo por tarefa
+- **ALLOWED_PATHS** (definir na tarefa): apenas estes diretórios/arquivos podem ser alterados.
+- **FORBIDDEN_PATHS (fixos)**: `/infra/**`, `/supabase/**`, `/migrations/**`, `/auth/**`, `/payment/**`, `.env*`, `/RLS/**`.
+- Proibido renomear/mover pastas raiz sem instrução explícita.
+- Não adicionar libs externas sem justificativa no PR (razão, impacto e alternativa nativa).
+
+## 2) Contratos e integrações (fonte da verdade)
+- Contratos vivem em `/src/schemas` (Zod) e `/src/types`.
+- **Proibido** alterar/remover/renomear campos sem:
+  1) atualizar adapters e tipos;
+  2) ajustar testes;
+  3) registrar no CHANGELOG (seção “Contratos”).
+- Integrações **devem usar** `/src/services/api/apiClient.ts` como camada única de rede.
+- Nenhum `fetch`, `axios`, ou `supabase-js` deve ser chamado diretamente em views/stores.
+- Cada serviço deve tratar **latência real**, **erros 4xx/5xx** e **timeouts** com UX apropriado.
+
+## 3) Segurança no front
+- Nunca inserir **secrets/tokens/service-role**.
+- Proibido `v-html` sem sanitização (usar `DOMPurify`).
+- Proibido `eval`, `new Function`, `setTimeout` com string.
+- Logs sem PII; mensagens de erro devem ser amigáveis para o usuário, detalhes técnicos só no console.
+- Tokens de auth devem vir de contexto seguro (ex: Pinia store com persistência criptografada).
+
+## 4) UX de estados e A11y (obrigatório)
+- Toda tela cobre os estados: **loading**, **empty**, **error**, **success**.
+- Inputs devem ter `label for`, `aria-*`; foco gerenciado em erros e modais; navegação via teclado (Tab/Shift+Tab).
+- Requests longos devem exibir *skeleton loaders* ou progress feedback.
+
+## 5) Qualidade mínima por PR
+- TypeScript **strict**; sem `any` ou `@ts-ignore` sem justificativa.
+- Passar: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`.
+- Testes mínimos:
+  - 1 **unit** para adapter/composable com casos happy + edge.
+  - 1 **component** cobrindo loading → sucesso → erro.
+- Nenhum novo warning de ESLint permitido.
+
+## 6) rollback
+- PR deve incluir **plano de rollback** (restaurar estado anterior).
+
+## 7) Política de recusa (a IA deve pedir autorização explícita)
+- Modificar `/schemas` com breaking changes.
+- Alterar **infra** (Supabase, RLS, Workers, Stripe, WhatsApp, autenticação).
+- Incluir novas dependências de rede/auth/cripto/pagamento.
+- Executar migrações de dados sem PR aprovado.
+
+## 8) Template de PR (a IA deve preencher)
+- Objetivo & Escopo  
+- **ALLOWED_PATHS** tocados  
+- Como testar (passo a passo) + screenshots dos estados  
+- Testes adicionados/alterados  
+- Riscos & Rollback  
+- Confirmações:
+  - [ ] Não alterei FORBIDDEN_PATHS
+  - [ ] Atualizei contratos/adapters/testes/CHANGELOG conforme necessário
+  - [ ] `pnpm typecheck lint test build` passou

@@ -1,0 +1,987 @@
+{
+	"info": {
+		"_postman_id": "adsmagic-messaging-api-2025",
+		"name": "📱 Messaging API - UAZAPI & Endpoints",
+		"description": "Collection completa para testar mensageria: criação de instância UAZAPI e todos os endpoints de mensageria\n\n**✅ Endpoint Unificado de Conexão:**\n- POST /messaging/connect/:accountId - Conecta instância ao WhatsApp (QR Code ou Pair Code via body)\n  - Body vazio `{}`: Gera QR Code (expira em 2 minutos)\n  - Body com `{\"phone\": \"...\"}`: Gera Pair Code (expira em 5 minutos)\n\n**⚠️ Endpoints Removidos (versão 0.6.0):**\n- ❌ GET /messaging/qrcode/:accountId - REMOVIDO (use POST /connect com body vazio)\n- ❌ GET /messaging/paircode/:accountId - REMOVIDO (use POST /connect com phone no body)\n\n**📝 Nota:** Esta collection foi atualizada após refatoração completa dos handlers de conexão.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "adsmagic-messaging"
+	},
+	"item": [
+		{
+			"name": "🔧 UAZAPI - Gerenciamento de Instância",
+			"item": [
+				{
+					"name": "Criar Instância UAZAPI",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    const instanceName = response.instance?.instanceName || response.instanceName;",
+									"    const apikey = response.instance?.apikey || response.apikey;",
+									"    ",
+									"    if (instanceName) {",
+									"        pm.environment.set(\"uazapi_instance_id\", instanceName);",
+									"        console.log(\"✅ Instância criada:\", instanceName);",
+									"    }",
+									"    ",
+									"    if (apikey) {",
+									"        pm.environment.set(\"uazapi_apikey\", apikey);",
+									"        console.log(\"✅ API Key obtida\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "admintoken",
+								"value": "{{uazapi_master_apikey}}",
+								"type": "text",
+								"description": "Admin Token da UAZAPI (obtenha na sua conta UAZAPI)",
+								"disabled": false
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{uazapi_instance_name}}\",\n  \"systemName\": \"apilocal\",\n  \"adminField01\": \"custom-metadata-1\",\n  \"adminField02\": \"custom-metadata-2\"\n}"
+						},
+						"url": {
+							"raw": "{{uazapi_url}}/instance/init",
+							"host": [
+								"{{uazapi_url}}"
+							],
+							"path": [
+								"instance",
+								"init"
+							]
+						},
+						"description": "Cria uma nova instância na UAZAPI\n\n**⚠️ AUTENTICAÇÃO NECESSÁRIA:**\nEste endpoint requer autenticação. Você precisa:\n1. Criar uma conta na UAZAPI: https://uazapi.com\n2. Obter seu Admin Token no painel\n3. Configurar a variável `uazapi_master_apikey` no Environment\n\n**Header de Autenticação:**\n- `admintoken`: Seu Admin Token da UAZAPI\n\n**Documentação:** https://docs.uazapi.com/\n\n**Resposta esperada:**\n```json\n{\n  \"instance\": {\n    \"instanceName\": \"minha-instancia\",\n    \"apikey\": \"...\",\n    \"token\": \"...\"\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Conectar Instância (Gerar QR Code)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has QR Code\", function () {",
+									"    const response = pm.response.json();",
+									"    const qrCode = response.qrcode?.base64 || response.qrcode?.qr || response.base64 || response.qr;",
+									"    pm.expect(qrCode).to.exist;",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log(\"✅ QR Code gerado com sucesso!\");",
+									"    console.log(\"📱 Escaneie o QR Code com seu WhatsApp\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "admintoken",
+								"value": "{{uazapi_apikey}}",
+								"type": "text",
+								"description": "Admin Token da UAZAPI"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"{{messaging_phone_to}}\"\n}"
+						},
+						"url": {
+							"raw": "{{uazapi_url}}/instance/connect",
+							"host": [
+								"{{uazapi_url}}"
+							],
+							"path": [
+								"instance",
+								"connect"
+							]
+						},
+						"description": "Conecta a instância ao WhatsApp gerando QR Code\n\n**Header de Autenticação:**\n- `admintoken`: Admin Token da UAZAPI\n\n**Documentação:** https://docs.uazapi.com/\n\n**Body opcional:** Campo `phone` é opcional\n\n**Resposta esperada:**\n```json\n{\n  \"qrcode\": {\n    \"base64\": \"data:image/png;base64,...\",\n    \"code\": \"...\"\n  }\n}\n```"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints diretos da API UAZAPI para gerenciamento de instâncias"
+		},
+		{
+			"name": "📝 Messaging - Criar Instância e Salvar",
+			"item": [
+				{
+					"name": "Criar Instância UAZAPI (Salva no Banco)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Instance created and saved\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('accountId');",
+									"    pm.expect(jsonData.data).to.have.property('instanceName');",
+									"});",
+									"",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    ",
+									"    if (jsonData.data.accountId) {",
+									"        pm.environment.set(\"messaging_account_id\", jsonData.data.accountId);",
+									"        console.log(\"✅ Conta criada no banco:\", jsonData.data.accountId);",
+									"    }",
+									"    ",
+									"    if (jsonData.data.instanceName) {",
+									"        pm.environment.set(\"uazapi_instance_id\", jsonData.data.instanceName);",
+									"        console.log(\"✅ Instância criada:\", jsonData.data.instanceName);",
+									"    }",
+									"    ",
+									"    if (jsonData.data.apikey) {",
+									"        pm.environment.set(\"uazapi_apikey\", jsonData.data.apikey);",
+									"        console.log(\"✅ API Key salva\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"projectId\": \"{{project_id}}\",\n  \"instanceName\": \"{{uazapi_instance_name}}\",\n  \"adminToken\": \"{{uazapi_master_apikey}}\",\n  \"apiBaseUrl\": \"{{uazapi_url}}\",\n  \"systemName\": \"apilocal\",\n  \"accountName\": \"Conta WhatsApp UAZAPI\",\n  \"phone\": \"{{messaging_phone_to}}\",\n  \"adminField01\": \"custom-metadata-1\",\n  \"adminField02\": \"custom-metadata-2\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/instances/uazapi",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"instances",
+								"uazapi"
+							]
+						},
+						"description": "Cria uma instância na UAZAPI e salva automaticamente no banco de dados\n\n**O que este endpoint faz:**\n1. Cria instância na UAZAPI usando o Admin Token\n2. Salva automaticamente no banco (tabela `messaging_accounts`)\n3. Retorna os dados da conta criada\n\n**Campos obrigatórios:**\n- `projectId`: UUID do projeto\n- `instanceName`: Nome da instância\n- `adminToken`: Admin Token da UAZAPI\n\n**Campos opcionais:**\n- `apiBaseUrl`: URL base da API (padrão: https://free.uazapi.com)\n- `systemName`: Nome do sistema (padrão: apilocal)\n- `phone`: Número de telefone\n- `accountName`: Nome da conta\n- `adminField01`, `adminField02`: Campos customizados\n\n**Resposta:**\n- `accountId`: ID da conta criada no banco\n- `instanceName`: Nome da instância\n- `apikey`: API Key da instância\n- `account`: Dados da conta criada"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoint da nossa API que cria instância e salva no banco automaticamente"
+		},
+		{
+			"name": "📨 Messaging - Webhooks",
+			"item": [
+				{
+					"name": "Webhook - UAZAPI",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Webhook processed\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"console.log(\"✅ Webhook processado com sucesso!\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-account-id",
+								"value": "{{messaging_account_id}}",
+								"type": "text",
+								"description": "UUID da conta de mensageria"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"msg_123456789\",\n  \"from\": \"5511999999999\",\n  \"to\": \"5511888888888\",\n  \"body\": \"Olá! Esta é uma mensagem de teste do UAZAPI\",\n  \"timestamp\": 1642684800,\n  \"isGroup\": false,\n  \"pushName\": \"João Silva\",\n  \"type\": \"text\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/webhook",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook"
+							]
+						},
+						"description": "Recebe webhook do UAZAPI e processa mensagem automaticamente\n\n**Headers obrigatórios:**\n- `x-account-id`: UUID da conta de mensageria\n\n**O que acontece:**\n1. Webhook recebido e normalizado\n2. Contato criado automaticamente (se não existir)\n3. Estatísticas atualizadas\n4. Retorna sucesso"
+					},
+					"response": []
+				},
+				{
+					"name": "Webhook - WhatsApp Business API",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Webhook processed\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-account-id",
+								"value": "{{messaging_account_id}}",
+								"type": "text"
+							},
+							{
+								"key": "x-hub-signature-256",
+								"value": "sha256=assinatura_aqui",
+								"type": "text",
+								"description": "Assinatura do webhook (opcional para testes)"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"WHATSAPP_BUSINESS_ACCOUNT_ID\",\n      \"changes\": [\n        {\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"5511999999999\",\n              \"phone_number_id\": \"PHONE_NUMBER_ID\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"João Silva\"\n                },\n                \"wa_id\": \"5511999999999\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5511999999999\",\n                \"id\": \"wamid.XXXXXXXXXXXXXXXXXXXXXXXXXXX\",\n                \"timestamp\": \"1642684800\",\n                \"text\": {\n                  \"body\": \"Olá! Esta é uma mensagem do WhatsApp Business API\"\n                },\n                \"type\": \"text\"\n              }\n            ]\n          },\n          \"field\": \"messages\"\n        }\n      ]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/webhook",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook"
+							]
+						},
+						"description": "Recebe webhook do WhatsApp Business API\n\n**Headers obrigatórios:**\n- `x-account-id`: UUID da conta de mensageria"
+					},
+					"response": []
+				},
+				{
+					"name": "Webhook - Gupshup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "x-account-id",
+								"value": "{{messaging_account_id}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"messageId\": \"gupshup_msg_123\",\n  \"source\": \"5511999999999\",\n  \"destination\": \"5511888888888\",\n  \"timestamp\": \"2025-01-28T12:00:00Z\",\n  \"payload\": {\n    \"text\": \"Olá! Esta é uma mensagem do Gupshup\",\n    \"type\": \"text\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/webhook",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"webhook"
+							]
+						},
+						"description": "Recebe webhook do Gupshup\n\n**Headers obrigatórios:**\n- `x-account-id`: UUID da conta de mensageria"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para receber webhooks dos brokers"
+		},
+		{
+			"name": "📤 Messaging - Envio de Mensagens",
+			"item": [
+				{
+					"name": "Enviar Mensagem de Texto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Message sent successfully\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('messageId');",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    console.log(\"✅ Mensagem enviada!\");",
+									"    console.log(\"Message ID:\", jsonData.data.messageId);",
+									"    console.log(\"Status:\", jsonData.data.status);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accountId\": \"{{messaging_account_id}}\",\n  \"to\": \"{{messaging_phone_to}}\",\n  \"text\": \"Olá! Esta é uma mensagem de teste enviada através da API.\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/send",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"send"
+							]
+						},
+						"description": "Envia mensagem de texto através do broker configurado\n\n**Campos obrigatórios:**\n- `accountId`: UUID da conta de mensageria\n- `to`: Número de destino (formato: 5511999999999)\n- `text`: Texto da mensagem"
+					},
+					"response": []
+				},
+				{
+					"name": "Enviar Mensagem com Mídia",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Media message sent\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accountId\": \"{{messaging_account_id}}\",\n  \"to\": \"{{messaging_phone_to}}\",\n  \"mediaUrl\": \"https://example.com/imagem.jpg\",\n  \"mediaType\": \"image\",\n  \"caption\": \"Legenda da imagem\"\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/send",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"send"
+							]
+						},
+						"description": "Envia mensagem com mídia (imagem, vídeo, áudio, documento)\n\n**Tipos de mídia suportados:**\n- `image`\n- `video`\n- `audio`\n- `document`"
+					},
+					"response": []
+				},
+				{
+					"name": "Enviar Template (WhatsApp Business)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accountId\": \"{{messaging_account_id}}\",\n  \"to\": \"{{messaging_phone_to}}\",\n  \"templateName\": \"welcome_template\",\n  \"templateLanguage\": \"pt\",\n  \"templateParameters\": [\"João\"]\n}"
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/send",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"send"
+							]
+						},
+						"description": "Envia mensagem de template (apenas WhatsApp Business API)\n\n**O template deve estar aprovado no WhatsApp Business API**"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para envio de mensagens"
+		},
+		{
+			"name": "📊 Messaging - Status e Sincronização",
+			"item": [
+				{
+					"name": "Status da Conta",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has account status\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData.data).to.have.property('accountId');",
+									"    pm.expect(jsonData.data).to.have.property('connected');",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    console.log(\"📊 Status da Conta:\");",
+									"    console.log(\"  - Conectada:\", jsonData.data.connected);",
+									"    console.log(\"  - Status:\", jsonData.data.status);",
+									"    console.log(\"  - Total Mensagens:\", jsonData.data.totalMessages);",
+									"    console.log(\"  - Total Contatos:\", jsonData.data.totalContacts);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/messaging/status/{{messaging_account_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"status",
+								"{{messaging_account_id}}"
+							]
+						},
+						"description": "Obtém status da conta de mensageria\n\n**Retorna:**\n- Status da conexão\n- Total de mensagens\n- Total de contatos\n- Última mensagem"
+					},
+					"response": []
+				},
+				{
+					"name": "Status de Conexão Detalhado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has connection status\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('connected');",
+									"    pm.expect(jsonData.data).to.have.property('status');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{functions_url}}/messaging/connection-status/{{messaging_account_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"connection-status",
+								"{{messaging_account_id}}"
+							]
+						},
+						"description": "Verifica status detalhado de conexão (inclui QR Code ativo, Pair Code, etc.)\n\n**Status possíveis:**\n- `connected` - Conectado\n- `disconnected` - Desconectado\n- `connecting` - Aguardando conexão\n- `timeout` - Conexão expirada"
+					},
+					"response": []
+				},
+				{
+					"name": "Sincronizar Contatos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Contacts synchronized\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/sync-contacts/{{messaging_account_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"sync-contacts",
+								"{{messaging_account_id}}"
+							]
+						},
+						"description": "Sincroniza informações da conta com o broker\n\n**Obtém e atualiza:**\n- Número de telefone\n- Nome da conta\n- Status da conexão"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para verificar status e sincronizar dados"
+		},
+		{
+			"name": "🔗 Messaging - Conexão (QR Code/Pair Code)",
+			"item": [
+				{
+					"name": "Conectar Instância - QR Code (sem phone)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"QR Code generated\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData).to.have.property('type');",
+									"    pm.expect(jsonData.type).to.equal('qrcode');",
+									"    pm.expect(jsonData.data).to.have.property('qrCode');",
+									"    pm.expect(jsonData.data).to.have.property('expiresAt');",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    console.log(\"✅ QR Code gerado com sucesso!\");",
+									"    console.log(\"📱 Expira em:\", jsonData.data.expiresAt);",
+									"    console.log(\"🆔 Instance ID:\", jsonData.data.instanceId);",
+									"    console.log(\"💡 Escaneie o QR Code com seu WhatsApp para conectar\");",
+									"    console.log(\"⏰ Timeout: 2 minutos\");",
+									"} else {",
+									"    console.error(\"❌ Erro:\", pm.response.code, pm.response.status);",
+									"    try {",
+									"        const errorBody = pm.response.json();",
+									"        console.error(\"Detalhes:\", JSON.stringify(errorBody, null, 2));",
+									"    } catch (e) {",
+									"        console.error(\"Resposta:\", pm.response.text());",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/connect/{{messaging_account_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"connect",
+								"{{messaging_account_id}}"
+							]
+						},
+						"description": "Conecta instância ao WhatsApp gerando QR Code\n\n**✅ ENDPOINT UNIFICADO** - Único endpoint para conexão (versão 0.6.0)\n\n**Comportamento:**\n- Body vazio `{}` ou sem phone: Gera QR Code (expira em 2 minutos)\n- QR Code expira em 2 minutos\n- Escaneie com WhatsApp: Configurações > Aparelhos conectados > Vincular um dispositivo\n\n**Disponível para:**\n- UAZAPI\n- Evolution API\n\n**Resposta esperada:**\n```json\n{\n  \"success\": true,\n  \"type\": \"qrcode\",\n  \"data\": {\n    \"qrCode\": \"data:image/png;base64,...\",\n    \"expiresAt\": \"2025-01-28T12:00:00.000Z\",\n    \"instanceId\": \"ra03d1256ebb36c\"\n  },\n  \"message\": \"Escaneie o QR Code com seu WhatsApp para conectar (expira em 2 minutos)\"\n}\n```\n\n**Nota:** Este endpoint atualiza automaticamente o status da conta para \"connecting\"\n\n**⚠️ Endpoints antigos removidos:**\n- GET /messaging/qrcode/:accountId foi removido na versão 0.6.0"
+					},
+					"response": []
+				},
+				{
+					"name": "Conectar Instância - Pair Code (com phone)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Pair Code generated\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData).to.have.property('type');",
+									"    pm.expect(jsonData.type).to.equal('paircode');",
+									"    pm.expect(jsonData.data).to.have.property('code');",
+									"    pm.expect(jsonData.data).to.have.property('expiresAt');",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    console.log(\"✅ Pair Code gerado com sucesso!\");",
+									"    console.log(\"🔑 Código:\", jsonData.data.code);",
+									"    console.log(\"📱 Telefone:\", jsonData.data.phone);",
+									"    console.log(\"⏰ Expira em:\", jsonData.data.expiresAt);",
+									"    console.log(\"🆔 Instance ID:\", jsonData.data.instanceId);",
+									"    console.log(\"💡 Insira no WhatsApp: Configurações > Aparelhos conectados > Conectar um aparelho\");",
+									"    console.log(\"⏰ Timeout: 5 minutos\");",
+									"} else {",
+									"    console.error(\"❌ Erro:\", pm.response.code, pm.response.status);",
+									"    try {",
+									"        const errorBody = pm.response.json();",
+									"        console.error(\"Detalhes:\", JSON.stringify(errorBody, null, 2));",
+									"    } catch (e) {",
+									"        console.error(\"Resposta:\", pm.response.text());",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"{{messaging_phone_to}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{functions_url}}/messaging/connect/{{messaging_account_id}}",
+							"host": [
+								"{{functions_url}}"
+							],
+							"path": [
+								"messaging",
+								"connect",
+								"{{messaging_account_id}}"
+							]
+						},
+						"description": "Conecta instância ao WhatsApp gerando Pair Code\n\n**✅ ENDPOINT UNIFICADO** - Único endpoint para conexão (versão 0.6.0)\n\n**Comportamento:**\n- **Com phone no body**: Gera Pair Code (expira em 5 minutos)\n- Pair Code expira em 5 minutos\n- Insira código no WhatsApp: Configurações > Aparelhos conectados > Conectar um aparelho\n\n**Disponível para:**\n- UAZAPI\n- Evolution API\n\n**Exemplo de body:**\n```json\n{\n  \"phone\": \"5511999999999\"\n}\n```\n\n**Validação:**\n- Phone deve estar no formato internacional (ex: +5511999999999)\n- Validação automática via Zod\n\n**Resposta esperada:**\n```json\n{\n  \"success\": true,\n  \"type\": \"paircode\",\n  \"data\": {\n    \"code\": \"ABC-123-DEF\",\n    \"expiresAt\": \"2025-01-28T12:05:00.000Z\",\n    \"instanceId\": \"ra03d1256ebb36c\",\n    \"phone\": \"5511999999999\"\n  },\n  \"message\": \"Use este código no WhatsApp: Configurações > Aparelhos conectados > Conectar um aparelho (expira em 5 minutos)\"\n}\n```\n\n**Nota:** Este endpoint atualiza automaticamente o status da conta para \"connecting\"\n\n**⚠️ Endpoints antigos removidos:**\n- GET /messaging/paircode/:accountId foi removido na versão 0.6.0"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoint unificado para gerar QR Code e Pair Code para conexão\n\n**✅ Endpoint Disponível:**\n- POST /messaging/connect/:accountId - Conecta instância (QR Code ou Pair Code via body)\n  - Body vazio `{}`: Gera QR Code (expira em 2 minutos)\n  - Body com `{\"phone\": \"...\"}`: Gera Pair Code (expira em 5 minutos)\n\n**⚠️ Endpoints Removidos (versão 0.6.0):**\n- ❌ GET /messaging/qrcode/:accountId - REMOVIDO\n- ❌ GET /messaging/paircode/:accountId - REMOVIDO\n\n**💡 Dica:** Use \"Conectar Instância - QR Code\" (body vazio) ou \"Conectar Instância - Pair Code\" (com phone) para facilitar os testes!"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Verificar se token existe (para endpoints que requerem autenticação)",
+					"const token = pm.environment.get(\"jwt_token\");",
+					"if (!token && !pm.request.url.toString().includes(\"/webhook\")) {",
+					"    console.log(\"⚠️ Token JWT não encontrado. Execute Login primeiro.\");",
+					"}",
+					"",
+					"// Verificar se messaging_account_id existe",
+					"const accountId = pm.environment.get(\"messaging_account_id\");",
+					"if (!accountId && pm.request.url.toString().includes(\"/messaging/\")) {",
+					"    console.log(\"⚠️ messaging_account_id não configurado. Crie uma conta de mensageria primeiro.\");",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Testes globais",
+					"pm.test(\"Response time is acceptable\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"// Log de erros",
+					"if (pm.response.code >= 400) {",
+					"    console.error(\"❌ Erro:\", pm.response.code, pm.response.status);",
+					"    try {",
+					"        const errorBody = pm.response.json();",
+					"        console.error(\"Detalhes:\", JSON.stringify(errorBody, null, 2));",
+					"    } catch (e) {",
+					"        console.error(\"Resposta:\", pm.response.text());",
+					"    }",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "functions_url",
+			"value": "https://nitefyufrzytdtxhaocf.supabase.co/functions/v1",
+			"type": "string"
+		},
+		{
+			"key": "uazapi_url",
+			"value": "https://free.uazapi.com",
+			"type": "string"
+		}
+	]
+}
+

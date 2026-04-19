@@ -1,6 +1,6 @@
 ---
 paths:
-  - "docs/stories/**"
+  - "workspace/docs/stories/**"
   - ".aiox-core/development/**"
 ---
 

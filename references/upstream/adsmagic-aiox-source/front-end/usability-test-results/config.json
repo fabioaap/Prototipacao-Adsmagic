@@ -1,0 +1,7 @@
+{
+  "startTime": "2025-12-27T03:36:55.197Z",
+  "baseURL": "http://localhost:5173",
+  "testEnvironment": "development",
+  "userAgent": "PlaywrightUsabilityTest/1.0",
+  "locale": "pt-BR"
+}

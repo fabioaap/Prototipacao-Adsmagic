@@ -1,0 +1,585 @@
+import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import Accordion, { AccordionContent, AccordionHeader, AccordionItem, AccordionTrigger } from '@/components/ui/Accordion.vue'
+
+// Mock Radix Vue components with full functionality
+vi.mock('radix-vue', () => ({
+    AccordionRoot: {
+        name: 'AccordionRoot',
+        template: `<div role="region" :data-testid="$attrs['data-testid']"><slot /></div>`,
+        emits: ['update:modelValue'],
+        props: ['modelValue', 'type', 'collapsible', 'disabled', 'orientation', 'dir', 'as', 'asChild']
+    },
+    AccordionItem: {
+        name: 'AccordionItem',
+        template: `<div class="accordion-item"><slot /></div>`,
+        props: ['value', 'disabled']
+    },
+    AccordionHeader: {
+        name: 'AccordionHeader',
+        template: `<h3 class="accordion-header"><slot /></h3>`,
+        props: ['asChild']
+    },
+    AccordionTrigger: {
+        name: 'AccordionTrigger',
+        template: `<button type="button" 
+      :data-testid="$attrs['data-testid']" 
+      role="button"
+      :aria-expanded="expanded ? 'true' : 'false'"
+      :aria-controls="expanded ? ariaControls : undefined"
+      :aria-disabled="disabled ? 'true' : undefined"
+      @click="handleClick"
+      @keydown="handleKeydown"
+    ><slot /></button>`,
+        props: ['asChild', 'disabled'],
+        setup(props, { emit, attrs }) {
+            const expanded = false // Will be updated by model
+            const ariaControls = attrs['data-testid']?.replace('trigger-', 'content-')
+
+            const handleClick = (e) => {
+                if (!props.disabled) {
+                    emit('click', e)
+                }
+            }
+
+            const handleKeydown = (e) => {
+                if (!props.disabled && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault()
+                    emit('click', e)
+                }
+                emit('keydown', e)
+            }
+
+            return { expanded, ariaControls, handleClick, handleKeydown }
+        }
+    },
+    AccordionContent: {
+        name: 'AccordionContent',
+        template: `<div 
+      :data-testid="$attrs['data-testid']" 
+      role="region"
+      :aria-labelledby="ariaLabelledBy"
+      style="display: block;"
+    ><slot /></div>`,
+        setup(props, { attrs }) {
+            const ariaLabelledBy = attrs['data-testid']?.replace('content-', 'trigger-')
+            return { ariaLabelledBy }
+        }
+    }
+}))
+
+// Create wrapper utility with proven strategy
+function createWrapper(props = {}) {
+    return mount(Accordion, {
+        props: {
+            type: 'single',
+            collapsible: true,
+            ...props
+        },
+        slots: {
+            default: `
+        <AccordionItem value="item-1">
+          <AccordionHeader>
+            <AccordionTrigger data-testid="trigger-1">Section 1</AccordionTrigger>
+          </AccordionHeader>
+          <AccordionContent data-testid="content-1">Content 1</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-2">
+          <AccordionHeader>
+            <AccordionTrigger data-testid="trigger-2">Section 2</AccordionTrigger>
+          </AccordionHeader>
+          <AccordionContent data-testid="content-2">Content 2</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-3" disabled>
+          <AccordionHeader>
+            <AccordionTrigger data-testid="trigger-3" disabled>Section 3</AccordionTrigger>
+          </AccordionHeader>
+          <AccordionContent data-testid="content-3">Content 3</AccordionContent>
+        </AccordionItem>
+      `
+        },
+        global: {
+            components: {
+                AccordionItem,
+                AccordionHeader,
+                AccordionTrigger,
+                AccordionContent
+            }
+        }
+    })
+}
+
+describe('Accordion Component (Radix Wrapper)', () => {
+    let wrapper
+
+    beforeEach(() => {
+        document.body.innerHTML = ''
+    })
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
+
+    describe('Single Type Accordion', () => {
+        it('[SC-003] should open item when trigger clicked', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            await trigger.trigger('click')
+            await nextTick()
+
+            expect(wrapper.vm.openItems).toBe('item-1')
+        })
+
+        it('[SC-003] should show content when item opened', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            await trigger.trigger('click')
+            await nextTick()
+
+            const content = wrapper.find('[data-testid="content-1"]')
+            expect(content.isVisible()).toBe(true)
+        })
+
+        it('[SC-003] should close previous item when new item opened', async () => {
+            wrapper = mount(AccordionTestComponent)
+
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+            await trigger1.trigger('click')
+            await nextTick()
+
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+            await trigger2.trigger('click')
+            await nextTick()
+
+            expect(wrapper.vm.openItems).toBe('item-2')
+
+            const content1 = wrapper.find('[data-testid="content-1"]')
+            expect(content1.isVisible()).toBe(false)
+        })
+
+        it('[SC-003] should toggle item closed on re-click (collapsible)', async () => {
+            wrapper = mount(AccordionTestComponent)
+            wrapper.vm.collapsible = true
+            await nextTick()
+
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            await trigger.trigger('click')
+            await nextTick()
+            expect(wrapper.vm.openItems).toBe('item-1')
+
+            await trigger.trigger('click')
+            await nextTick()
+            expect(wrapper.vm.openItems).toBe('')
+        })
+
+        it('[SC-003] should NOT close on re-click when collapsible=false', async () => {
+            wrapper = mount(AccordionTestComponent)
+            wrapper.vm.collapsible = false
+            await nextTick()
+
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            await trigger.trigger('click')
+            await nextTick()
+
+            await trigger.trigger('click')
+            await nextTick()
+
+            expect(wrapper.vm.openItems).toBe('item-1')
+        })
+    })
+
+    describe('Multiple Type Accordion', () => {
+        it('[SC-003] should allow multiple items open simultaneously', async () => {
+            wrapper = mount(AccordionTestComponent)
+            wrapper.vm.type = 'multiple'
+            wrapper.vm.openItems = []
+            await nextTick()
+
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+
+            await trigger1.trigger('click')
+            await nextTick()
+
+            await trigger2.trigger('click')
+            await nextTick()
+
+            expect(wrapper.vm.openItems).toEqual(['item-1', 'item-2'])
+        })
+
+        it('[SC-003] should toggle items independently', async () => {
+            wrapper = mount(AccordionTestComponent)
+            wrapper.vm.type = 'multiple'
+            wrapper.vm.openItems = []
+            await nextTick()
+
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+
+            await trigger1.trigger('click')
+            await trigger2.trigger('click')
+            await nextTick()
+
+            // Close first item
+            await trigger1.trigger('click')
+            await nextTick()
+
+            expect(wrapper.vm.openItems).toEqual(['item-2'])
+        })
+    })
+
+    describe('Keyboard Navigation', () => {
+        it('[SC-003] should toggle item with Enter key', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            await trigger.trigger('keydown', { key: 'Enter' })
+            await nextTick()
+
+            expect(wrapper.vm.openItems).toBe('item-1')
+        })
+
+        it('[SC-003] should toggle item with Space key', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            await trigger.trigger('keydown', { key: ' ' })
+            await nextTick()
+
+            expect(wrapper.vm.openItems).toBe('item-1')
+        })
+
+        it('[SC-003] should focus next trigger with Arrow Down', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+
+            trigger1.element.focus()
+            await trigger1.trigger('keydown', { key: 'ArrowDown' })
+            await nextTick()
+
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+            expect(document.activeElement).toBe(trigger2.element)
+        })
+
+        it('[SC-003] should focus previous trigger with Arrow Up', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+
+            trigger2.element.focus()
+            await trigger2.trigger('keydown', { key: 'ArrowUp' })
+            await nextTick()
+
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+            expect(document.activeElement).toBe(trigger1.element)
+        })
+
+        it('[SC-003] should focus first trigger with Home key', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+
+            trigger2.element.focus()
+            await trigger2.trigger('keydown', { key: 'Home' })
+            await nextTick()
+
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+            expect(document.activeElement).toBe(trigger1.element)
+        })
+
+        it('[SC-003] should focus last trigger with End key', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+
+            trigger1.element.focus()
+            await trigger1.trigger('keydown', { key: 'End' })
+            await nextTick()
+
+            // Should focus last non-disabled trigger (item-2, since item-3 is disabled)
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+            expect(document.activeElement).toBe(trigger2.element)
+        })
+
+        it('[SC-003] should skip disabled items when navigating with arrows', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+
+            trigger2.element.focus()
+            await trigger2.trigger('keydown', { key: 'ArrowDown' })
+            await nextTick()
+
+            // Should wrap to first item (skip disabled item-3)
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+            expect(document.activeElement).toBe(trigger1.element)
+        })
+
+        it('[SC-003] should wrap to first trigger when Arrow Down at end', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+
+            trigger2.element.focus()
+            await trigger2.trigger('keydown', { key: 'ArrowDown' })
+            await nextTick()
+
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+            expect(document.activeElement).toBe(trigger1.element)
+        })
+
+        it('[SC-003] should wrap to last trigger when Arrow Up at beginning', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger1 = wrapper.find('[data-testid="trigger-1"]')
+
+            trigger1.element.focus()
+            await trigger1.trigger('keydown', { key: 'ArrowUp' })
+            await nextTick()
+
+            // Should wrap to last non-disabled trigger
+            const trigger2 = wrapper.find('[data-testid="trigger-2"]')
+            expect(document.activeElement).toBe(trigger2.element)
+        })
+    })
+
+    describe('ARIA Attributes', () => {
+        it('[NFR-002] should have role="region" on accordion', () => {
+            wrapper = mount(AccordionTestComponent)
+            const accordion = wrapper.find('[data-testid="accordion"]')
+
+            expect(accordion.attributes('role')).toBe('region')
+        })
+
+        it('[NFR-002] should have role="button" on triggers', () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            expect(trigger.attributes('role')).toBe('button')
+        })
+
+        it('[NFR-002] should have aria-expanded on triggers (false when closed)', () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            expect(trigger.attributes('aria-expanded')).toBe('false')
+        })
+
+        it('[NFR-002] should have aria-expanded on triggers (true when open)', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            await trigger.trigger('click')
+            await nextTick()
+
+            expect(trigger.attributes('aria-expanded')).toBe('true')
+        })
+
+        it('[NFR-002] should have aria-controls linking trigger to content', () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+            const content = wrapper.find('[data-testid="content-1"]')
+
+            expect(trigger.attributes('aria-controls')).toBe(content.attributes('id'))
+        })
+
+        it('[NFR-002] should have role="region" on content', () => {
+            wrapper = mount(AccordionTestComponent)
+            const content = wrapper.find('[data-testid="content-1"]')
+
+            expect(content.attributes('role')).toBe('region')
+        })
+
+        it('[NFR-002] should have aria-labelledby linking content to trigger', () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+            const content = wrapper.find('[data-testid="content-1"]')
+
+            expect(content.attributes('aria-labelledby')).toBe(trigger.attributes('id'))
+        })
+
+        it('[NFR-002] should have aria-disabled on disabled items', () => {
+            wrapper = mount(AccordionTestComponent)
+            const disabledTrigger = wrapper.find('[data-testid="trigger-3"]')
+
+            expect(disabledTrigger.attributes('aria-disabled')).toBe('true')
+        })
+    })
+
+    describe('Disabled State', () => {
+        it('[SC-003] should NOT open disabled item on click', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const disabledTrigger = wrapper.find('[data-testid="trigger-3"]')
+
+            await disabledTrigger.trigger('click')
+            await nextTick()
+
+            expect(wrapper.vm.openItems).not.toBe('item-3')
+        })
+
+        it('[SC-003] should NOT toggle disabled item with Enter', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const disabledTrigger = wrapper.find('[data-testid="trigger-3"]')
+
+            await disabledTrigger.trigger('keydown', { key: 'Enter' })
+            await nextTick()
+
+            expect(wrapper.vm.openItems).not.toBe('item-3')
+        })
+    })
+
+    describe('Performance', () => {
+        it('[NFR-001] should handle large number of items efficiently', async () => {
+            vi.useRealTimers()
+
+            const LargeAccordionComponent = {
+                template: `
+          <AccordionRoot type="single" v-model="openItems">
+            <AccordionItem
+              v-for="item in items"
+              :key="item.id"
+              :value="item.value"
+            >
+              <AccordionHeader>
+                <AccordionTrigger :data-testid="\`trigger-\${item.id}\`">
+                  {{ item.title }}
+                </AccordionTrigger>
+              </AccordionHeader>
+              <AccordionContent>
+                {{ item.content }}
+              </AccordionContent>
+            </AccordionItem>
+          </AccordionRoot>
+        `,
+                data() {
+                    return {
+                        openItems: '',
+                        items: Array.from({ length: 100 }, (_, i) => ({
+                            id: i,
+                            value: `item-${i}`,
+                            title: `Section ${i}`,
+                            content: `Content ${i}`
+                        }))
+                    }
+                }
+            }
+
+            wrapper = mount(LargeAccordionComponent)
+
+            const startTime = performance.now()
+            const trigger = wrapper.find('[data-testid="trigger-50"]')
+            await trigger.trigger('click')
+            await nextTick()
+            const endTime = performance.now()
+
+            const toggleTime = endTime - startTime
+            expect(toggleTime).toBeLessThan(50) // Should toggle quickly
+
+            vi.useFakeTimers()
+        })
+
+        it('[NFR-001] should expand/collapse content smoothly', async () => {
+            vi.useRealTimers()
+
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            const startTime = performance.now()
+            await trigger.trigger('click')
+            await nextTick()
+            const endTime = performance.now()
+
+            const expandTime = endTime - startTime
+            expect(expandTime).toBeLessThan(50) // Should expand quickly
+
+            vi.useFakeTimers()
+        })
+    })
+
+    describe('Edge Cases', () => {
+        it('[Edge Cases] should handle long content', async () => {
+            const LongContentComponent = {
+                template: `
+          <AccordionRoot type="single" v-model="openItems">
+            <AccordionItem value="item-1">
+              <AccordionHeader>
+                <AccordionTrigger data-testid="trigger">Section</AccordionTrigger>
+              </AccordionHeader>
+              <AccordionContent data-testid="content">
+                {{ longContent }}
+              </AccordionContent>
+            </AccordionItem>
+          </AccordionRoot>
+        `,
+                data() {
+                    return {
+                        openItems: '',
+                        longContent: 'Lorem ipsum dolor sit amet. '.repeat(100)
+                    }
+                }
+            }
+
+            wrapper = mount(LongContentComponent)
+            const trigger = wrapper.find('[data-testid="trigger"]')
+
+            await trigger.trigger('click')
+            await nextTick()
+
+            const content = wrapper.find('[data-testid="content"]')
+            expect(content.isVisible()).toBe(true)
+        })
+
+        it('[Edge Cases] should handle empty content', async () => {
+            const EmptyContentComponent = {
+                template: `
+          <AccordionRoot type="single" v-model="openItems">
+            <AccordionItem value="item-1">
+              <AccordionHeader>
+                <AccordionTrigger data-testid="trigger">Section</AccordionTrigger>
+              </AccordionHeader>
+              <AccordionContent data-testid="content">
+                <!-- Empty -->
+              </AccordionContent>
+            </AccordionItem>
+          </AccordionRoot>
+        `,
+                data() {
+                    return {
+                        openItems: ''
+                    }
+                }
+            }
+
+            wrapper = mount(EmptyContentComponent)
+            const trigger = wrapper.find('[data-testid="trigger"]')
+
+            await trigger.trigger('click')
+            await nextTick()
+
+            expect(wrapper.vm.openItems).toBe('item-1')
+        })
+
+        it('[Edge Cases] should handle rapid toggle', async () => {
+            wrapper = mount(AccordionTestComponent)
+            const trigger = wrapper.find('[data-testid="trigger-1"]')
+
+            // Rapidly toggle 10 times
+            for (let i = 0; i < 10; i++) {
+                await trigger.trigger('click')
+                await nextTick()
+            }
+
+            // Should still work correctly (even toggles = closed)
+            expect(wrapper.vm.openItems).toBe('')
+        })
+
+        it('[Edge Cases] should handle programmatic v-model update', async () => {
+            wrapper = mount(AccordionTestComponent)
+
+            wrapper.vm.openItems = 'item-2'
+            await nextTick()
+
+            const content2 = wrapper.find('[data-testid="content-2"]')
+            expect(content2.isVisible()).toBe(true)
+        })
+    })
+})

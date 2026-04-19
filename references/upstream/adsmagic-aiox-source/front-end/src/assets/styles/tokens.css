@@ -1,0 +1,172 @@
+/*
+ * Foundation tokens for UI symmetry.
+ * This file complements main.css and is intentionally small and stable.
+ */
+
+:root {
+  /* Attio-inspired spacing rhythm */
+  --sym-space-1: 4px;
+  --sym-space-2: 6px;
+  --sym-space-3: 8px;
+  --sym-space-4: 10px;
+  --sym-space-5: 12px;
+  --sym-space-6: 16px;
+  --sym-space-7: 24px;
+  --sym-space-8: 40px;
+  --sym-space-9: 56px;
+
+  /* Radius scale */
+  --sym-radius-sm: 6px;
+  --sym-radius-md: 8px;
+  --sym-radius-lg: 10px;
+
+  /* Typography rhythm */
+  --sym-font-size-1: 10px;
+  --sym-font-size-2: 12px;
+  --sym-font-size-3: 14px;
+  --sym-font-size-4: 16px;
+  --sym-font-size-5: 20px;
+
+  --sym-line-1: 15px;
+  --sym-line-2: 16px;
+  --sym-line-3: 20px;
+  --sym-line-4: 24px;
+
+  /* Control dimensions (buttons, inputs, dropdowns) */
+  --sym-control-height-sm: 36px;
+  --sym-control-height-md: 40px;
+  --sym-control-height-lg: 44px;
+
+  /* Layout shell */
+  --sym-shell-sidebar-width: 275px;
+  --sym-shell-header-height: 64px;
+  --sym-shell-content-max-md: 40rem;
+  --sym-shell-content-max-lg: 64rem;
+  --sym-shell-content-max-xl: 80rem;
+  --sym-shell-content-max-2xl: 87.5rem;
+  --sym-shell-gutter-mobile: var(--sym-space-6);
+  --sym-shell-gutter-tablet: var(--sym-space-7);
+  --sym-shell-gutter-desktop: var(--sym-space-7);
+
+  /* Bridge aliases to existing contract when needed */
+  --space-sym-1: var(--sym-space-1);
+  --space-sym-2: var(--sym-space-2);
+  --space-sym-3: var(--sym-space-3);
+  --space-sym-4: var(--sym-space-4);
+  --space-sym-5: var(--sym-space-5);
+  --space-sym-6: var(--sym-space-6);
+  --space-sym-7: var(--sym-space-7);
+  --space-sym-8: var(--sym-space-8);
+  --space-sym-9: var(--sym-space-9);
+}
+
+.sym-page-container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--sym-shell-gutter-mobile);
+}
+
+.sym-page-container--md {
+  max-width: var(--sym-shell-content-max-md);
+}
+
+.sym-page-container--lg {
+  max-width: var(--sym-shell-content-max-lg);
+}
+
+.sym-page-container--xl {
+  max-width: var(--sym-shell-content-max-xl);
+}
+
+.sym-page-container--2xl {
+  max-width: var(--sym-shell-content-max-2xl);
+}
+
+.sym-page-container--fluid {
+  max-width: none;
+}
+
+.sym-page-container--no-padding {
+  padding-inline: 0;
+}
+
+@media (min-width: 768px) {
+  .sym-page-container {
+    padding-inline: var(--sym-shell-gutter-tablet);
+  }
+}
+
+@media (min-width: 1280px) {
+  .sym-page-container {
+    padding-inline: var(--sym-shell-gutter-desktop);
+  }
+}
+
+/* ============================================================================
+   Utility Classes for Components
+   ============================================================================ */
+
+/* Button sizes */
+.sym-button-size-default {
+  height: var(--sym-control-height-md);
+  padding-left: var(--sym-space-6);
+  padding-right: var(--sym-space-6);
+  padding-top: var(--sym-space-3);
+  padding-bottom: var(--sym-space-3);
+}
+
+.sym-button-size-sm {
+  height: var(--sym-control-height-sm);
+  padding-left: var(--sym-space-5);
+  padding-right: var(--sym-space-5);
+  padding-top: var(--sym-space-2);
+  padding-bottom: var(--sym-space-2);
+}
+
+.sym-button-size-lg {
+  height: var(--sym-control-height-lg);
+  padding-left: var(--sym-space-8);
+  padding-right: var(--sym-space-8);
+  padding-top: var(--sym-space-3);
+  padding-bottom: var(--sym-space-3);
+}
+
+/* Input sizes */
+.sym-input-size-sm {
+  height: var(--sym-control-height-sm);
+  padding-left: var(--sym-space-5);
+  padding-right: var(--sym-space-5);
+  padding-top: var(--sym-space-2);
+  padding-bottom: var(--sym-space-2);
+  font-size: var(--sym-font-size-2);
+}
+
+.sym-input-size-md {
+  height: var(--sym-control-height-md);
+  padding-left: var(--sym-space-5);
+  padding-right: var(--sym-space-5);
+  padding-top: var(--sym-space-3);
+  padding-bottom: var(--sym-space-3);
+  font-size: var(--sym-font-size-3);
+}
+
+.sym-input-size-lg {
+  height: var(--sym-control-height-lg);
+  padding-left: var(--sym-space-6);
+  padding-right: var(--sym-space-6);
+  padding-top: var(--sym-space-3);
+  padding-bottom: var(--sym-space-3);
+  font-size: var(--sym-font-size-4);
+}
+
+/* Card padding */
+.sym-card-padded {
+  padding: var(--sym-space-7);
+}
+
+.sym-card-padded-half-top {
+  padding-top: 0;
+  padding-left: var(--sym-space-7);
+  padding-right: var(--sym-space-7);
+  padding-bottom: var(--sym-space-7);
+}
